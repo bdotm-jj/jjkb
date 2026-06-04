@@ -16,9 +16,9 @@ let KB_DATA = null
 async function loadKBData() {
   const { getCategories, getDocumentIndex, getRecent } = window.SupabaseAPI
   const [categories, table_index, recent] = await Promise.all([
-    getCategories(),
-    getDocumentIndex(),
-    getRecent(30),
+    getCategories().catch(e => { console.warn('categories:', e.message); return [] }),
+    getDocumentIndex().catch(e => { console.warn('index:', e.message); return [] }),
+    getRecent(30).catch(e => { console.warn('recent:', e.message); return [] }),
   ])
   KB_DATA = {
     categories,
