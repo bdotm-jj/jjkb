@@ -108,9 +108,9 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen === "search" && "active")} onClick={() => setScreen("search")}>
           <span className="dot"/> Search
         </div>
-        <div className={cx("nav-item", screen === "pods" && "active")} onClick={() => setScreen("pods")}>
-          <span className="dot"/> The Pods
-        </div>
+        <a className="nav-item" href="../pods/index.html" target="_blank" style={{ textDecoration: "none", color: "inherit" }}>
+          <span className="dot"/> The Pods ↗
+        </a>
       </div>
 
       <div className="nav-group">
@@ -220,25 +220,25 @@ function LiveRecentCard({ item, bookmarks, onOpen }) {
 function HomeScreen({ bookmarks, setScreen, weirdness }) {
   const data = window.KB_DATA;
 
-  // Featured = most-recent doc; spotlight = next 2; recently revised = recent feed
-  const featured   = data && data.table_index[0];
-  const spotlight  = data ? data.table_index.slice(1, 3) : [];
+  // Most recent 3 docs for "Latest SOPs" cards
+  const latestDocs = data ? data.table_index.slice(0, 3) : [];
+  // Recent feed — falls back to all docs ordered by date (fixed in supabase-api.js)
   const recentFeed = data ? data.recent.slice(0, 3) : [];
 
   const openDoc = (row) => row && row._id && setScreen("article:" + row._id);
+  const openRecent = (item) => item && item._id && setScreen("article:" + item._id);
 
   return (
     <div className="screen">
       <HomeHero/>
 
       <div className="section-head">
-        <h2 className="section-title">Featured this week</h2>
-        <div className="meta">Most recent · Live from Supabase</div>
+        <h2 className="section-title">Latest SOPs</h2>
+        <div className="meta">Most recent · Live from archive</div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
-        <LiveFeaturedCard row={featured} bookmarks={bookmarks} onOpen={() => openDoc(featured)}/>
-        {spotlight.map(row => (
-          <div key={row.doc} className="card" onClick={() => openDoc(row)}>
+        {latestDocs.map((row, i) => (
+          <div key={row.doc} className={cx("card", i === 0 && "feature")} onClick={() => openDoc(row)} style={{ cursor: "pointer" }}>
             <BookmarkBtn id={row.doc} bookmarks={bookmarks}/>
             <div className="cat">{row.cat} · {row.doc}</div>
             <h3>{row.title}</h3>
@@ -252,11 +252,11 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 
       <div className="section-head">
         <h2 className="section-title">Recently revised</h2>
-        <div className="meta">Last 30 days · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("recent"); }}>See all →</a></div>
+        <div className="meta">Latest updates · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("recent"); }}>See all →</a></div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
         {recentFeed.map((item, i) => (
-          <LiveRecentCard key={i} item={item} bookmarks={bookmarks} onOpen={() => {}}/>
+          <LiveRecentCard key={i} item={item} bookmarks={bookmarks} onOpen={() => openRecent(item)}/>
         ))}
       </div>
 
@@ -1047,7 +1047,6 @@ function App() {
     { id: "article", label: "Article reader" },
     { id: "search",  label: "Search" },
     { id: "recent",  label: "Recent" },
-    { id: "pods",    label: "The Pods" },
     { id: "edit",    label: "Admin — edit" },
   ];
 
@@ -1082,7 +1081,6 @@ function App() {
           {articleId  &&  <ArticleScreen  articleId={articleId}   bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>

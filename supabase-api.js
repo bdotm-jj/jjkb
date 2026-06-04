@@ -132,6 +132,7 @@ async function getDocumentIndex() {
     'documents?select=confluence_id,title,domain,owner,last_updated,tags,doc_type&order=last_updated.desc'
   )
   return rows.map(d => ({
+    _id: d.confluence_id,
     doc: buildDocId(d),
     title: d.title,
     cat: d.domain,
@@ -144,10 +145,15 @@ async function getDocumentIndex() {
 
 async function getRecent(days = 30) {
   const since = new Date(Date.now() - days * 86400000).toISOString()
-  const rows = await sbFetch(
+  let rows = await sbFetch(
     `documents?select=*&last_updated=gte.${since}&order=last_updated.desc`
   )
+  // Fall back to the 10 most recently updated docs if nothing in the window
+  if (!rows.length) {
+    rows = await sbFetch('documents?select=*&order=last_updated.desc&limit=10')
+  }
   return rows.map(d => ({
+    _id: d.confluence_id,
     when: relativeTime(d.last_updated),
     title: d.title,
     note: (d.body || '').slice(0, 80),
