@@ -1,5 +1,5 @@
 /* global React, ReactDOM */
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
 // ============================================================
 // HELPERS
@@ -11,9 +11,7 @@ function useBookmarks() {
     try { return JSON.parse(localStorage.getItem("jj_kb_bookmarks") || "[]"); }
     catch { return []; }
   });
-  useEffect(() => {
-    localStorage.setItem("jj_kb_bookmarks", JSON.stringify(ids));
-  }, [ids]);
+  useEffect(() => { localStorage.setItem("jj_kb_bookmarks", JSON.stringify(ids)); }, [ids]);
   const toggle = (id) => setIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const has = (id) => ids.includes(id);
   return { ids, toggle, has };
@@ -40,14 +38,15 @@ const Icon = {
       <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
     </svg>
   ),
-  plus: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M12 5v14M5 12h14"/>
-    </svg>
-  ),
   sliders: () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
       <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>
+    </svg>
+  ),
+  users: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
   ),
 };
@@ -58,14 +57,9 @@ const Icon = {
 function LoadingScreen() {
   return (
     <div style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100vh",
-      fontFamily: "var(--grotesk)",
-      color: "var(--ink-3)",
-      fontSize: 13,
-      letterSpacing: "0.08em",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      height: "100vh", fontFamily: "var(--grotesk)", color: "var(--ink-3)",
+      fontSize: 13, letterSpacing: "0.08em",
     }}>
       <span className="mono">Loading archive…</span>
     </div>
@@ -73,9 +67,9 @@ function LoadingScreen() {
 }
 
 // ============================================================
-// CHROME: TOPBAR + SIDEBAR
+// CHROME
 // ============================================================
-function TopBar({ onSearchNav, onOpenTweaks, currentScreen }) {
+function TopBar({ onSearchNav, onOpenTweaks }) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -84,11 +78,7 @@ function TopBar({ onSearchNav, onOpenTweaks, currentScreen }) {
       </div>
       <div className="topbar-search" onClick={onSearchNav}>
         <span className="sicon"><Icon.search/></span>
-        <input
-          readOnly
-          placeholder="Search the archive — SOPs, runbooks, role charters…"
-          onFocus={onSearchNav}
-        />
+        <input readOnly placeholder="Search the archive — SOPs, runbooks, role charters…" onFocus={onSearchNav}/>
         <span className="kbd">⌘K</span>
       </div>
       <div className="topbar-right">
@@ -118,11 +108,14 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen === "search" && "active")} onClick={() => setScreen("search")}>
           <span className="dot"/> Search
         </div>
+        <div className={cx("nav-item", screen === "pods" && "active")} onClick={() => setScreen("pods")}>
+          <span className="dot"/> The Pods
+        </div>
       </div>
 
       <div className="nav-group">
         <h4>Personal</h4>
-        <div className={cx("nav-item")}>
+        <div className="nav-item">
           <span className="dot"/> Bookmarks
           <span className="count">{String(bookmarks.ids.length).padStart(2, "0")}</span>
         </div>
@@ -167,7 +160,7 @@ function BookmarkBtn({ id, bookmarks, className }) {
 }
 
 // ============================================================
-// HERO (HOME)
+// HOME HERO
 // ============================================================
 function HomeHero() {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -175,53 +168,47 @@ function HomeHero() {
     <div className="hero">
       <div className="hero-top">
         <div className="eyebrow">
-          <span>Vol. XII</span>
-          <span>No. 04</span>
-          <span>Q2 — 2026</span>
+          <span>Vol. XII</span><span>No. 04</span><span>Q2 — 2026</span>
         </div>
         <div className="dateline">{today} · Newark, NJ</div>
       </div>
-      <h1>An archive <em>of</em>  the work,<br/>for the people doing the work.</h1>
+      <h1>An archive <em>of</em> the work,<br/>for the people doing the work.</h1>
       <p className="deck">
-        One source of truth for standard operating procedures across Claims, Underwriting, Product, Engineering,
-        Quality and People. Indexed, versioned, and quietly opinionated.
+        One source of truth for standard operating procedures across PMO, Engineering, Data &amp; Product,
+        and PL Pod. Indexed, versioned, and quietly opinionated.
       </p>
     </div>
   );
 }
 
 // ============================================================
-// CARDS
+// HOME CARDS — live data
 // ============================================================
-function FeaturedCard({ bookmarks, onOpen }) {
-  const id = "sop-fnol-2026";
+function LiveFeaturedCard({ row, bookmarks, onOpen }) {
+  if (!row) return null;
   return (
     <div className="card feature" onClick={onOpen}>
-      <BookmarkBtn id={id} bookmarks={bookmarks} />
-      <div className="cat">Featured · Claims · SOP-CLM-0041</div>
-      <h3>The First Notice of Loss procedure, revised for Q2.</h3>
-      <p>
-        A canonical re-read of the front door of every claim — now with updated cat-event windows,
-        channel-parity compliance, and new escalation paths for injury-involved reports.
-      </p>
+      <BookmarkBtn id={row.doc} bookmarks={bookmarks}/>
+      <div className="cat">Featured · {row.cat} · {row.doc}</div>
+      <h3>{row.title}</h3>
+      <p>The most recently updated document in the archive. Click to read the full procedure, including all sections and metadata.</p>
       <div className="meta-row">
-        <span>8 min read · v4.2</span>
-        <span>Updated Apr 18, 2026</span>
+        <span>{row.ver} · {row.owner}</span>
+        <span>Updated {row.updated}</span>
       </div>
     </div>
   );
 }
 
-function ArticleCard({ card, bookmarks, onOpen }) {
+function LiveRecentCard({ item, bookmarks, onOpen }) {
   return (
     <div className="card" onClick={onOpen}>
-      <BookmarkBtn id={card.id} bookmarks={bookmarks} />
-      <div className="cat">{card.cat}</div>
-      <h3>{card.title}</h3>
-      <p>{card.blurb}</p>
+      <div className="cat">{item.cat}</div>
+      <h3>{item.title}</h3>
+      <p>{item.note || "Recently updated document."}</p>
       <div className="meta-row">
-        <span>{card.read}</span>
-        <span>{card.date}</span>
+        <span>by {item.author}</span>
+        <span>{item.when}</span>
       </div>
     </div>
   );
@@ -232,22 +219,13 @@ function ArticleCard({ card, bookmarks, onOpen }) {
 // ============================================================
 function HomeScreen({ bookmarks, setScreen, weirdness }) {
   const data = window.KB_DATA;
-  const cards = [
-    { id: "c1", cat: "Engineering · Runbooks", title: "Sev 1 incident response, end to end.", blurb: "Declaration, commander assignment, comms cadence, post-mortem. For any platform event with customer impact.", read: "12 min read · v6.0", date: "Apr 07, 2026" },
-    { id: "c2", cat: "Underwriting · Appetite", title: "Commercial Auto, revised appetite.", blurb: "Three class codes retired. Hazmat haulers routed through specialty intake. Effective immediately.", read: "6 min read · v2.4", date: "Apr 09, 2026" },
-    { id: "c3", cat: "Quality · Release", title: "Post-release regression — the short version.", blurb: "The weekly QA gate: E2E coverage, performance thresholds, and the rollback ladder.", read: "5 min read · v1.8", date: "Apr 03, 2026" },
-  ];
 
-  // First row in the index becomes the article-reader target
-  const firstDocId = data && data.table_index.length ? data.table_index[0].doc : null;
-  const openFirst = () => {
-    if (firstDocId) {
-      // strip prefix to get confluence_id — stored as last segment after final dash pair
-      // We stored the raw confluence_id in _id; fall back to table row lookup
-      const row = data.table_index[0];
-      setScreen("article:" + row._id);
-    }
-  };
+  // Featured = most-recent doc; spotlight = next 2; recently revised = recent feed
+  const featured   = data && data.table_index[0];
+  const spotlight  = data ? data.table_index.slice(1, 3) : [];
+  const recentFeed = data ? data.recent.slice(0, 3) : [];
+
+  const openDoc = (row) => row && row._id && setScreen("article:" + row._id);
 
   return (
     <div className="screen">
@@ -255,26 +233,36 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 
       <div className="section-head">
         <h2 className="section-title">Featured this week</h2>
-        <div className="meta">Curated · Editors</div>
+        <div className="meta">Most recent · Live from Supabase</div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
-        <FeaturedCard bookmarks={bookmarks} onOpen={openFirst}/>
-        <ArticleCard card={cards[0]} bookmarks={bookmarks} onOpen={openFirst}/>
+        <LiveFeaturedCard row={featured} bookmarks={bookmarks} onOpen={() => openDoc(featured)}/>
+        {spotlight.map(row => (
+          <div key={row.doc} className="card" onClick={() => openDoc(row)}>
+            <BookmarkBtn id={row.doc} bookmarks={bookmarks}/>
+            <div className="cat">{row.cat} · {row.doc}</div>
+            <h3>{row.title}</h3>
+            <div className="meta-row">
+              <span>{row.ver} · {row.owner}</span>
+              <span>{row.updated}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="section-head">
         <h2 className="section-title">Recently revised</h2>
-        <div className="meta">Last 30 days · <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("recent");}}>See all →</a></div>
+        <div className="meta">Last 30 days · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("recent"); }}>See all →</a></div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
-        {cards.map(c => (
-          <ArticleCard key={c.id} card={c} bookmarks={bookmarks} onOpen={openFirst}/>
+        {recentFeed.map((item, i) => (
+          <LiveRecentCard key={i} item={item} bookmarks={bookmarks} onOpen={() => {}}/>
         ))}
       </div>
 
       <div className="section-head">
         <h2 className="section-title">The index</h2>
-        <div className="meta">All SOPs · <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("browse");}}>Browse categories →</a></div>
+        <div className="meta">All documents · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("browse"); }}>Browse categories →</a></div>
       </div>
       <table className="index-table">
         <thead>
@@ -289,7 +277,7 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
         </thead>
         <tbody>
           {data && data.table_index.map(r => (
-            <tr key={r.doc} onClick={() => r._id && setScreen("article:" + r._id)}>
+            <tr key={r.doc} onClick={() => r._id && setScreen("article:" + r._id)} style={{ cursor: r._id ? "pointer" : "default" }}>
               <td className="mono-cell">{r.doc}</td>
               <td className="doc">{r.title}<small>{r.cat}</small></td>
               <td>{r.owner}</td>
@@ -310,33 +298,26 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 // SCREEN: CATEGORIES BROWSE
 // ============================================================
 function BrowseScreen({ setScreen, weirdness }) {
-  const [hovered, setHovered] = useState(null);
   const data = window.KB_DATA;
   return (
     <div className="screen">
       <div className="crumbs-nav">
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("home");}}>Home</a>
-        <span className="sep">/</span>
-        <span>Categories</span>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>Categories</span>
       </div>
-
       <div className="hero" style={{ paddingBottom: 28, marginBottom: 32 }}>
         <div className="hero-top">
-          <div className="eyebrow"><span>Browse</span><span>All departments</span><span>{data ? data.categories.length : 0} categories</span></div>
+          <div className="eyebrow">
+            <span>Browse</span><span>All departments</span>
+            <span>{data ? data.categories.length : 0} categories</span>
+          </div>
         </div>
         <h1 style={{ fontSize: "clamp(40px, 5vw, 68px)" }}>The department <em>index</em>.</h1>
-        <p className="deck">Six departments, six languages, one shared operating system. Open any shelf.</p>
+        <p className="deck">Four domains, one shared operating system. Open any shelf.</p>
       </div>
-
       <div className="cat-grid">
         {data && data.categories.map(c => (
-          <div
-            key={c.id}
-            className="cat-tile"
-            onClick={() => setScreen("category:" + c.id)}
-            onMouseEnter={() => setHovered(c.id)}
-            onMouseLeave={() => setHovered(null)}
-          >
+          <div key={c.id} className="cat-tile" onClick={() => setScreen("category:" + c.id)}>
             <div className="cat-num">{c.num} — {c.count.toString().padStart(3, "0")} documents</div>
             <h3>{c.title} <em>{c.titleEm}</em></h3>
             <p className="cat-sub">{c.sub}</p>
@@ -347,7 +328,6 @@ function BrowseScreen({ setScreen, weirdness }) {
           </div>
         ))}
       </div>
-
       <MarqueeFooter weirdness={weirdness}/>
     </div>
   );
@@ -362,49 +342,39 @@ function CategoryScreen({ categoryId, setScreen, bookmarks, weirdness }) {
   const cat = data.categories.find(c => c.id === categoryId);
   if (!cat) return null;
   const rows = data.table_index.filter(r => (r.cat || '').toLowerCase().includes(cat.title.toLowerCase()));
-
   return (
     <div className="screen">
       <div className="crumbs-nav">
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("home");}}>Home</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
         <span className="sep">/</span>
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("browse");}}>Categories</a>
-        <span className="sep">/</span>
-        <span>{cat.title}</span>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("browse"); }}>Categories</a>
+        <span className="sep">/</span><span>{cat.title}</span>
       </div>
-
       <div className="hero">
         <div className="hero-top">
           <div className="eyebrow">
-            <span>Department {cat.num}</span>
-            <span>{cat.count} documents</span>
-            <span>Updated daily</span>
+            <span>Department {cat.num}</span><span>{cat.count} documents</span><span>Updated daily</span>
           </div>
         </div>
         <h1>{cat.title} <em>{cat.titleEm}</em></h1>
         <p className="deck">{cat.sub}</p>
       </div>
-
       <div className="section-head">
         <h2 className="section-title">All {cat.title.toLowerCase()} documents</h2>
         <div className="meta">{rows.length} showing · Sorted by recent</div>
       </div>
-
       {rows.length > 0 ? (
         <table className="index-table">
           <thead>
             <tr>
-              <th style={{ width: 130 }}>Doc ID</th>
-              <th>Title</th>
-              <th style={{ width: 140 }}>Owner</th>
-              <th style={{ width: 80 }}>Version</th>
-              <th style={{ width: 120 }}>Updated</th>
-              <th style={{ width: 100 }}>Status</th>
+              <th style={{ width: 130 }}>Doc ID</th><th>Title</th>
+              <th style={{ width: 140 }}>Owner</th><th style={{ width: 80 }}>Version</th>
+              <th style={{ width: 120 }}>Updated</th><th style={{ width: 100 }}>Status</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(r => (
-              <tr key={r.doc} onClick={() => r._id && setScreen("article:" + r._id)}>
+              <tr key={r.doc} onClick={() => r._id && setScreen("article:" + r._id)} style={{ cursor: r._id ? "pointer" : "default" }}>
                 <td className="mono-cell">{r.doc}</td>
                 <td className="doc">{r.title}</td>
                 <td>{r.owner}</td>
@@ -418,10 +388,9 @@ function CategoryScreen({ categoryId, setScreen, bookmarks, weirdness }) {
       ) : (
         <div className="empty-state">
           <h3>Nothing filed yet in {cat.title.toLowerCase()}.</h3>
-          <p>When a document is published, it arrives here. Until then, this shelf is deliberate about its emptiness.</p>
+          <p>When a document is published, it arrives here.</p>
         </div>
       )}
-
       <MarqueeFooter weirdness={weirdness}/>
     </div>
   );
@@ -436,44 +405,35 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
   const [helpful, setHelpful] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    setArticle(null);
+    setLoading(true); setArticle(null);
     window.SupabaseAPI.getArticle(articleId)
       .then(a => { setArticle(a); setLoading(false); })
       .catch(() => setLoading(false));
   }, [articleId]);
 
-  if (loading) {
-    return (
-      <div className="screen" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
-        <span className="mono ink-3">Loading document…</span>
+  if (loading) return (
+    <div className="screen" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
+      <span className="mono ink-3">Loading document…</span>
+    </div>
+  );
+  if (!article) return (
+    <div className="screen">
+      <div className="empty-state">
+        <h3>Document not found.</h3>
+        <p>This document may have been moved or removed from the archive.</p>
       </div>
-    );
-  }
-
-  if (!article) {
-    return (
-      <div className="screen">
-        <div className="empty-state">
-          <h3>Document not found.</h3>
-          <p>This document may have been moved or removed from the archive.</p>
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
 
   const weirdQuote = window.KB_STATIC.WEIRD_QUOTES[0];
-
   return (
     <div className="screen">
       <div className="crumbs-nav">
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("home");}}>Home</a>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
         <span className="sep">/</span>
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("category:" + article.categoryId);}}>{article.category}</a>
-        <span className="sep">/</span>
-        <span>{article.docId}</span>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("category:" + article.categoryId); }}>{article.category}</a>
+        <span className="sep">/</span><span>{article.docId}</span>
       </div>
-
       <div className="article-wrap">
         <aside className="article-toc">
           <h5>Contents</h5>
@@ -483,13 +443,10 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
             </a>
           ))}
         </aside>
-
         <main className="article-body">
           <div className="hero-top" style={{ marginBottom: 0 }}>
             <div className="eyebrow">
-              <span>{article.category}</span>
-              <span>{article.docId}</span>
-              <span>v{article.version}</span>
+              <span>{article.category}</span><span>{article.docId}</span><span>v{article.version}</span>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <BookmarkBtn id={article.id} bookmarks={bookmarks} className="static"/>
@@ -498,19 +455,15 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
           </div>
           <h1>{article.title}</h1>
           <p className="standfirst">{article.standfirst}</p>
-
           <div dangerouslySetInnerHTML={{ __html: article.body }}/>
-
           <div style={{ marginTop: 48, padding: "24px 0", borderTop: "1px solid var(--rule)", display: "flex", alignItems: "center", gap: 16 }}>
             <span className="eyebrow">Was this useful?</span>
             <button className={cx("btn", "sm", helpful === "yes" ? "" : "ghost")} onClick={() => setHelpful("yes")}>Yes</button>
             <button className={cx("btn", "sm", helpful === "no" ? "" : "ghost")} onClick={() => setHelpful("no")}>No</button>
             {helpful && <span className="ink-3" style={{ fontSize: 12, fontStyle: "italic", fontFamily: "var(--serif)" }}>— Noted. Your feedback goes to {article.owner}.</span>}
           </div>
-
           <span className="weird-quote">{weirdQuote}</span>
         </main>
-
         <aside className="article-meta">
           <div className="meta-block">
             <div className="edit-panel">
@@ -523,33 +476,23 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
               <div className="kv-row"><span className="k">Doc ID</span><span>{article.docId}</span></div>
             </div>
           </div>
-
           <div className="edit-panel">
             <h5>Tags</h5>
             <div className="tag-row">
               {article.tags.map(t => <span key={t} className="tag on">{t}</span>)}
             </div>
           </div>
-
           <div className="edit-panel">
             <h5>Related</h5>
             <div style={{ fontSize: 13, lineHeight: 1.6 }}>
               {article.related.map(id => (
-                <a key={id} href="#" style={{ display: "block", padding: "4px 0" }} onClick={(e) => { e.preventDefault(); setScreen("article:" + id); }}>{id}</a>
+                <a key={id} href="#" style={{ display: "block", padding: "4px 0" }}
+                   onClick={(e) => { e.preventDefault(); setScreen("article:" + id); }}>{id}</a>
               ))}
             </div>
           </div>
-
           <div className="meta-block weird-stamp" style={{ opacity: "calc(var(--weird))" }}>
-            <div style={{
-              border: "1.5px solid var(--accent)",
-              color: "var(--accent)",
-              padding: "16px",
-              textAlign: "center",
-              fontFamily: "var(--serif)",
-              fontStyle: "italic",
-              transform: "rotate(-2deg)"
-            }}>
+            <div style={{ border: "1.5px solid var(--accent)", color: "var(--accent)", padding: "16px", textAlign: "center", fontFamily: "var(--serif)", fontStyle: "italic", transform: "rotate(-2deg)" }}>
               <div style={{ fontFamily: "var(--mono)", fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6 }}>Certified Useful</div>
               <div style={{ fontSize: 14 }}>filed with care</div>
             </div>
@@ -584,32 +527,21 @@ function SearchScreen({ setScreen, weirdness }) {
   return (
     <div className="screen">
       <div className="crumbs-nav">
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("home");}}>Home</a>
-        <span className="sep">/</span>
-        <span>Search</span>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>Search</span>
       </div>
-
       <div className="search-query-bar">
         <span className="ink-4" style={{ fontFamily: "var(--serif)", fontSize: 36, fontStyle: "italic" }}>'</span>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="What are you looking for?"
-          autoFocus
-        />
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="What are you looking for?" autoFocus/>
         <span className="mono" style={{ color: "var(--ink-3)" }}>
           {searching ? "Searching…" : `${results.length} found`}
         </span>
       </div>
-
       <div className="search-filter-row">
         {filters.map(f => (
-          <button key={f} className={cx("filter-chip", filter === f && "active")} onClick={() => setFilter(f)}>
-            {f}
-          </button>
+          <button key={f} className={cx("filter-chip", filter === f && "active")} onClick={() => setFilter(f)}>{f}</button>
         ))}
       </div>
-
       {!query.trim() ? (
         <div className="empty-state">
           <h3>Start typing to search.</h3>
@@ -638,7 +570,6 @@ function SearchScreen({ setScreen, weirdness }) {
           ))}
         </div>
       )}
-
       <MarqueeFooter weirdness={weirdness}/>
     </div>
   );
@@ -652,18 +583,15 @@ function RecentScreen({ setScreen, weirdness }) {
   return (
     <div className="screen">
       <div className="crumbs-nav">
-        <a href="#" onClick={(e)=>{e.preventDefault(); setScreen("home");}}>Home</a>
-        <span className="sep">/</span>
-        <span>Recently updated</span>
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>Recently updated</span>
       </div>
-
       <div className="hero" style={{ paddingBottom: 24 }}>
         <div className="hero-top">
           <div className="eyebrow"><span>Activity</span><span>Rolling 30 days</span><span>All departments</span></div>
         </div>
         <h1 style={{ fontSize: "clamp(40px, 5vw, 68px)" }}>What <em>changed</em>.</h1>
       </div>
-
       <div>
         {data && data.recent.map((r, i) => (
           <div key={i} className="feed-row" style={{ cursor: "pointer" }}>
@@ -680,8 +608,247 @@ function RecentScreen({ setScreen, weirdness }) {
           </div>
         ))}
       </div>
-
       <MarqueeFooter weirdness={weirdness}/>
+    </div>
+  );
+}
+
+// ============================================================
+// SCREEN: PODS DIRECTORY
+// ============================================================
+function podNameMatches(name, query) {
+  return name.toLowerCase().includes(query.toLowerCase());
+}
+function podHasPerson(pod, personName) {
+  if (!personName) return false;
+  return Object.values(pod.roster).some(list => list.includes(personName));
+}
+function podTotalCount(pod) {
+  return Object.values(pod.roster).reduce((a, l) => a + (Array.isArray(l) ? l.length : 0), 0);
+}
+
+function PodPerson({ name, query, activePerson, onClick }) {
+  const isActive = activePerson === name;
+  const isHit = query && podNameMatches(name, query);
+  let label = name;
+  if (isHit && query) {
+    const i = name.toLowerCase().indexOf(query.toLowerCase());
+    label = (
+      <>
+        {name.slice(0, i)}
+        <mark style={{ background: "transparent", color: "var(--p-green-deep)", fontStyle: "italic", fontWeight: 600,
+          textDecoration: "underline", textDecorationColor: "var(--p-green)", textUnderlineOffset: "3px" }}>
+          {name.slice(i, i + query.length)}
+        </mark>
+        {name.slice(i + query.length)}
+      </>
+    );
+  }
+  return (
+    <button className={cx("person", isActive && "active")}
+      onClick={(e) => { e.stopPropagation(); onClick(name); }}>
+      {label}
+    </button>
+  );
+}
+
+function DossierCard({ pod, query, activePerson, onPersonClick }) {
+  const rows = [
+    { key: "PM",    list: pod.roster.PM    || [] },
+    { key: "PJM",   list: pod.roster.PJM   || [] },
+    { key: "Dev",   list: pod.roster.Dev   || [] },
+    { key: "QA",    list: pod.roster.QA    || [] },
+    ...(pod.roster.Other?.length ? [{ key: "Other", list: pod.roster.Other }] : [])
+  ];
+  return (
+    <div className="pod">
+      <span className="tick-bl"/><span className="tick-br"/>
+      <div className="pod-mark">
+        <div className="pod-name">{pod.name}</div>
+        <div className="pod-meta-stack">
+          <div className="pod-code">№ {pod.code}</div>
+          <div className="pod-lob">{pod.lob}</div>
+        </div>
+      </div>
+      <div className="roster">
+        {rows.map(({ key, list }) => (
+          <div className={cx("row", list.length === 0 && "empty")} key={key}>
+            <div className="role-key">
+              {key}<span style={{ marginLeft: 6, color: "var(--p-ink-40)" }}>{String(list.length).padStart(2, "0")}</span>
+            </div>
+            <div>
+              {list.length === 0 && <span style={{ fontFamily: "var(--p-serif)", fontStyle: "italic", color: "var(--p-ink-40)" }}>— vacant —</span>}
+              {list.map(n => (
+                <PodPerson key={n} name={n} query={query} activePerson={activePerson} onClick={onPersonClick}/>
+              ))}
+            </div>
+            <div className="role-rule"/>
+          </div>
+        ))}
+      </div>
+      <div className="pod-foot">
+        <span>Members</span>
+        <span>{podTotalCount(pod)}</span>
+      </div>
+    </div>
+  );
+}
+
+function PodsScreen({ setScreen }) {
+  const [query, setQuery] = useState("");
+  const [activePerson, setActivePerson] = useState(null);
+  const pods = window.PODS || [];
+  const pjms = window.PJMS || [];
+
+  const allPeople = useMemo(() => {
+    const set = new Set();
+    pods.forEach(p => Object.values(p.roster).forEach(l => l.forEach(n => set.add(n))));
+    return [...set];
+  }, [pods]);
+
+  const totalDevQa = useMemo(() =>
+    pods.reduce((a, p) => a + (p.roster.Dev || []).length + (p.roster.QA || []).length, 0),
+  [pods]);
+
+  const personOnPods = useMemo(() => {
+    if (!activePerson) return [];
+    return pods.filter(p => podHasPerson(p, activePerson)).map(p => p.name);
+  }, [activePerson, pods]);
+
+  const podActive = useCallback((pod) => {
+    if (query) {
+      const q = query.toLowerCase();
+      const nameHit = pod.name.toLowerCase().includes(q) || pod.lob.toLowerCase().includes(q);
+      const personHit = Object.values(pod.roster).some(list => list.some(n => podNameMatches(n, query)));
+      if (!nameHit && !personHit) return false;
+    }
+    if (activePerson && !podHasPerson(pod, activePerson)) return false;
+    return true;
+  }, [query, activePerson]);
+
+  const visibleCount = pods.filter(podActive).length;
+
+  const onPersonClick = useCallback((name) => {
+    setActivePerson(prev => prev === name ? null : name);
+  }, []);
+
+  return (
+    <div className="screen pods-screen">
+      <div className="crumbs-nav">
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>The Pods</span>
+      </div>
+
+      {/* ── MASTHEAD ── */}
+      <div className="pods-hero">
+        <div className="pods-hero-meta">
+          <div className="l">J&amp;J <strong>DIT</strong> — Internal Directory</div>
+          <div className="c">VOL. <strong>I</strong> · ISSUE <strong>05·29 / 2026</strong></div>
+          <div className="r">A Roster of Working Groups</div>
+        </div>
+        <div className="pods-hero-title">
+          <h1>The Pods<span className="amp">.</span></h1>
+          <div className="pods-hero-issue">
+            <span className="num">№ 09</span>
+            Pods on Record
+          </div>
+        </div>
+        <div className="pods-toc">
+          <div className="pods-toc-item">
+            <div className="pods-toc-num">I.</div>
+            <div className="pods-toc-head">Working Groups</div>
+            <div className="pods-toc-sub">{pods.length} pods, organized by line of business.</div>
+          </div>
+          <div className="pods-toc-item">
+            <div className="pods-toc-num">II.</div>
+            <div className="pods-toc-head">Project Managers</div>
+            <div className="pods-toc-sub">{pjms.length} PJMs across the org.</div>
+          </div>
+          <div className="pods-toc-item">
+            <div className="pods-toc-num">III.</div>
+            <div className="pods-toc-head">Engineering</div>
+            <div className="pods-toc-sub">{totalDevQa} Dev &amp; QA practitioners.</div>
+          </div>
+          <div className="pods-toc-item">
+            <div className="pods-toc-num">IV.</div>
+            <div className="pods-toc-head">Practice</div>
+            <div className="pods-toc-sub">{allPeople.length} unique people on the floor.</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── CONTROLS ── */}
+      <div className="pods-controls">
+        <div className={cx("pods-search", query && "has-value")}>
+          <span className="glyph">⌕</span>
+          <input
+            type="text"
+            placeholder="Search a name, a pod, a line of business…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button className="pods-clear" onClick={() => setQuery("")}>Clear</button>
+        </div>
+      </div>
+
+      <div className="pods-result-strip">
+        <div>
+          <span className="echo"><em>{visibleCount}</em> of {pods.length} pods shown</span>
+          {(query || activePerson) && <span style={{ marginLeft: 14, color: "var(--p-ink-40)" }}>· filters active</span>}
+        </div>
+        <div>Sourced from Smartsheet · Pods sheet</div>
+      </div>
+
+      {/* ── PERSON HIGHLIGHT ── */}
+      {activePerson && (
+        <div className="pods-highlight">
+          <div className="who"><em>Highlighting</em>{activePerson}</div>
+          <div className="meta">
+            Appears on {personOnPods.length} pod{personOnPods.length === 1 ? "" : "s"} · {personOnPods.join(" · ")}
+          </div>
+          <button className="pods-clear" onClick={() => setActivePerson(null)}>Clear</button>
+        </div>
+      )}
+
+      {/* ── GRID ── */}
+      <div className="pods-grid">
+        {pods.map((pod) => {
+          const active = podActive(pod);
+          const isHit = activePerson && podHasPerson(pod, activePerson);
+          return (
+            <div key={pod.id} className={cx("pod-cell", !active && "is-dim", isHit && "is-hit")}>
+              <DossierCard pod={pod} query={query} activePerson={activePerson} onPersonClick={onPersonClick}/>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── COLOPHON ── */}
+      <div className="pods-colophon">
+        <div>
+          <h4>On Method</h4>
+          <p>Each pod is a small, durable working group anchored by a Product Manager and a Project Manager,
+             supported by a Development Team and Quality Analysts. Pods are organized first by line of business,
+             second by initiative.</p>
+        </div>
+        <div>
+          <h4>Glossary</h4>
+          <ul className="pods-legend">
+            <li><code>PM</code> Product Manager</li>
+            <li><code>PJM</code> Project Manager</li>
+            <li><code>Dev</code> Software Engineer</li>
+            <li><code>QA</code> Quality Analyst</li>
+            <li><code>LOB</code> Line of Business</li>
+            <li><code>№</code> Pod Code</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="pods-signoff">
+        <div>J&amp;J Insurance · DIT</div>
+        <div className="pharrell">Quietly assembled, May 29 2026</div>
+        <div>Edition I · 05·29 · 26</div>
+      </div>
     </div>
   );
 }
@@ -695,38 +862,24 @@ function EditScreen({ weirdness }) {
   const [saved, setSaved] = useState(true);
   const [tags, setTags] = useState(["intake", "fnol", "sla"]);
   const allTags = ["intake", "fnol", "sla", "cross-channel", "compliance", "catastrophe", "fraud"];
-
-  const toggleTag = (t) => {
-    setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-    setSaved(false);
-  };
+  const toggleTag = (t) => { setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]); setSaved(false); };
   const onChangeAny = () => setSaved(false);
   useEffect(() => {
-    if (!saved) {
-      const t = setTimeout(() => setSaved(true), 1400);
-      return () => clearTimeout(t);
-    }
+    if (!saved) { const t = setTimeout(() => setSaved(true), 1400); return () => clearTimeout(t); }
   }, [saved, title, standfirst, tags]);
 
   return (
     <div className="screen">
       <div className="crumbs-nav" style={{ justifyContent: "space-between" }}>
         <div style={{ display: "flex", gap: 10 }}>
-          <span>Admin</span>
-          <span className="sep">/</span>
-          <span>Edit</span>
-          <span className="sep">/</span>
-          <span>SOP-CLM-0041</span>
+          <span>Admin</span><span className="sep">/</span><span>Edit</span><span className="sep">/</span><span>SOP-CLM-0041</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span className={cx("pill", saved ? "live" : "review")}>
-            {saved ? "Saved" : "Saving…"}
-          </span>
+          <span className={cx("pill", saved ? "live" : "review")}>{saved ? "Saved" : "Saving…"}</span>
           <button className="btn ghost sm">Preview</button>
           <button className="btn sm">Publish revision</button>
         </div>
       </div>
-
       <div className="edit-wrap">
         <div className="editor-shell">
           <div className="editor-toolbar">
@@ -736,7 +889,7 @@ function EditScreen({ weirdness }) {
             <button className="ed-btn u" title="Underline">U</button>
             <span className="ed-sep"/>
             <button className="ed-btn" title="List">≡</button>
-            <button className="ed-btn" title="Numbered list">1.</button>
+            <button className="ed-btn" title="Numbered">1.</button>
             <button className="ed-btn" title="Quote">"</button>
             <span className="ed-sep"/>
             <button className="ed-btn" title="Link">↗</button>
@@ -745,83 +898,44 @@ function EditScreen({ weirdness }) {
             <span className="ed-sep"/>
             <span className="mono ink-3" style={{ marginLeft: "auto" }}>1,284 words · 8 min read</span>
           </div>
-
           <div className="editor-page">
             <span className="eyebrow">Claims · SOP-CLM-0041 · v4.2 (draft)</span>
-            <input
-              type="text"
-              className="title-input"
-              value={title}
-              onChange={e => { setTitle(e.target.value); onChangeAny(); }}
-            />
-            <textarea
-              className="standfirst-input"
-              rows={2}
-              value={standfirst}
-              onChange={e => { setStandfirst(e.target.value); onChangeAny(); }}
-            />
-
+            <input type="text" className="title-input" value={title} onChange={e => { setTitle(e.target.value); onChangeAny(); }}/>
+            <textarea className="standfirst-input" rows={2} value={standfirst} onChange={e => { setStandfirst(e.target.value); onChangeAny(); }}/>
             <div className="ed-body" contentEditable suppressContentEditableWarning onInput={onChangeAny}>
-              <p>First Notice of Loss, hereafter "FNOL", is the formal record of a reported incident that may give rise to a covered claim. It is the canonical system-of-record entry point.</p>
+              <p>First Notice of Loss, hereafter "FNOL", is the formal record of a reported incident that may give rise to a covered claim.</p>
               <h3>Scope &amp; applicability</h3>
               <p>This SOP applies to all lines, all channels, and all business units operating under Johnson &amp; Johnson Insurance.</p>
               <h3>The procedure</h3>
-              <p>Verify identity, capture loss facts, assign reference, route, close. Each step has acceptance criteria documented in Appendix A.</p>
+              <p>Verify identity, capture loss facts, assign reference, route, close.</p>
               <p><em>Continue editing…</em></p>
             </div>
           </div>
         </div>
-
         <aside className="edit-side">
           <div className="edit-panel">
             <h5>Publishing</h5>
-            <div className="field">
-              <label>Status</label>
-              <select defaultValue="draft">
-                <option value="draft">Draft</option>
-                <option value="review">In review</option>
-                <option value="live">Live</option>
-              </select>
-            </div>
-            <div className="field">
-              <label>Version</label>
-              <input type="text" defaultValue="4.3"/>
-            </div>
-            <div className="field">
-              <label>Owner</label>
-              <select defaultValue="KM">
-                <option value="KM">K. Mbeki</option>
-                <option value="DC">D. Cho</option>
-                <option value="JA">J. Ayotte</option>
-              </select>
-            </div>
-            <div className="field">
-              <label>Review due</label>
-              <input type="text" defaultValue="Jul 15, 2026"/>
-            </div>
+            <div className="field"><label>Status</label><select defaultValue="draft"><option value="draft">Draft</option><option value="review">In review</option><option value="live">Live</option></select></div>
+            <div className="field"><label>Version</label><input type="text" defaultValue="4.3"/></div>
+            <div className="field"><label>Owner</label><select defaultValue="KM"><option value="KM">K. Mbeki</option><option value="DC">D. Cho</option><option value="JA">J. Ayotte</option></select></div>
+            <div className="field"><label>Review due</label><input type="text" defaultValue="Jul 15, 2026"/></div>
           </div>
-
           <div className="edit-panel">
             <h5>Tags</h5>
             <div className="tag-row">
-              {allTags.map(t => (
-                <span key={t} className={cx("tag", tags.includes(t) && "on")} onClick={() => toggleTag(t)}>{t}</span>
-              ))}
+              {allTags.map(t => <span key={t} className={cx("tag", tags.includes(t) && "on")} onClick={() => toggleTag(t)}>{t}</span>)}
             </div>
           </div>
-
           <div className="edit-panel">
             <h5>Revision history</h5>
             <div style={{ fontSize: 12 }}>
               <div className="kv-row"><span className="k">v4.2</span><span>Apr 18</span></div>
               <div className="kv-row"><span className="k">v4.1</span><span>Mar 02</span></div>
               <div className="kv-row"><span className="k">v4.0</span><span>Jan 11</span></div>
-              <div className="kv-row"><span className="k">v3.8</span><span>Nov 22</span></div>
             </div>
           </div>
         </aside>
       </div>
-
       <MarqueeFooter weirdness={weirdness}/>
     </div>
   );
@@ -847,49 +961,30 @@ function MarqueeFooter({ weirdness }) {
 function TweaksPanel({ open, onClose, palette, setPalette, weirdness, setWeirdness }) {
   const palettes = [
     { id: "bone",  name: "J&J Blue",  colors: ["#F2EDE2", "#0F1B2D", "#2E6DA4", "#A9C4DD"] },
-    { id: "ink",   name: "Ink",   colors: ["#14130F", "#F2EDE0", "#4A8BC2", "#A9C4DD"] },
-    { id: "cream", name: "Cream", colors: ["#F5F1E8", "#1A1A1A", "#2E6DA4", "#4A8BC2"] },
-    { id: "navy",  name: "Navy",  colors: ["#1A1F2E", "#EADDC4", "#6BA3D1", "#A9C4DD"] },
-    { id: "moss",  name: "Moss",  colors: ["#E4E4D8", "#1B1F15", "#4F5C2E", "#7B8A4A"] },
+    { id: "ink",   name: "Ink",       colors: ["#14130F", "#F2EDE0", "#4A8BC2", "#A9C4DD"] },
+    { id: "cream", name: "Cream",     colors: ["#F5F1E8", "#1A1A1A", "#2E6DA4", "#4A8BC2"] },
+    { id: "navy",  name: "Navy",      colors: ["#1A1F2E", "#EADDC4", "#6BA3D1", "#A9C4DD"] },
+    { id: "moss",  name: "Moss",      colors: ["#E4E4D8", "#1B1F15", "#4F5C2E", "#7B8A4A"] },
   ];
-
   return (
     <div className={cx("tweaks-panel", !open && "hidden")}>
-      <div className="tweaks-header">
-        <h4>Tweaks</h4>
-        <button className="close" onClick={onClose}>×</button>
-      </div>
+      <div className="tweaks-header"><h4>Tweaks</h4><button className="close" onClick={onClose}>×</button></div>
       <div className="tweaks-body">
         <div className="tweak-row">
           <label>Palette</label>
           <div className="palette-swatches">
             {palettes.map(p => (
-              <div
-                key={p.id}
-                className={cx("swatch", palette === p.id && "active")}
-                onClick={() => setPalette(p.id)}
-                title={p.name}
-              >
-                <span style={{ background: p.colors[0] }}/>
-                <span style={{ background: p.colors[1] }}/>
-                <span style={{ background: p.colors[2] }}/>
-                <span style={{ background: p.colors[3] }}/>
+              <div key={p.id} className={cx("swatch", palette === p.id && "active")} onClick={() => setPalette(p.id)} title={p.name}>
+                <span style={{ background: p.colors[0] }}/><span style={{ background: p.colors[1] }}/>
+                <span style={{ background: p.colors[2] }}/><span style={{ background: p.colors[3] }}/>
               </div>
             ))}
           </div>
         </div>
-
         <div className="tweak-row">
           <label>Weirdness dial — {weirdness}</label>
-          <input
-            type="range" min="0" max="100" value={weirdness}
-            className="weird-slider"
-            onChange={e => setWeirdness(parseInt(e.target.value, 10))}
-          />
-          <div className="weird-readout">
-            <span>Institutional</span>
-            <span>Off the rack</span>
-          </div>
+          <input type="range" min="0" max="100" value={weirdness} className="weird-slider" onChange={e => setWeirdness(parseInt(e.target.value, 10))}/>
+          <div className="weird-readout"><span>Institutional</span><span>Off the rack</span></div>
         </div>
       </div>
     </div>
@@ -899,10 +994,7 @@ function TweaksPanel({ open, onClose, palette, setPalette, weirdness, setWeirdne
 // ============================================================
 // APP
 // ============================================================
-const DEFAULT_TWEAKS = /*EDITMODE-BEGIN*/{
-  "palette": "bone",
-  "weirdness": 15
-}/*EDITMODE-END*/;
+const DEFAULT_TWEAKS = /*EDITMODE-BEGIN*/{ "palette": "bone", "weirdness": 15 }/*EDITMODE-END*/;
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -936,42 +1028,35 @@ function App() {
     return () => window.removeEventListener("message", onMsg);
   }, []);
 
-  const persistTweaks = (edits) => {
-    window.parent.postMessage({ type: "__edit_mode_set_keys", edits }, "*");
-  };
-  const changePalette = (p) => { setPalette(p); persistTweaks({ palette: p }); };
+  const persistTweaks = (edits) => window.parent.postMessage({ type: "__edit_mode_set_keys", edits }, "*");
+  const changePalette  = (p) => { setPalette(p);  persistTweaks({ palette: p }); };
   const changeWeirdness = (w) => { setWeirdness(w); persistTweaks({ weirdness: w }); };
 
   if (loading) return <LoadingScreen/>;
 
   const [, categoryId] = screen.startsWith("category:") ? screen.split(":") : [null, null];
-  const [, articleId] = screen.startsWith("article:") ? screen.split(":") : [null, null];
+  const [, articleId]  = screen.startsWith("article:")  ? screen.split(":") : [null, null];
 
   let screenBase = screen;
   if (screen.startsWith("category:")) screenBase = "browse";
-  if (screen.startsWith("article:")) screenBase = "article";
+  if (screen.startsWith("article:"))  screenBase = "article";
 
   const TABS = [
-    { id: "home", label: "Home" },
-    { id: "browse", label: "Categories" },
+    { id: "home",    label: "Home" },
+    { id: "browse",  label: "Categories" },
     { id: "article", label: "Article reader" },
-    { id: "search", label: "Search" },
-    { id: "recent", label: "Recent" },
-    { id: "edit", label: "Admin — edit" },
+    { id: "search",  label: "Search" },
+    { id: "recent",  label: "Recent" },
+    { id: "pods",    label: "The Pods" },
+    { id: "edit",    label: "Admin — edit" },
   ];
 
-  // pick the first real doc for the "Article reader" tab
   const firstDocId = window.KB_DATA && window.KB_DATA.table_index.length
-    ? window.KB_DATA.table_index[0]._id
-    : null;
+    ? window.KB_DATA.table_index[0]._id : null;
 
   return (
     <div className="app">
-      <TopBar
-        onSearchNav={() => setScreen("search")}
-        onOpenTweaks={() => setTweaksOpen(v => !v)}
-        currentScreen={screen}
-      />
+      <TopBar onSearchNav={() => setScreen("search")} onOpenTweaks={() => setTweaksOpen(v => !v)}/>
       <Sidebar screen={screen} setScreen={setScreen} bookmarks={bookmarks}/>
 
       <div className="main">
@@ -979,9 +1064,7 @@ function App() {
           {TABS.map(t => (
             <button
               key={t.id}
-              className={cx(
-                screenBase === t.id && "active",
-              )}
+              className={cx(screenBase === t.id && "active")}
               onClick={() => {
                 if (t.id === "article" && firstDocId) setScreen("article:" + firstDocId);
                 else setScreen(t.id);
@@ -993,24 +1076,20 @@ function App() {
         </div>
 
         <div className="main-inner" data-screen-label={screen}>
-          {screenBase === "home"    && <HomeScreen    bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "browse"  && !categoryId && <BrowseScreen setScreen={setScreen} weirdness={weirdness}/>}
-          {categoryId &&                 <CategoryScreen categoryId={categoryId} setScreen={setScreen} bookmarks={bookmarks} weirdness={weirdness}/>}
-          {articleId &&                  <ArticleScreen articleId={articleId} bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "search"  && <SearchScreen  setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "recent"  && <RecentScreen  setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "edit"    && <EditScreen    weirdness={weirdness}/>}
+          {screenBase === "home"   && <HomeScreen   bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "browse" && !categoryId && <BrowseScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {categoryId &&  <CategoryScreen categoryId={categoryId} setScreen={setScreen} bookmarks={bookmarks} weirdness={weirdness}/>}
+          {articleId  &&  <ArticleScreen  articleId={articleId}   bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
+          {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>
 
-      <TweaksPanel
-        open={tweaksOpen}
-        onClose={() => setTweaksOpen(false)}
-        palette={palette}
-        setPalette={changePalette}
-        weirdness={weirdness}
-        setWeirdness={changeWeirdness}
-      />
+      <TweaksPanel open={tweaksOpen} onClose={() => setTweaksOpen(false)}
+        palette={palette} setPalette={changePalette}
+        weirdness={weirdness} setWeirdness={changeWeirdness}/>
     </div>
   );
 }
