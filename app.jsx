@@ -739,10 +739,10 @@ const REPORTS = [
     period: "Reporting period · Apr 8 – 27, 2026", file: "reports/april-2026.html",
     summary: "The lightest month since the baseline began — three projects, closed in roughly half the usual time. One API integration ran long; the rest finished in two days or less.",
     stats: [{ value: "3", label: "Projects tested" }, { value: "4", label: "Completed tasks" }, { value: "4.7d", label: "Avg / project" }] },
-  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-03-31",
-    period: "Q1 2026 reference · Jan – Mar 2026", file: "reports/phase-duration-baseline.html",
-    summary: "The Q1 2026 reference benchmark. Establishes phase-duration norms across 17 projects and five lines of business, sourced from Smartsheet project plans.",
-    stats: [{ value: "17", label: "Projects" }, { value: "5", label: "Lines of business" }, { value: "5.4d", label: "Baseline avg" }] },
+  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-08-25",
+    period: "Q1 baseline → Q3 · refreshed Aug 25, 2026", file: "reports/phase-duration-baseline.html",
+    summary: "Phase-duration reference benchmark, refreshed monthly from Smartsheet project plans. The Q1 2026 baseline with Q2 and Q3 actuals now recorded; Q4 pending.",
+    stats: [{ value: "Q3", label: "Latest quarter" }, { value: "17", label: "Q3 projects" }, { value: "~32d", label: "Q3 avg days" }] },
 ];
 const REPORT_GROUPS = {
   uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
