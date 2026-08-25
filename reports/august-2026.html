@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cathy Parmley UAT Testing Report — August 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+    --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);}
+  .deck{position:relative;width:100vw;height:100vh;overflow:hidden;}
+  .slide{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    display:none;flex-direction:column;padding:48px 64px;
+    background:var(--bg);
+  }
+  .slide.active{display:flex;}
+  .slide-num{position:absolute;bottom:20px;right:32px;color:var(--ink-3);font-size:13px;font-family:var(--mono);letter-spacing:0.1em;}
+  h1{font-family:var(--serif);font-size:44px;line-height:1.05;color:var(--ink);margin:0 0 6px 0;font-weight:400;}
+  h2{font-family:var(--serif);font-size:32px;line-height:1.1;color:var(--ink);margin:0 0 20px 0;border-bottom:1px solid var(--rule);padding-bottom:10px;font-weight:400;}
+  .subtitle{color:var(--ink-3);font-size:15px;margin-bottom:20px;font-family:var(--mono);letter-spacing:0.04em;}
+  .cover{justify-content:center;align-items:flex-start;background:var(--bg);color:var(--ink);}
+  .cover h1{color:var(--ink);font-size:56px;max-width:900px;}
+  .cover .band{width:70px;height:3px;background:var(--accent);margin:18px 0 28px 0;}
+  .cover .lede{font-size:18px;color:var(--ink-2);max-width:750px;line-height:1.5;}
+  .stat-row{display:flex;gap:22px;margin-top:40px;flex-wrap:wrap;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:20px 26px;min-width:180px;}
+  .stat-card .num{font-family:var(--mono);font-size:32px;font-weight:500;color:var(--accent);}
+  .stat-card .lbl{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:6px;text-transform:uppercase;letter-spacing:0.1em;}
+  .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
+  .metric-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:18px 20px;border-left:3px solid var(--accent);}
+  .metric-box .val{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--ink);}
+  .metric-box .lbl{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:4px;text-transform:uppercase;letter-spacing:0.08em;}
+  .insights{display:flex;gap:16px;margin-bottom:24px;}
+  .insight{flex:1;background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:14px 16px;font-size:13.5px;line-height:1.45;color:var(--ink-2);}
+  .insight b{color:var(--ink-3);display:block;margin-bottom:4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-family:var(--mono);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--rule-soft);}
+  th{background:var(--bg-sunken);color:var(--ink-3);font-weight:600;font-size:11.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;}
+  tr:nth-child(even){background:var(--bg-raised);}
+  td.num,th.num{text-align:right;font-family:var(--mono);}
+  .baseline-table{margin-top:6px;}
+  .baseline-table td, .baseline-table th{padding:8px 12px;}
+  .delta-up{color:var(--hot);font-weight:700;}
+  .delta-down{color:var(--ok);font-weight:700;}
+  .chart-wrap{flex:1;min-height:0;position:relative;}
+  .content-row{display:flex;gap:28px;flex:1;min-height:0;}
+  .content-row .col{flex:1;display:flex;flex-direction:column;min-height:0;}
+  ul.findings{margin:0;padding-left:20px;}
+  ul.findings li{margin-bottom:12px;font-size:15px;line-height:1.5;color:var(--ink-2);}
+  ul.findings li b{color:var(--ink);}
+  .rec-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;font-size:14.5px;line-height:1.5;color:var(--ink-2);}
+  .rec-box b{color:var(--ink);}
+  .nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;z-index:10;background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius-lg);padding:6px 10px;}
+  .nav button{background:var(--accent);color:var(--bg-raised);border:none;border-radius:var(--radius);padding:9px 20px;font-size:13px;font-family:var(--mono);letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;}
+  .nav button:disabled{opacity:0.35;cursor:default;}
+  .nav .dots{display:flex;gap:6px;}
+  .nav .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-4);cursor:pointer;}
+  .nav .dot.active{background:var(--accent);}
+  .tag{display:inline-block;font-size:10px;font-weight:500;padding:3px 8px;border-radius:var(--radius);background:transparent;border:1px solid var(--accent);color:var(--accent);margin-left:8px;vertical-align:middle;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- SLIDE 1: COVER -->
+  <div class="slide cover active" data-slide="1">
+    <h1>Cathy Parmley UAT Testing Report<br>August 2026</h1>
+    <div class="band"></div>
+    <div class="lede">Monthly summary of user acceptance testing activity — round-by-round durations, project throughput, and trend comparison against the Nov 2025–Mar 2026 baseline.</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="num">10</div><div class="lbl">Projects Tested</div></div>
+      <div class="stat-card"><div class="num">18</div><div class="lbl">Total Tasks</div></div>
+      <div class="stat-card"><div class="num">8.9d</div><div class="lbl">Avg Total Days / Project</div></div>
+      <div class="stat-card"><div class="num">Apr 8 – Jul 27, 2026</div><div class="lbl">Date Range</div></div>
+    </div>
+    <div class="slide-num">1 / 5</div>
+  </div>
+
+  <!-- SLIDE 2: KEY METRICS -->
+  <div class="slide" data-slide="2">
+    <h2>Key Metrics <span class="tag">Current Period</span></h2>
+    <div class="metrics-grid">
+      <div class="metric-box"><div class="val">8.9 days</div><div class="lbl">Avg Project Total</div></div>
+      <div class="metric-box"><div class="val">6.3 days</div><div class="lbl">Avg R1 Duration</div></div>
+      <div class="metric-box"><div class="val">3.0 days</div><div class="lbl">Avg R2 Duration</div></div>
+      <div class="metric-box"><div class="val">Workflow Dashboard — 25d</div><div class="lbl">Longest Project</div></div>
+    </div>
+    <div class="insights">
+      <div class="insight"><b>Finding</b>Avg total testing duration rose to 8.9 days per project, an 11% increase over the Nov 2025–Mar 2026 baseline (8.0 days), driven mainly by longer R1 rounds.</div>
+      <div class="insight"><b>Outlier</b>Workflow Dashboard ran a 20‑day R1 and 25‑day total — the longest project in either period, 56% above the prior baseline high (RenRe, 16 days).</div>
+      <div class="insight"><b>Watch Item</b>Auto Renewals - PL (13d) and Markel Capacity Program (5d) each show only one completed round — no retest logged yet, so totals may still grow.</div>
+    </div>
+    <h2 style="font-size:19px;border-bottom:none;margin-bottom:10px;">Comparison vs Nov 2025 – Mar 2026 Baseline</h2>
+    <table class="baseline-table">
+      <tr><th>Metric</th><th class="num">Nov 2025 – Mar 2026 Baseline</th><th class="num">Current Period</th><th class="num">Δ vs Baseline</th></tr>
+      <tr><td>Avg Total Duration</td><td class="num">8.0 days</td><td class="num">8.9 days</td><td class="num delta-up">↑ +0.9d (+11.3%)</td></tr>
+      <tr><td>Avg R1 Duration</td><td class="num">4.8 days</td><td class="num">6.3 days</td><td class="num delta-up">↑ +1.5d (+31.9%)</td></tr>
+      <tr><td>Avg R2 Duration</td><td class="num">2.7 days</td><td class="num">3.0 days</td><td class="num delta-up">↑ +0.3d (+12.5%)</td></tr>
+      <tr><td>R1→R2 % Reduction</td><td class="num">-44.2%</td><td class="num">-52.4%</td><td class="num delta-down">↓ 8.2 pp steeper reduction</td></tr>
+      <tr><td>Projects Tested</td><td class="num">9</td><td class="num">10</td><td class="num delta-up">↑ +1 (+11.1%)</td></tr>
+    </table>
+    <div class="slide-num">2 / 5</div>
+  </div>
+
+  <!-- SLIDE 3: DURATION OVER TIME -->
+  <div class="slide" data-slide="3">
+    <h2>Testing Duration Over Time <span class="tag">Current Period</span></h2>
+    <div class="subtitle">Total testing days per project, ordered by start date. Dashed line = average (8.9 days).</div>
+    <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+    <div class="slide-num">3 / 5</div>
+  </div>
+
+  <!-- SLIDE 4: R1 vs R2 vs R3 -->
+  <div class="slide" data-slide="4">
+    <h2>R1 vs R2 vs R3 Comparison <span class="tag">Current Period</span></h2>
+    <div class="content-row">
+      <div class="col" style="flex:1.1;">
+        <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+      </div>
+      <div class="col" style="flex:1.3;overflow:auto;">
+        <table>
+          <tr><th>Project</th><th class="num">R1</th><th class="num">R2</th><th class="num">R3</th><th class="num">Total</th></tr>
+          <tr><td>Scottsdale API</td><td class="num">10</td><td class="num">5</td><td class="num">6</td><td class="num"><b>21</b></td></tr>
+          <tr><td>Atrium - PL</td><td class="num">1</td><td class="num">1</td><td class="num">2</td><td class="num"><b>4</b></td></tr>
+          <tr><td>GLISE Forms API</td><td class="num">2</td><td class="num">–</td><td class="num">–</td><td class="num"><b>2</b></td></tr>
+          <tr><td>Munich RE</td><td class="num">4</td><td class="num">2</td><td class="num">–</td><td class="num"><b>6</b></td></tr>
+          <tr><td>Workflow Dashboard</td><td class="num">20</td><td class="num">5</td><td class="num">–</td><td class="num"><b>25</b></td></tr>
+          <tr><td>RenRe Personal Lines</td><td class="num">2</td><td class="num">3</td><td class="num">–</td><td class="num"><b>5</b></td></tr>
+          <tr><td>Markel Capacity Program</td><td class="num">5</td><td class="num">–</td><td class="num">–</td><td class="num"><b>5</b></td></tr>
+          <tr><td>Chubb Local Rating</td><td class="num">5</td><td class="num">2</td><td class="num">–</td><td class="num"><b>7</b></td></tr>
+          <tr><td>HVH GLISE Contract Phase 1</td><td class="num">1</td><td class="num">–</td><td class="num">–</td><td class="num"><b>1</b></td></tr>
+          <tr><td>Auto Renewals - PL</td><td class="num">13</td><td class="num">–</td><td class="num">–</td><td class="num"><b>13</b></td></tr>
+          <tr style="background:var(--bg-sunken);font-weight:700;"><td>Average</td><td class="num">6.3</td><td class="num">3.0</td><td class="num">4.0</td><td class="num">8.9</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="slide-num">4 / 5</div>
+  </div>
+
+  <!-- SLIDE 5: FINDINGS & RECOMMENDATIONS -->
+  <div class="slide" data-slide="5">
+    <h2>Key Findings & Recommendations</h2>
+    <div class="content-row">
+      <div class="col">
+        <h2 style="font-size:17px;border-bottom:none;margin-bottom:8px;color:var(--ink);">Findings vs Nov 2025 – Mar 2026 Baseline</h2>
+        <ul class="findings">
+          <li><b>Total duration is up 11%.</b> Avg project total rose from 8.0 to 8.9 days, with the increase concentrated almost entirely in R1.</li>
+          <li><b>R1 duration up 32%</b> (4.8d → 6.3d) while R2 grew a more modest 12% (2.7d → 3.0d) — first‑round testing is taking meaningfully longer even as retests hold roughly steady.</li>
+          <li><b>R1→R2 reduction steepened</b> from 44.2% to 52.4% — once a project reaches a second round, testing tightens up faster than in the baseline period, suggesting the bottleneck is concentrated at R1 rather than in the retest process.</li>
+          <li><b>Workflow Dashboard is a clear outlier</b> at 25 total days (20‑day R1) — nearly 3x the current‑period average and 56% above the prior baseline high (RenRe, 16 days).</li>
+          <li><b>Fewer but larger engagements:</b> projects tested rose from 9 to 10, while total tasks fell from 23 to 18 — this period's testing load is concentrated in fewer, longer efforts rather than many short ones.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h2 style="font-size:17px;border-bottom:none;margin-bottom:8px;color:var(--ink);">Recommendations</h2>
+        <div class="rec-box"><b>1. Investigate R1 scope/defect drivers.</b> Review Workflow Dashboard, Scottsdale API, and Auto Renewals - PL to determine whether expanded scope, higher defect volume, or resourcing gaps are extending first‑round testing.</div>
+        <div class="rec-box"><b>2. Track pending retests.</b> Auto Renewals - PL and Markel Capacity Program have logged only one round each — confirm whether additional rounds are planned, as their totals are likely understated.</div>
+        <div class="rec-box"><b>3. Protect R2 retest discipline.</b> R2 durations remain close to baseline; use current retest practices as the model while addressing R1 inflation rather than adding process overhead to the retest stage.</div>
+      </div>
+    </div>
+    <div class="slide-num">5 / 5</div>
+  </div>
+
+</div>
+
+<div class="nav">
+  <button id="prevBtn" onclick="go(-1)">‹ Prev</button>
+  <div class="dots" id="dots"></div>
+  <button id="nextBtn" onclick="go(1)">Next ›</button>
+</div>
+
+<script>
+let current = 1;
+const total = 5;
+const dotsEl = document.getElementById('dots');
+for(let i=1;i<=total;i++){
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===1?' active':'');
+  d.onclick = () => showSlide(i);
+  d.id = 'dot-'+i;
+  dotsEl.appendChild(d);
+}
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.slide[data-slide="'+n+'"]').classList.add('active');
+  document.querySelectorAll('.dot').forEach(d=>d.classList.remove('active'));
+  document.getElementById('dot-'+n).classList.add('active');
+  document.getElementById('prevBtn').disabled = n===1;
+  document.getElementById('nextBtn').disabled = n===total;
+  current = n;
+}
+function go(delta){
+  const n = current + delta;
+  if(n>=1 && n<=total) showSlide(n);
+}
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowRight') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+});
+showSlide(1);
+
+const projLabels = ['Scottsdale API','Atrium - PL','GLISE Forms API','Munich RE','Workflow Dashboard','RenRe Personal Lines','Markel Capacity Program','Chubb Local Rating','HVH GLISE Contract Phase 1','Auto Renewals - PL'];
+const projTotals = [21,4,2,6,25,5,5,7,1,13];
+const avgTotal = 8.9;
+
+window.addEventListener('load', function(){
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: projLabels,
+      datasets: [
+        {
+          label: 'Total Testing Days',
+          data: projTotals,
+          borderColor: '#2E6DA4',
+          backgroundColor: 'rgba(46,109,164,0.15)',
+          fill: true,
+          tension: 0.25,
+          pointRadius: 5,
+          pointBackgroundColor: '#C24B1E'
+        },
+        {
+          label: 'Average (8.9d)',
+          data: new Array(projLabels.length).fill(avgTotal),
+          borderColor: '#97A0B2',
+          borderDash: [6,4],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { color: '#5C6A80' } },
+        tooltip: { backgroundColor: '#0F1B2D', bodyColor: 'rgba(242,237,224,0.85)', titleColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: { ticks: { autoSkip:false, maxRotation:35, minRotation:20, font:{size:11}, color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } },
+        y: { title:{display:true,text:'Days',color:'#5C6A80'}, beginAtZero:true, ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: ['R1', 'R2', 'R3'],
+      datasets: [{
+        label: 'Avg Duration (days)',
+        data: [6.3, 3.0, 4.0],
+        backgroundColor: ['#2E6DA4', '#3D6B3D', '#B5860D'],
+        borderRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title:{display:true, text:'Avg Round Duration — Current Period', color:'#5C6A80'},
+        tooltip: { backgroundColor: '#0F1B2D', bodyColor: 'rgba(242,237,224,0.85)', titleColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: { ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } },
+        y: { title:{display:true,text:'Days',color:'#5C6A80'}, beginAtZero:true, ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

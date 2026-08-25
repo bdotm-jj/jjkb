@@ -719,6 +719,14 @@ function PodsScreen({ setScreen }) {
 // month: drop the file in site/reports/ and add one entry below.
 // ============================================================
 const REPORTS = [
+  { id: "august-2026", group: "uat", kind: "monthly", title: "August 2026", date: "2026-08-01",
+    period: "Current period · Apr 8 – Jul 27, 2026", file: "reports/august-2026.html",
+    summary: "Average total testing duration rose to 8.9 days per project — an 11% increase over the Nov 2025–Mar 2026 baseline (8.0d), driven mainly by longer R1 rounds.",
+    stats: [{ value: "10", label: "Projects tested" }, { value: "18", label: "Total tasks" }, { value: "8.9d", label: "Avg / project" }, { value: "+11%", label: "vs baseline" }] },
+  { id: "july-2026", group: "uat", kind: "monthly", title: "July 2026", date: "2026-07-01",
+    period: "Current period · Apr 8 – Jun 15, 2026", file: "reports/july-2026.html",
+    summary: "Nine projects cleared testing at 6.44 days average per project — steady throughput across the current period ahead of the late-summer integration push.",
+    stats: [{ value: "9", label: "Projects tested" }, { value: "15", label: "Total tasks" }, { value: "6.44d", label: "Avg / project" }] },
   { id: "june-2026", group: "uat", kind: "monthly", title: "June 2026", date: "2026-06-01",
     period: "Current period · Apr 1 – Jun 1, 2026", file: "reports/june-2026.html",
     summary: "Testing efficiency improved sharply — average project duration fell 40% versus the Nov–Mar baseline. Scottsdale API remains an outlier at 10 days in R1.",
