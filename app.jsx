@@ -143,6 +143,16 @@ function Sidebar({ screen, setScreen, bookmarks }) {
       </div>
 
       <div className="nav-group">
+        <h4>Reports</h4>
+        <div className={cx("nav-item", screen === "phasereport" && "active")} onClick={() => setScreen("phasereport")}>
+          <span className="dot"/> Phase Duration
+        </div>
+        <div className={cx("nav-item", screen === "cathyreport" && "active")} onClick={() => setScreen("cathyreport")}>
+          <span className="dot"/> Cathy Parmley UAT
+        </div>
+      </div>
+
+      <div className="nav-group">
         <h4>Admin</h4>
         <div className={cx("nav-item", screen === "edit" && "active")} onClick={() => setScreen("edit")}>
           <span className="dot"/> Edit an article
@@ -685,6 +695,73 @@ function PodsScreen({ setScreen }) {
 }
 
 // ============================================================
+// SCREEN: REPORT (embedded monthly report)
+// Monthly reports are self-contained, KB-styled HTML files hosted in
+// site/reports/ (same-origin), embedded as internal tabs. They are
+// swapped in-place each month — the portal just points at the file.
+// autoResize=true  → scrolling document (Phase Duration): fit to content.
+// autoResize=false → fixed-viewport slide deck (Cathy UAT): fixed height.
+// ============================================================
+function ReportScreen({ setScreen, src, title, crumb, autoResize }) {
+  const frameRef = useRef(null);
+
+  const fitFrame = useCallback(() => {
+    const frame = frameRef.current;
+    if (!frame || !autoResize) return;
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || !doc.documentElement) return;
+      frame.style.height = doc.documentElement.scrollHeight + "px";
+    } catch { /* cross-origin (local file://) — keep min-height */ }
+  }, [autoResize]);
+
+  const onLoad = useCallback(() => {
+    if (!autoResize) return;
+    const frame = frameRef.current;
+    fitFrame();
+    try {
+      const doc = frame.contentDocument;
+      if (!doc) return;
+      const ro = new ResizeObserver(fitFrame);
+      ro.observe(doc.documentElement);
+      const mo = new MutationObserver(fitFrame);
+      mo.observe(doc.body, { childList: true, subtree: true });
+      frame._observers = { ro, mo };
+    } catch { /* isolated origin */ }
+  }, [autoResize, fitFrame]);
+
+  useEffect(() => () => {
+    const frame = frameRef.current;
+    if (frame && frame._observers) {
+      frame._observers.ro.disconnect();
+      frame._observers.mo.disconnect();
+    }
+  }, []);
+
+  return (
+    <div className="screen">
+      <div className="crumbs-nav">
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>Reports</span>
+        <span className="sep">/</span><span>{crumb}</span>
+      </div>
+      <iframe
+        ref={frameRef}
+        src={src}
+        title={title}
+        onLoad={onLoad}
+        style={{
+          width: "100%",
+          height: autoResize ? undefined : "82vh",
+          minHeight: autoResize ? 900 : 620,
+          border: "none", display: "block", background: "var(--bg)",
+        }}
+      />
+    </div>
+  );
+}
+
+// ============================================================
 // SCREEN: ADMIN EDIT
 // ============================================================
 function EditScreen({ weirdness }) {
@@ -879,6 +956,8 @@ function App() {
     { id: "search",  label: "Search" },
     { id: "recent",  label: "Recent" },
     { id: "pods",    label: "Pods" },
+    { id: "phasereport", label: "Phase report" },
+    { id: "cathyreport", label: "Cathy UAT" },
     { id: "edit",    label: "Admin — edit" },
   ];
 
@@ -914,6 +993,12 @@ function App() {
           {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
+          {screenBase === "phasereport" && <ReportScreen setScreen={setScreen}
+            src="reports/phase-duration-baseline.html" title="Phase Duration Baseline"
+            crumb="Phase Duration Baseline" autoResize={true}/>}
+          {screenBase === "cathyreport" && <ReportScreen setScreen={setScreen}
+            src="reports/cathy-parmley-uat.html" title="Cathy Parmley UAT Testing Report"
+            crumb="Cathy Parmley UAT" autoResize={false}/>}
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>

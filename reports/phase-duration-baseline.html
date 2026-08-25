@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase Duration — Project Type Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+  --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+  --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+  --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+  --hot:#C24B1E; --ok:#3D6B3D;
+  --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+  --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --radius:2px; --radius-lg:4px;
+
+  /* aliases the inline JS styles reference */
+  --ink3:#5C6A80;
+
+  /* classification category encodings — DO NOT recolor */
+  --carrier:  #1B4F8A;
+  --newui:    #C4521A;
+  --mars:     #2A7A4B;
+  --support:  #7B3F9E;
+  --third:    #B5860D;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--grotesk);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--bg);
+  color: var(--ink);
+  padding: 40px 52px 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 2px solid var(--ink);
+}
+.header-left {}
+.header-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.header h1 {
+  font-family: var(--serif);
+  font-size: 54px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.98;
+  color: var(--ink);
+}
+.header h1 em {
+  color: var(--accent);
+  font-style: italic;
+}
+.header-right {
+  text-align: right;
+}
+.header-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.header-note {
+  font-size: 12px;
+  color: var(--ink-2);
+  max-width: 260px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ── LEGEND ── */
+.legend-bar {
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--rule-soft);
+  padding: 14px 52px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.legend-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  transition: background 0.15s, border-color 0.15s;
+}
+.legend-item:hover { background: var(--bg-sunken); }
+.legend-item.active { background: var(--bg-sunken); border-color: var(--rule-soft); }
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.legend-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* ── MAIN ── */
+.main { padding: 36px 52px 52px; }
+
+/* ── VIEW TOGGLE ── */
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  align-items: center;
+}
+.view-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.toggle-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 7px 16px;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.toggle-btn:hover { border-color: var(--accent-soft); color: var(--ink); }
+.toggle-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* ── CHART VIEWS ── */
+.chart-view { display: none; }
+.chart-view.visible { display: block; }
+
+/* ── GROUPED BAR CHART ── */
+.chart-wrap {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  padding: 28px 32px 24px;
+  margin-bottom: 24px;
+}
+.chart-title {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.chart-title em { color: var(--accent); font-style: italic; }
+.chart-sub {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* SVG chart area */
+.chart-svg-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+svg.bar-chart {
+  display: block;
+  width: 100%;
+}
+
+/* ── PHASE LANE VIEW ── */
+.lane-section { margin-bottom: 32px; }
+.lane-phase-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.lane-phase-name {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.lane-phase-avg-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lane-rows { display: flex; flex-direction: column; gap: 8px; }
+.lane-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 60px;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.lane-cls-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lane-cls-dot {
+  width: 8px; height: 8px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.lane-bar-wrap {
+  position: relative;
+  height: 22px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.lane-bar-fill {
+  height: 100%;
+  border-radius: var(--radius);
+  transition: width 0.6s cubic-bezier(0.22,0.61,0.36,1);
+  position: relative;
+}
+.lane-bar-fill::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--bg);
+  font-weight: 500;
+}
+.lane-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--ink);
+  text-align: right;
+}
+.lane-val small {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-4);
+  display: block;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.lane-empty {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* ── HEAT MAP ── */
+.heatmap-wrap {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  overflow-x: auto;
+}
+table.heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+}
+.heatmap th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 6px 12px;
+  text-align: center;
+  font-weight: 500;
+}
+.heatmap th.phase-th {
+  text-align: left;
+  min-width: 180px;
+}
+.heatmap td {
+  padding: 0;
+  border-radius: var(--radius);
+  text-align: center;
+  vertical-align: middle;
+  height: 52px;
+  min-width: 110px;
+}
+.hm-cell {
+  padding: 8px 10px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--radius);
+}
+.hm-cell.has-data {
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.hm-cell.has-data:hover { opacity: 0.85; transform: scale(1.03); }
+.hm-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.hm-n {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  margin-top: 3px;
+}
+.hm-empty {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-4);
+}
+.hm-phase-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 8px;
+}
+
+/* ── INSIGHT CARDS ── */
+.insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+.insight-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  padding: 20px 22px 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.insight-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.insight-card.carrier::before { background: var(--carrier); }
+.insight-card.newui::before  { background: var(--newui); }
+.insight-card.mars::before   { background: var(--mars); }
+.insight-card.compare::before { background: var(--accent); }
+.insight-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.insight-stat {
+  font-family: var(--serif);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+.insight-desc {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.insight-desc strong { color: var(--ink); font-weight: 600; }
+
+/* ── PROJECT DETAIL VIEW ── */
+.detail-intro {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.detail-key {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+.detail-key.faster  { background: rgba(61,107,61,0.10);  color: var(--ok);     border: 1px solid rgba(61,107,61,0.35); }
+.detail-key.slower  { background: rgba(194,75,30,0.10);  color: var(--hot);    border: 1px solid rgba(194,75,30,0.35); }
+.detail-key.neutral { background: var(--bg-sunken);      color: var(--ink-3);  border: 1px solid var(--rule-soft); }
+
+.detail-cls-block {
+  margin-bottom: 32px;
+}
+.detail-cls-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid var(--rule-soft);
+  border-bottom: none;
+  background: var(--bg-raised);
+}
+.detail-cls-swatch {
+  width: 12px; height: 12px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.detail-cls-name {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.detail-cls-summary {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Project detail table */
+.detail-table-wrap {
+  border: 1px solid var(--rule-soft);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow-x: auto;
+  background: var(--bg-raised);
+}
+table.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.detail-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 10px 14px;
+  text-align: center;
+  border-bottom: 1px solid var(--rule-soft);
+  background: var(--bg-sunken);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.detail-table th.proj-col {
+  text-align: left;
+  min-width: 180px;
+  position: sticky;
+  left: 0;
+  background: var(--bg-sunken);
+  z-index: 2;
+}
+.detail-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule-soft);
+  text-align: center;
+  vertical-align: middle;
+}
+.detail-table tr:last-child td { border-bottom: none; }
+.detail-table td.proj-col {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 12px;
+  position: sticky;
+  left: 0;
+  background: var(--bg-raised);
+  z-index: 1;
+  border-right: 1px solid var(--rule-soft);
+}
+.detail-table tr:nth-child(even) td { background: var(--bg-sunken); }
+.detail-table tr:nth-child(even) td.proj-col { background: var(--bg-sunken); }
+
+/* Phase value chips */
+.phase-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 52px;
+}
+.phase-chip.faster  { background: rgba(61,107,61,0.10);  color: var(--ok);     border: 1px solid rgba(61,107,61,0.35); }
+.phase-chip.slower  { background: rgba(194,75,30,0.10);  color: var(--hot);    border: 1px solid rgba(194,75,30,0.35); }
+.phase-chip.neutral { background: var(--bg-sunken);      color: var(--ink-3);  border: 1px solid var(--rule-soft); }
+.phase-chip.empty   { background: transparent; color: var(--ink-4); border: none; font-size: 14px; min-width: auto; }
+
+/* avg row */
+.detail-table tr.avg-row td {
+  background: var(--bg-sunken) !important;
+  border-top: 2px solid var(--ink);
+  border-bottom: none;
+}
+.detail-table tr.avg-row td.proj-col {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--bg-sunken) !important;
+}
+.avg-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--accent);
+  color: var(--bg);
+  min-width: 52px;
+  white-space: nowrap;
+}
+
+/* ── QTR OVER QTR TREND TABLE ── */
+.trend-sub { font-size: 12px; color: var(--ink-3); margin-bottom: 24px; line-height: 1.6; }
+.trend-title { font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: 0; line-height: 1.05; color: var(--ink); margin-bottom: 6px; }
+.trend-title em { color: var(--accent); font-style: italic; }
+.trend-key { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.trend-key-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; }
+.trend-key-swatch { width: 22px; height: 8px; border-radius: var(--radius); }
+.trend-cls-block { margin-bottom: 28px; }
+.trend-cls-label { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg-raised); border: 1px solid var(--rule-soft); border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; }
+.trend-cls-dot { width: 10px; height: 10px; border-radius: var(--radius); flex-shrink: 0; }
+.trend-cls-name { font-family: var(--serif); font-size: 20px; font-weight: 400; letter-spacing: 0; color: var(--ink); }
+.trend-table-wrap { border: 1px solid var(--rule-soft); border-radius: 0 0 var(--radius) var(--radius); overflow-x: auto; background: var(--bg-raised); }
+table.trend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trend-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0; border-bottom: 2px solid var(--ink); font-weight: 500; text-align: center; color: var(--ink-3); }
+.trend-table th.phase-th { text-align: left; min-width: 200px; padding: 10px 16px; color: var(--ink-3); vertical-align: bottom; }
+.th-q-wrap { display: flex; flex-direction: column; }
+.th-q-label { padding: 6px 12px 2px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid var(--rule-soft); }
+.th-q-sub { display: flex; }
+.th-q-sub span { flex: 1; padding: 4px 12px 6px; font-size: 9px; letter-spacing: 0.06em; color: var(--ink-3); border-right: 1px solid var(--rule-soft); }
+.th-q-sub span:last-child { border-right: none; }
+.th-q1 .th-q-label { background: rgba(92,106,128,0.12); color: var(--ink-3); }
+.th-q2 .th-q-label { background: rgba(46,109,164,0.12); color: var(--accent); }
+.th-q3 .th-q-label { background: rgba(61,107,61,0.10); color: var(--ok); }
+.th-q4 .th-q-label { background: rgba(194,75,30,0.10); color: var(--hot); }
+.trend-table td { padding: 10px 12px; border-bottom: 1px solid var(--rule-soft); text-align: center; vertical-align: middle; min-width: 80px; }
+.trend-table tr:last-child td { border-bottom: none; }
+.trend-table td.phase-td { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink); padding: 10px 16px; border-right: 1px solid var(--rule-soft); }
+.trend-table tr:nth-child(even) td { background: var(--bg-sunken); }
+.tval { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink); }
+.tval.pending { color: var(--ink-4); font-size: 16px; font-weight: 400; }
+.tdelta { display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--mono); font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: var(--radius); white-space: nowrap; }
+.tdelta.faster  { background: rgba(61,107,61,0.10);  color: var(--ok);     border: 1px solid rgba(61,107,61,0.35); }
+.tdelta.slower  { background: rgba(194,75,30,0.10);  color: var(--hot);    border: 1px solid rgba(194,75,30,0.35); }
+.tdelta.pending { background: var(--bg-sunken);      color: var(--ink-4);  border: 1px solid var(--rule-soft); font-weight: 400; }
+.trend-table td.avg-col { border-right: 1px dashed var(--rule-soft); }
+
+.footer {
+  background: var(--bg-raised);
+  border-top: 2px solid var(--ink);
+  padding: 16px 52px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.footer-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.05em;
+}
+
+/* ── TOOLTIP ── */
+.tooltip {
+  position: fixed;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-family: var(--grotesk);
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.15s;
+  max-width: 240px;
+  line-height: 1.5;
+}
+.tooltip.visible { opacity: 1; }
+.tooltip strong { font-weight: 600; display: block; margin-bottom: 2px; }
+.tooltip span { font-family: var(--mono); font-size: 11px; color: var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-eyebrow">JJ Insurance — PMO · Phase Duration Report</div>
+    <h1>HOW LONG DO<br>PROJECTS <em>ACTUALLY</em> TAKE?</h1>
+  </div>
+  <div class="header-right">
+    <div class="header-date">Q1 2026 + April Update</div>
+    <div class="header-note">Average phase duration in <strong>business days</strong>, grouped by project classification. Excludes weekends and JJ company-wide holidays.</div>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <span class="legend-title">Classification →</span>
+  <div class="legend-item active" data-cls="carrier">
+    <div class="legend-dot" style="background:var(--carrier)"></div>
+    Carrier API Integration
+    <span class="legend-n">(3 projects)</span>
+  </div>
+  <div class="legend-item active" data-cls="newui">
+    <div class="legend-dot" style="background:var(--newui)"></div>
+    New UI / Full New Build
+    <span class="legend-n">(2 projects)</span>
+  </div>
+  <div class="legend-item active" data-cls="mars">
+    <div class="legend-dot" style="background:var(--mars)"></div>
+    New Feature — MARS
+    <span class="legend-n">(2 projects)</span>
+  </div>
+  <div class="legend-item active" data-cls="support">
+    <div class="legend-dot" style="background:var(--support)"></div>
+    Support & Specialty
+    <span class="legend-n">(1 project)</span>
+  </div>
+  <div class="legend-item active" data-cls="third">
+    <div class="legend-dot" style="background:var(--third)"></div>
+    3rd Party Integration
+    <span class="legend-n">(1 project)</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="view-toggle">
+    <span class="view-label">View →</span>
+    <button class="toggle-btn active" onclick="setView('heatmap')">HEAT MAP</button>
+    <button class="toggle-btn" onclick="setView('lanes')">BY PHASE</button>
+    <button class="toggle-btn" onclick="setView('bars')">PROJECT DETAIL</button>
+    <button class="toggle-btn" onclick="setView('trend')">QTR OVER QTR</button>
+  </div>
+
+  <!-- ══ HEAT MAP VIEW (default) ══ -->
+  <div id="view-heatmap" class="chart-view visible">
+    <div class="heatmap-wrap">
+      <div class="chart-title">Phase Duration at a Glance</div>
+      <div class="chart-sub">Each cell = average business days. Darker = longer. Empty = no completed phases yet. Hover for details.</div>
+      <br>
+      <table class="heatmap" id="heatmap-table">
+        <thead>
+          <tr>
+            <th class="phase-th">Phase</th>
+            <th>Carrier API<br>Integration</th>
+            <th>New UI /<br>Full New Build</th>
+            <th>New Feature<br>— MARS</th>
+            <th>Support &<br>Specialty</th>
+            <th>3rd Party<br>Integration</th>
+          </tr>
+        </thead>
+        <tbody id="heatmap-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Insight Cards -->
+    <div class="insights">
+      <div class="insight-card carrier">
+        <div class="insight-label">Carrier API — Full Lifecycle (9 projects)</div>
+        <div class="insight-stat" style="color:var(--carrier)">~104 bd</div>
+        <div class="insight-desc">Intake (11) + R&D (6) + Dev (20) + Alpha (25) + UAT (32) + Release (13) + Hypercare (33) = <strong>~104 business days (~5 months)</strong> start to finish.</div>
+      </div>
+      <div class="insight-card newui">
+        <div class="insight-label">New UI — R&D at 31 Business Days</div>
+        <div class="insight-stat" style="color:var(--newui)">31 bd</div>
+        <div class="insight-desc">Requirements & Design runs 31 business days for New UI — 5× the Carrier API average of 6 bd for the same phase. Still only 1 data point.</div>
+      </div>
+      <div class="insight-card mars">
+        <div class="insight-label">MARS Projects — Alpha Testing</div>
+        <div class="insight-stat" style="color:var(--mars)">38 bd</div>
+        <div class="insight-desc">Alpha Testing for MARS projects (Vave In Torrent) ran 38 business days vs. 25 bd for Carrier API. Only 1 data point — watch as more complete.</div>
+      </div>
+      <div class="insight-card compare">
+        <div class="insight-label">UAT is the Longest Carrier Phase</div>
+        <div class="insight-stat">32 bd</div>
+        <div class="insight-desc">Acceptance Testing averages 32 business days for Carrier API (range: 15–50 bd). That's 6–10 weeks of pure testing time — the biggest lever for timeline reduction.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BY PHASE LANES VIEW ══ -->
+  <div id="view-lanes" class="chart-view">
+    <div id="lanes-container"></div>
+  </div>
+
+  <!-- ══ PROJECT DETAIL VIEW ══ -->
+  <div id="view-bars" class="chart-view">
+    <div class="detail-intro">
+      <span class="detail-key faster">■ Below avg (faster)</span>
+      <span class="detail-key slower">■ Above avg (slower)</span>
+      <span class="detail-key neutral">■ Only data point / at avg</span>
+    </div>
+    <div id="detail-container"></div>
+  </div>
+
+  <!-- ══ QTR OVER QTR TREND VIEW ══ -->
+  <div id="view-trend" class="chart-view">
+    <div id="trend-container"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-note">Methodology: Business days only · Excludes weekends + JJ company-wide holidays · Level 2 rows · Status = Complete · 8 standard phases only</div>
+  <div class="footer-note">Q1: Jan 1 – Mar 31, 2026 &nbsp;|&nbsp; April: Apr 1 – Apr 30, 2026 &nbsp;|&nbsp; Generated May 6, 2026</div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ── DATA ──
+const PHASES = [
+  "Intake & Planning",
+  "Requirements & Design",
+  "Development",
+  "Alpha Testing (Dev Testing)",
+  "Acceptance Testing (UAT/Pre-Prod)",
+  "Release",
+  "Stabilization (Hypercare)",
+  "Retrospective & Closeout"
+];
+
+const CLASSIFICATIONS = [
+  { key: "carrier", label: "Carrier API Integration",    color: "#1B4F8A", light: "#EBF1F8" },
+  { key: "newui",   label: "New UI / Full New Build",    color: "#C4521A", light: "#FBF0EB" },
+  { key: "mars",    label: "New Feature — MARS",         color: "#2A7A4B", light: "#EBF5EF" },
+  { key: "support", label: "Support & Specialty",        color: "#7B3F9E", light: "#F5EEF9" },
+  { key: "third",   label: "3rd Party Integration",      color: "#B5860D", light: "#FBF6E8" },
+];
+
+// avg | range | n | projects  — all values in BUSINESS DAYS
+const DATA = {
+  "Intake & Planning": {
+    carrier: { avg: 11, range: "1–39bd", n: 9, projects: "ArielRe, Atrium, Flood API v2, GLISE Forms API, HVH: Indication API, Markel Forms API, Motion HVH API, Scottsdale API, V2 Motion Api" },
+    newui:   { avg: 21, range: "20–22bd", n: 2, projects: "Launch of COC, Condo Rater – New UI" },
+    mars:    { avg: 12, range: "1–20bd",  n: 4, projects: "Casper Cyber, Markel Capacity Program, RenRe PL, Vave In Torrent" },
+    support: { avg: 1,  range: "1–1bd",   n: 1, projects: "JJCM - New MARS Claims System" },
+    third:   { avg: 1,  range: "1–1bd",   n: 1, projects: "MeshVI Integration" },
+  },
+  "Requirements & Design": {
+    carrier: { avg: 6,  range: "1–16bd", n: 7, projects: "ArielRe, Atrium, Flood API v2, GLISE Forms API, Markel Forms API, Scottsdale API, V2 Motion Api" },
+    newui:   { avg: 31, range: "31–31bd", n: 1, projects: "Launch of COC" },
+    mars:    { avg: 45, range: "45–45bd", n: 1, projects: "Casper Cyber" },
+    support: null,
+    third:   null,
+  },
+  "Development": {
+    carrier: { avg: 20, range: "1–52bd", n: 7, projects: "ArielRe, Atrium, Flood API v2, GLISE Forms API, Markel Forms API, Scottsdale API, V2 Motion Api" },
+    newui:   null,
+    mars:    { avg: 22, range: "22–22bd", n: 1, projects: "Vave In Torrent" },
+    support: null,
+    third:   null,
+  },
+  "Alpha Testing (Dev Testing)": {
+    carrier: { avg: 25, range: "1–44bd", n: 4, projects: "ArielRe, Atrium, Flood API v2, GLISE Forms API" },
+    newui:   null,
+    mars:    { avg: 38, range: "38–38bd", n: 1, projects: "Vave In Torrent" },
+    support: null,
+    third:   null,
+  },
+  "Acceptance Testing (UAT/Pre-Prod)": {
+    carrier: { avg: 32, range: "15–50bd", n: 2, projects: "ArielRe, Atrium" },
+    newui:   null,
+    mars:    null,
+    support: null,
+    third:   null,
+  },
+  "Release": {
+    carrier: { avg: 13, range: "1–24bd", n: 3, projects: "ArielRe, Atrium, V2 Motion Api" },
+    newui:   null,
+    mars:    { avg: 3,  range: "3–3bd",  n: 1, projects: "Vave In Torrent" },
+    support: null,
+    third:   null,
+  },
+  "Stabilization (Hypercare)": {
+    carrier: { avg: 33, range: "33–33bd", n: 1, projects: "V2 Motion Api" },
+    newui:   null,
+    mars:    null,
+    support: null,
+    third:   null,
+  },
+  "Retrospective & Closeout": {
+    carrier: null, newui: null, mars: null, support: null, third: null,
+  },
+};
+
+// ── MAX VALUE for scaling
+const MAX_VAL = 52;
+
+// ── HEAT MAP ──
+function buildHeatmap() {
+  const tbody = document.getElementById('heatmap-body');
+  PHASES.forEach(phase => {
+    const row = document.createElement('tr');
+    // Phase label cell
+    const phCell = document.createElement('td');
+    phCell.innerHTML = `<div class="hm-phase-label">${phase}</div>`;
+    phCell.style.padding = '6px 8px';
+    row.appendChild(phCell);
+
+    CLASSIFICATIONS.forEach(cls => {
+      const d = DATA[phase] && DATA[phase][cls.key];
+      const td = document.createElement('td');
+      if (d) {
+        const intensity = Math.min(d.avg / MAX_VAL, 1);
+        const bg = hexWithAlpha(cls.color, 0.15 + intensity * 0.75);
+        const textColor = intensity > 0.5 ? '#FFFFFF' : cls.color;
+        td.innerHTML = `
+          <div class="hm-cell has-data" style="background:${bg}; color:${textColor}"
+               data-phase="${phase}" data-cls="${cls.key}"
+               onmouseenter="showTip(event,'${phase}','${cls.key}')"
+               onmouseleave="hideTip()">
+            <div class="hm-val">${d.avg}<small style="font-family:var(--mono);font-size:9px">d</small></div>
+            <div class="hm-n">n=${d.n}</div>
+          </div>`;
+      } else {
+        td.innerHTML = `<div class="hm-cell"><div class="hm-empty">—</div></div>`;
+        td.style.background = '#F7F5F0';
+        td.style.borderRadius = '6px';
+      }
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+}
+
+function hexWithAlpha(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── PHASE LANES ──
+function buildLanes() {
+  const container = document.getElementById('lanes-container');
+  const phasesWithData = PHASES.filter(phase => {
+    return CLASSIFICATIONS.some(cls => DATA[phase] && DATA[phase][cls.key]);
+  });
+
+  phasesWithData.forEach(phase => {
+    const section = document.createElement('div');
+    section.className = 'lane-section';
+
+    const maxInPhase = Math.max(...CLASSIFICATIONS.map(cls => {
+      const d = DATA[phase] && DATA[phase][cls.key];
+      return d ? d.avg : 0;
+    }));
+
+    section.innerHTML = `
+      <div class="lane-phase-label">
+        <div class="lane-phase-name">${phase}</div>
+        <div class="lane-phase-avg-label">// avg days by project type</div>
+      </div>
+      <div class="lane-rows">
+        ${CLASSIFICATIONS.map(cls => {
+          const d = DATA[phase] && DATA[phase][cls.key];
+          if (!d) {
+            return `
+              <div class="lane-row" style="opacity:0.4">
+                <div class="lane-cls-label">
+                  <div class="lane-cls-dot" style="background:${cls.color}"></div>
+                  ${cls.label}
+                </div>
+                <div class="lane-empty">No data yet</div>
+                <div></div>
+              </div>`;
+          }
+          const pct = Math.max((d.avg / Math.max(maxInPhase, 1)) * 100, 2);
+          return `
+            <div class="lane-row">
+              <div class="lane-cls-label">
+                <div class="lane-cls-dot" style="background:${cls.color}"></div>
+                ${cls.label}
+              </div>
+              <div class="lane-bar-wrap">
+                <div class="lane-bar-fill" style="width:${pct}%; background:${cls.color};"
+                     data-label="${d.avg}d"></div>
+              </div>
+              <div class="lane-val">
+                ${d.avg}
+                <small>days · n=${d.n}</small>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(section);
+  });
+}
+
+// ── PROJECT DETAIL DATA — all values in BUSINESS DAYS ──
+const PROJECT_DATA = {
+  carrier: {
+    label: "Carrier API Integration",
+    color: "#1B4F8A",
+    projects: {
+      "ArielRe":              { "Intake & Planning": 1,  "Requirements & Design": 1,  "Development": 10, "Alpha Testing (Dev Testing)": 39, "Acceptance Testing (UAT/Pre-Prod)": 50, "Release": 14 },
+      "Atrium":               { "Intake & Planning": 10, "Requirements & Design": 8,  "Development": 21, "Alpha Testing (Dev Testing)": 15, "Acceptance Testing (UAT/Pre-Prod)": 15, "Release": 1  },
+      "Flood API v2":         { "Intake & Planning": 20, "Requirements & Design": 13, "Development": 29, "Alpha Testing (Dev Testing)": 44 },
+      "GLISE Forms API":      { "Intake & Planning": 1,  "Requirements & Design": 1,  "Development": 1,  "Alpha Testing (Dev Testing)": 1  },
+      "HVH: Indication API":  { "Intake & Planning": 22 },
+      "Markel Forms API":     { "Intake & Planning": 1,  "Requirements & Design": 1,  "Development": 1  },
+      "Motion HVH API":       { "Intake & Planning": 4  },
+      "Scottsdale API":       { "Intake & Planning": 39, "Requirements & Design": 5,  "Development": 52 },
+      "V2 Motion Api":        { "Intake & Planning": 1,  "Requirements & Design": 16, "Development": 27, "Release": 24, "Stabilization (Hypercare)": 33 },
+    }
+  },
+  newui: {
+    label: "New UI / Full New Build",
+    color: "#C4521A",
+    projects: {
+      "Launch of COC":        { "Intake & Planning": 22, "Requirements & Design": 31 },
+      "Condo Rater – New UI": { "Intake & Planning": 20 },
+    }
+  },
+  mars: {
+    label: "New Feature — MARS",
+    color: "#2A7A4B",
+    projects: {
+      "Casper Cyber":           { "Intake & Planning": 20, "Requirements & Design": 45 },
+      "Markel Capacity Program":{ "Intake & Planning": 20 },
+      "RenRe Personal Lines":   { "Intake & Planning": 1  },
+      "Vave In Torrent":        { "Intake & Planning": 7,  "Development": 22, "Alpha Testing (Dev Testing)": 38, "Release": 3 },
+    }
+  },
+  support: {
+    label: "Support & Specialty",
+    color: "#7B3F9E",
+    projects: {
+      "JJCM - New MARS Claims": { "Intake & Planning": 1 },
+    }
+  },
+  third: {
+    label: "3rd Party Integration",
+    color: "#B5860D",
+    projects: {
+      "MeshVI Integration": { "Intake & Planning": 1 },
+    }
+  },
+};
+
+// ── PROJECT DETAIL BUILDER ──
+function buildDetail() {
+  const container = document.getElementById('detail-container');
+  if (container.children.length > 0) return; // already built
+
+  Object.entries(PROJECT_DATA).forEach(([clsKey, cls]) => {
+    // Find which phases have any data for this classification
+    const activePhaseCols = PHASES.filter(ph =>
+      Object.values(cls.projects).some(p => p[ph] !== undefined)
+    );
+    if (activePhaseCols.length === 0) return;
+
+    // Compute avg per phase for this classification (from DATA)
+    const phaseAvgs = {};
+    activePhaseCols.forEach(ph => {
+      const d = DATA[ph] && DATA[ph][clsKey];
+      phaseAvgs[ph] = d ? d.avg : null;
+    });
+
+    const projectCount = Object.keys(cls.projects).length;
+    const phaseCount = activePhaseCols.length;
+
+    // Build block
+    const block = document.createElement('div');
+    block.className = 'detail-cls-block';
+    block.innerHTML = `
+      <div class="detail-cls-header" style="background:${hexWithAlpha(cls.color, 0.07)}; border-color:${hexWithAlpha(cls.color, 0.25)}">
+        <div class="detail-cls-swatch" style="background:${cls.color}"></div>
+        <div class="detail-cls-name">${cls.label}</div>
+        <div class="detail-cls-summary">${projectCount} project${projectCount !== 1 ? 's' : ''} · ${phaseCount} phase${phaseCount !== 1 ? 's' : ''} with data</div>
+      </div>
+      <div class="detail-table-wrap">
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th class="proj-col">Project</th>
+              ${activePhaseCols.map(ph => {
+                const shortPh = ph
+                  .replace(' (Dev Testing)', '')
+                  .replace(' (UAT/Pre-Prod)', '')
+                  .replace(' and Closeout', '')
+                  .replace('Stabilization', 'Stabilization');
+                const avg = phaseAvgs[ph];
+                return `<th title="${ph}">${shortPh}${avg ? `<br><span style="color:var(--ink);font-weight:700">${avg}d avg</span>` : ''}</th>`;
+              }).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(cls.projects).map(([projName, phases]) => `
+              <tr>
+                <td class="proj-col">${projName}</td>
+                ${activePhaseCols.map(ph => {
+                  const val = phases[ph];
+                  const avg = phaseAvgs[ph];
+                  if (val === undefined) return `<td><span class="phase-chip empty">—</span></td>`;
+                  const chipClass = avg === null || avg === val ? 'neutral'
+                                  : val < avg ? 'faster' : 'slower';
+                  const arrow = chipClass === 'faster' ? '↓' : chipClass === 'slower' ? '↑' : '';
+                  return `<td><span class="phase-chip ${chipClass}">${arrow}${val}d</span></td>`;
+                }).join('')}
+              </tr>`).join('')}
+            <tr class="avg-row">
+              <td class="proj-col">Classification Avg</td>
+              ${activePhaseCols.map(ph => {
+                const avg = phaseAvgs[ph];
+                return avg ? `<td><span class="avg-chip">${avg}d</span></td>` : `<td><span class="phase-chip empty">—</span></td>`;
+              }).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+// ── QTR OVER QTR TREND TABLE ──
+const TREND_DATA = {
+  carrier: {
+    label: "Carrier API Integration", color: "#1B4F8A",
+    phases: {
+      "Intake & Planning":                { Q1: 11, Q2: 4,    Q3: null, Q4: null },
+      "Requirements & Design":            { Q1: 6,  Q2: null, Q3: null, Q4: null },
+      "Development":                      { Q1: 20, Q2: null, Q3: null, Q4: null },
+      "Alpha Testing (Dev Testing)":      { Q1: 25, Q2: null, Q3: null, Q4: null },
+      "Acceptance Testing (UAT/Pre-Prod)":{ Q1: 32, Q2: null, Q3: null, Q4: null },
+      "Release":                          { Q1: 13, Q2: null, Q3: null, Q4: null },
+      "Stabilization (Hypercare)":        { Q1: 33, Q2: null, Q3: null, Q4: null },
+    }
+  },
+  newui: {
+    label: "New UI / Full New Build", color: "#C4521A",
+    phases: {
+      "Intake & Planning":                { Q1: 21, Q2: null, Q3: null, Q4: null },
+      "Requirements & Design":            { Q1: 31, Q2: 31,   Q3: null, Q4: null },
+    }
+  },
+  mars: {
+    label: "New Feature — MARS", color: "#2A7A4B",
+    phases: {
+      "Intake & Planning":                { Q1: 12, Q2: null, Q3: null, Q4: null },
+      "Requirements & Design":            { Q1: 45, Q2: null, Q3: null, Q4: null },
+      "Development":                      { Q1: 22, Q2: null, Q3: null, Q4: null },
+      "Alpha Testing (Dev Testing)":      { Q1: 38, Q2: null, Q3: null, Q4: null },
+      "Release":                          { Q1: 3,  Q2: 3,    Q3: null, Q4: null },
+    }
+  },
+  support: {
+    label: "Support & Specialty", color: "#7B3F9E",
+    phases: {
+      "Intake & Planning":                { Q1: 1,  Q2: 1,    Q3: null, Q4: null },
+    }
+  },
+  third: {
+    label: "3rd Party Integration", color: "#B5860D",
+    phases: {
+      "Intake & Planning":                { Q1: 1,  Q2: 1,    Q3: null, Q4: null },
+    }
+  },
+};
+
+const QUARTERS = [
+  { key: "Q1", label: "Q1 2026", range: "Jan–Mar" },
+  { key: "Q2", label: "Q2 2026", range: "Apr–Jun" },
+  { key: "Q3", label: "Q3 2026", range: "Jul–Sep" },
+  { key: "Q4", label: "Q4 2026", range: "Oct–Dec" },
+];
+
+const Q_COLORS = { Q1: "th-q1", Q2: "th-q2", Q3: "th-q3", Q4: "th-q4" };
+
+function buildTrend() {
+  const container = document.getElementById('trend-container');
+  if (container.children.length > 0) return;
+
+  // Header intro
+  const header = document.createElement('div');
+  header.innerHTML = `
+    <div class="trend-title">Quarter over Quarter — Avg Business Days by Phase</div>
+    <div class="trend-sub">Q1 2026 is the baseline. Δ columns show change from the prior quarter — green means phases are completing faster, red means slower. Pending quarters fill in as data is collected each month.</div>
+    <div class="trend-key">
+      <div class="trend-key-item"><div class="trend-key-swatch" style="background:#E8F7EE;border:1px solid #A8DDB8"></div>↓ Faster than prior quarter</div>
+      <div class="trend-key-item"><div class="trend-key-swatch" style="background:#FDECEA;border:1px solid #F5A9A3"></div>↑ Slower than prior quarter</div>
+      <div class="trend-key-item"><div class="trend-key-swatch" style="background:#F0EDE8;border:1px solid #E2DED8"></div>— Pending</div>
+    </div>`;
+  container.appendChild(header);
+
+  const Q_BG  = { Q1: "rgba(140,134,128,0.10)", Q2: "rgba(27,79,138,0.09)", Q3: "rgba(42,122,75,0.08)", Q4: "rgba(196,82,26,0.08)" };
+  const Q_CLR = { Q1: "#6B6460", Q2: "#1B4F8A", Q3: "#2A7A4B", Q4: "#C4521A" };
+
+  Object.entries(TREND_DATA).forEach(([clsKey, cls]) => {
+    const block = document.createElement('div');
+    block.className = 'trend-cls-block';
+
+    // ── THEAD ROW 1: Phase label + Q group headers with colspan ──
+    const thead1 = QUARTERS.map((q, qi) => {
+      const span = qi === 0 ? 1 : 2;
+      return `<th colspan="${span}" style="background:${Q_BG[q.key]};color:${Q_CLR[q.key]};padding:7px 12px 4px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--rule);border-left:2px solid var(--rule);">${q.label}</th>`;
+    }).join('');
+
+    // ── THEAD ROW 2: sub-column labels ──
+    const thead2 = QUARTERS.map((q, qi) => {
+      const border = `border-left:2px solid var(--rule);`;
+      if (qi === 0) {
+        return `<th style="${border}background:${Q_BG[q.key]};color:var(--ink3);padding:4px 12px 7px;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;text-align:center;border-bottom:2px solid var(--rule);">Avg bd</th>`;
+      }
+      return `
+        <th style="${border}background:${Q_BG[q.key]};color:var(--ink3);padding:4px 12px 7px;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;text-align:center;border-bottom:2px solid var(--rule);">Avg bd</th>
+        <th style="background:${Q_BG[q.key]};color:var(--ink3);padding:4px 12px 7px;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;text-align:center;border-bottom:2px solid var(--rule);">Δ vs prior</th>`;
+    }).join('');
+
+    // ── TBODY ROWS ──
+    const rows = Object.entries(cls.phases).map(([phase, qtrs]) => {
+      const cells = QUARTERS.map((q, qi) => {
+        const val = qtrs[q.key];
+        const borderL = `border-left:2px solid var(--rule);`;
+
+        if (qi === 0) {
+          return `<td style="${borderL}text-align:center;padding:9px 12px;"><span class="tval">${val}bd</span></td>`;
+        }
+
+        const prevVal = qtrs[QUARTERS[qi - 1].key];
+        const avgCell = val !== null ? `<span class="tval">${val}bd</span>` : `<span class="tval pending">—</span>`;
+
+        let deltaCell;
+        if (val === null || prevVal === null) {
+          deltaCell = `<span class="tdelta pending">pending</span>`;
+        } else {
+          const diff = val - prevVal;
+          if (diff < 0)      deltaCell = `<span class="tdelta faster">↓ ${Math.abs(diff)}bd</span>`;
+          else if (diff > 0) deltaCell = `<span class="tdelta slower">↑ ${diff}bd</span>`;
+          else               deltaCell = `<span class="tdelta pending">—</span>`;
+        }
+
+        return `
+          <td style="${borderL}text-align:center;padding:9px 12px;">${avgCell}</td>
+          <td style="text-align:center;padding:9px 12px;">${deltaCell}</td>`;
+      }).join('');
+
+      return `<tr><td class="phase-td">${phase}</td>${cells}</tr>`;
+    }).join('');
+
+    block.innerHTML = `
+      <div class="trend-cls-label">
+        <div class="trend-cls-dot" style="background:${cls.color}"></div>
+        <div class="trend-cls-name">${cls.label}</div>
+      </div>
+      <div class="trend-table-wrap">
+        <table class="trend-table" style="border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th class="phase-th" rowspan="2" style="border-bottom:2px solid var(--rule);vertical-align:bottom;padding:10px 16px;">Phase</th>
+              ${thead1}
+            </tr>
+            <tr>${thead2}</tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+// ── TOOLTIP ──
+function showTip(e, phase, clsKey) {
+  const d = DATA[phase][clsKey];
+  const cls = CLASSIFICATIONS.find(c => c.key === clsKey);
+  if (!d) return;
+  const tip = document.getElementById('tooltip');
+  tip.innerHTML = `<strong>${cls.label}</strong>${phase}<br><span>Avg: ${d.avg} days &nbsp;|&nbsp; Range: ${d.range} &nbsp;|&nbsp; n=${d.n}</span><br><span style="color:#A09890">${d.projects}</span>`;
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top  = (e.clientY - 10) + 'px';
+  tip.classList.add('visible');
+}
+function hideTip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+// ── VIEW TOGGLE ──
+function setView(view) {
+  document.querySelectorAll('.chart-view').forEach(v => v.classList.remove('visible'));
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('visible');
+  event.target.classList.add('active');
+  if (view === 'bars') buildDetail();
+  if (view === 'trend') buildTrend();
+}
+
+// ── INIT ──
+buildHeatmap();
+buildLanes();
+</script>
+</body>
+</html>
