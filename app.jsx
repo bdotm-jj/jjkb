@@ -144,8 +144,11 @@ function Sidebar({ screen, setScreen, bookmarks }) {
 
       <div className="nav-group">
         <h4>Reports</h4>
-        <div className={cx("nav-item", (screen === "reports" || screen.startsWith("report:")) && "active")} onClick={() => setScreen("reports")}>
-          <span className="dot"/> UAT &amp; Phase reports
+        <div className={cx("nav-item", screen.startsWith("reports:uat") && "active")} onClick={() => setScreen("reports:uat")}>
+          <span className="dot"/> UAT Reports
+        </div>
+        <div className={cx("nav-item", screen.startsWith("reports:phase") && "active")} onClick={() => setScreen("reports:phase")}>
+          <span className="dot"/> Phase Report
         </div>
       </div>
 
@@ -278,7 +281,7 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 
       <div className="section-head">
         <h2 className="section-title">Monthly reports</h2>
-        <div className="meta">UAT &amp; phase · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports"); }}>All reports →</a></div>
+        <div className="meta">UAT · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:uat"); }}>All UAT reports →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:phase"); }}>Phase report →</a></div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
         {reportsSorted().slice(0, 3).map(r => (
@@ -716,47 +719,63 @@ function PodsScreen({ setScreen }) {
 // month: drop the file in site/reports/ and add one entry below.
 // ============================================================
 const REPORTS = [
-  { id: "june-2026", kind: "monthly", title: "June 2026", date: "2026-06-01",
+  { id: "june-2026", group: "uat", kind: "monthly", title: "June 2026", date: "2026-06-01",
     period: "Current period · Apr 1 – Jun 1, 2026", file: "reports/june-2026.html",
     summary: "Testing efficiency improved sharply — average project duration fell 40% versus the Nov–Mar baseline. Scottsdale API remains an outlier at 10 days in R1.",
     stats: [{ value: "6", label: "Projects tested" }, { value: "9", label: "Total tasks" }, { value: "4.8d", label: "Avg / project" }, { value: "−40%", label: "vs baseline" }] },
-  { id: "may-2026", kind: "monthly", title: "May 2026", date: "2026-05-08",
+  { id: "may-2026", group: "uat", kind: "monthly", title: "May 2026", date: "2026-05-08",
     period: "Reporting period · Nov 25, 2025 – May 6, 2026", file: "reports/may-2026.html",
     summary: "Thirteen projects cleared the queue across a six-month window. Average total duration ticked up to 7.5 days as larger integrations entered testing.",
     stats: [{ value: "13", label: "Projects tested" }, { value: "30", label: "Completed tasks" }, { value: "7.5d", label: "Avg / project" }, { value: "4", label: "Queued" }] },
-  { id: "april-2026", kind: "monthly", title: "April 2026", date: "2026-04-30",
+  { id: "april-2026", group: "uat", kind: "monthly", title: "April 2026", date: "2026-04-30",
     period: "Reporting period · Apr 8 – 27, 2026", file: "reports/april-2026.html",
     summary: "The lightest month since the baseline began — three projects, closed in roughly half the usual time. One API integration ran long; the rest finished in two days or less.",
     stats: [{ value: "3", label: "Projects tested" }, { value: "4", label: "Completed tasks" }, { value: "4.7d", label: "Avg / project" }] },
-  { id: "phase-duration-baseline", kind: "baseline", title: "Phase Duration Baseline", date: "2026-03-31",
+  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-03-31",
     period: "Q1 2026 reference · Jan – Mar 2026", file: "reports/phase-duration-baseline.html",
     summary: "The Q1 2026 reference benchmark. Establishes phase-duration norms across 17 projects and five lines of business, sourced from Smartsheet project plans.",
     stats: [{ value: "17", label: "Projects" }, { value: "5", label: "Lines of business" }, { value: "5.4d", label: "Baseline avg" }] },
 ];
+const REPORT_GROUPS = {
+  uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
+  phase: { label: "Phase Reports", eyebrow: ["PMO", "Phase Duration"],                       titleA: "Phase", titleEm: "duration" },
+};
 const REPORTS_BY_ID = Object.fromEntries(REPORTS.map(r => [r.id, r]));
+const reportsInGroup = (g) => REPORTS.filter(r => r.group === g).sort((a, b) => b.date.localeCompare(a.date));
 const reportsSorted = () => [...REPORTS].sort((a, b) => b.date.localeCompare(a.date));
 function fmtReportDate(iso) {
   return new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
-function ReportsIndexScreen({ setScreen, weirdness }) {
-  const sorted = reportsSorted();
-  const latest = sorted.find(r => r.kind === "monthly") || sorted[0];
-  const archive = sorted.filter(r => r !== latest);
+function ReportsIndexScreen({ setScreen, weirdness, group = "uat" }) {
+  const meta = REPORT_GROUPS[group] || REPORT_GROUPS.uat;
+  const sorted = reportsInGroup(group);
+  const latest = sorted[0];
+  const archive = sorted.slice(1);
   const open = (id) => setScreen("report:" + id);
+  if (!latest) return (
+    <div className="screen">
+      <div className="crumbs-nav">
+        <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+        <span className="sep">/</span><span>{meta.label}</span>
+      </div>
+      <div className="empty-state"><h3>No reports filed yet.</h3><p>New editions appear here as they are published.</p></div>
+    </div>
+  );
   return (
     <div className="screen">
       <div className="crumbs-nav">
         <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
-        <span className="sep">/</span><span>Reports</span>
+        <span className="sep">/</span><span>{meta.label}</span>
       </div>
       <div className="hero" style={{ paddingBottom: 28, marginBottom: 32 }}>
         <div className="hero-top">
           <div className="eyebrow">
-            <span>Quality Operations</span><span>UAT · Cathy Parmley</span><span>{REPORTS.length} editions</span>
+            <span>{meta.eyebrow[0]}</span><span>{meta.eyebrow[1]}</span>
+            <span>{sorted.length} edition{sorted.length === 1 ? "" : "s"}</span>
           </div>
         </div>
-        <h1 style={{ fontSize: "clamp(40px, 5vw, 68px)" }}>Testing <em>reports</em>.</h1>
+        <h1 style={{ fontSize: "clamp(40px, 5vw, 68px)" }}>{meta.titleA} <em>{meta.titleEm}</em>.</h1>
         <p className="deck">{latest.summary}</p>
         <div style={{ display: "flex", gap: 30, flexWrap: "wrap", margin: "24px 0 4px" }}>
           {latest.stats.slice(0, 4).map((s, i) => (
@@ -769,23 +788,27 @@ function ReportsIndexScreen({ setScreen, weirdness }) {
         <button className="btn sm" style={{ marginTop: 24 }} onClick={() => open(latest.id)}>Open {latest.title} →</button>
       </div>
 
-      <div className="section-head">
-        <h2 className="section-title">Report archive</h2>
-        <div className="meta">{archive.length} earlier · newest first</div>
-      </div>
-      <div className="grid-3">
-        {archive.map(r => (
-          <div key={r.id} className="card" style={{ cursor: "pointer" }} onClick={() => open(r.id)}>
-            <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
-            <h3>{r.title}</h3>
-            <p>{r.summary}</p>
-            <div className="meta-row">
-              <span>{r.stats.map(s => s.value).slice(0, 3).join(" · ")}</span>
-              <span>Open →</span>
-            </div>
+      {archive.length > 0 && (
+        <>
+          <div className="section-head">
+            <h2 className="section-title">Report archive</h2>
+            <div className="meta">{archive.length} earlier · newest first</div>
           </div>
-        ))}
-      </div>
+          <div className="grid-3">
+            {archive.map(r => (
+              <div key={r.id} className="card" style={{ cursor: "pointer" }} onClick={() => open(r.id)}>
+                <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
+                <h3>{r.title}</h3>
+                <p>{r.summary}</p>
+                <div className="meta-row">
+                  <span>{r.stats.map(s => s.value).slice(0, 3).join(" · ")}</span>
+                  <span>Open →</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
       <MarqueeFooter weirdness={weirdness} />
     </div>
   );
@@ -807,7 +830,9 @@ function ReportViewer({ setScreen, reportId }) {
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
           <span className="sep">/</span>
-          <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports"); }}>Reports</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:" + r.group); }}>
+            {(REPORT_GROUPS[r.group] || REPORT_GROUPS.uat).label}
+          </a>
           <span className="sep">/</span><span>{r.title}</span>
         </div>
         <a href={r.file} target="_blank" rel="noopener noreferrer" className="mono"
@@ -1007,11 +1032,15 @@ function App() {
   const [, categoryId] = screen.startsWith("category:") ? screen.split(":") : [null, null];
   const [, articleId]  = screen.startsWith("article:")  ? screen.split(":") : [null, null];
   const [, reportId]   = screen.startsWith("report:")   ? screen.split(":") : [null, null];
+  // Reports index group: "reports:uat" / "reports:phase" (legacy "reports" → uat)
+  const reportsGroup = screen === "reports" ? "uat"
+    : screen.startsWith("reports:") ? screen.split(":")[1] : null;
 
   let screenBase = screen;
   if (screen.startsWith("category:")) screenBase = "browse";
   if (screen.startsWith("article:"))  screenBase = "article";
   if (screen.startsWith("report:"))   screenBase = "reports";
+  if (screen === "reports" || screen.startsWith("reports:")) screenBase = "reports";
 
   const TABS = [
     { id: "home",    label: "Home" },
@@ -1040,6 +1069,7 @@ function App() {
               className={cx(screenBase === t.id && "active")}
               onClick={() => {
                 if (t.id === "article" && firstDocId) setScreen("article:" + firstDocId);
+                else if (t.id === "reports") setScreen("reports:uat");
                 else setScreen(t.id);
               }}
             >
@@ -1056,7 +1086,7 @@ function App() {
           {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
-          {screen === "reports" && <ReportsIndexScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {reportsGroup && <ReportsIndexScreen setScreen={setScreen} weirdness={weirdness} group={reportsGroup}/>}
           {reportId && <ReportViewer setScreen={setScreen} reportId={reportId}/>}
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
