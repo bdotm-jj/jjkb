@@ -132,11 +132,9 @@ function Sidebar({ screen, setScreen, bookmarks }) {
 
       <div className="nav-group">
         <h4>Operations</h4>
-        <a className="nav-item" href="https://bdotm-jj.github.io/smartsheet/index.html"
-           target="_blank" rel="noopener noreferrer"
-           style={{ textDecoration: "none", color: "inherit" }}>
-          <span className="dot"/> Pods Directory ↗
-        </a>
+        <div className={cx("nav-item", screen === "pods" && "active")} onClick={() => setScreen("pods")}>
+          <span className="dot"/> Pods Directory
+        </div>
         <a className="nav-item" href="https://bdotm-jj.github.io/portfolio-gantt/"
            target="_blank" rel="noopener noreferrer"
            style={{ textDecoration: "none", color: "inherit" }}>
@@ -626,240 +624,62 @@ function RecentScreen({ setScreen, weirdness }) {
 
 // ============================================================
 // SCREEN: PODS DIRECTORY
+// Embeds the live Pods website (the current source of truth) in an
+// isolated iframe, so the portal always reflects the live roster —
+// no roster data is duplicated into this repo. The iframe auto-sizes
+// to its content (same-origin in production; falls back to a fixed
+// min-height under a cross-origin / local file:// load).
 // ============================================================
-function podNameMatches(name, query) {
-  return name.toLowerCase().includes(query.toLowerCase());
-}
-function podHasPerson(pod, personName) {
-  if (!personName) return false;
-  return Object.values(pod.roster).some(list => list.includes(personName));
-}
-function podTotalCount(pod) {
-  return Object.values(pod.roster).reduce((a, l) => a + (Array.isArray(l) ? l.length : 0), 0);
-}
-
-function PodPerson({ name, query, activePerson, onClick }) {
-  const isActive = activePerson === name;
-  const isHit = query && podNameMatches(name, query);
-  let label = name;
-  if (isHit && query) {
-    const i = name.toLowerCase().indexOf(query.toLowerCase());
-    label = (
-      <>
-        {name.slice(0, i)}
-        <mark style={{ background: "transparent", color: "var(--p-green-deep)", fontStyle: "italic", fontWeight: 600,
-          textDecoration: "underline", textDecorationColor: "var(--p-green)", textUnderlineOffset: "3px" }}>
-          {name.slice(i, i + query.length)}
-        </mark>
-        {name.slice(i + query.length)}
-      </>
-    );
-  }
-  return (
-    <button className={cx("person", isActive && "active")}
-      onClick={(e) => { e.stopPropagation(); onClick(name); }}>
-      {label}
-    </button>
-  );
-}
-
-function DossierCard({ pod, query, activePerson, onPersonClick }) {
-  const rows = [
-    { key: "PM",    list: pod.roster.PM    || [] },
-    { key: "PJM",   list: pod.roster.PJM   || [] },
-    { key: "Dev",   list: pod.roster.Dev   || [] },
-    { key: "QA",    list: pod.roster.QA    || [] },
-    ...(pod.roster.Other?.length ? [{ key: "Other", list: pod.roster.Other }] : [])
-  ];
-  return (
-    <div className="pod">
-      <span className="tick-bl"/><span className="tick-br"/>
-      <div className="pod-mark">
-        <div className="pod-name">{pod.name}</div>
-        <div className="pod-meta-stack">
-          <div className="pod-code">№ {pod.code}</div>
-          <div className="pod-lob">{pod.lob}</div>
-        </div>
-      </div>
-      <div className="roster">
-        {rows.map(({ key, list }) => (
-          <div className={cx("row", list.length === 0 && "empty")} key={key}>
-            <div className="role-key">
-              {key}<span style={{ marginLeft: 6, color: "var(--p-ink-40)" }}>{String(list.length).padStart(2, "0")}</span>
-            </div>
-            <div>
-              {list.length === 0 && <span style={{ fontFamily: "var(--p-serif)", fontStyle: "italic", color: "var(--p-ink-40)" }}>— vacant —</span>}
-              {list.map(n => (
-                <PodPerson key={n} name={n} query={query} activePerson={activePerson} onClick={onPersonClick}/>
-              ))}
-            </div>
-            <div className="role-rule"/>
-          </div>
-        ))}
-      </div>
-      <div className="pod-foot">
-        <span>Members</span>
-        <span>{podTotalCount(pod)}</span>
-      </div>
-    </div>
-  );
-}
-
 function PodsScreen({ setScreen }) {
-  const [query, setQuery] = useState("");
-  const [activePerson, setActivePerson] = useState(null);
-  const pods = window.PODS || [];
-  const pjms = window.PJMS || [];
+  const frameRef = useRef(null);
 
-  const allPeople = useMemo(() => {
-    const set = new Set();
-    pods.forEach(p => Object.values(p.roster).forEach(l => l.forEach(n => set.add(n))));
-    return [...set];
-  }, [pods]);
+  const fitFrame = useCallback(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || !doc.documentElement) return;
+      frame.style.height = doc.documentElement.scrollHeight + "px";
+    } catch { /* cross-origin — keep the min-height */ }
+  }, []);
 
-  const totalDevQa = useMemo(() =>
-    pods.reduce((a, p) => a + (p.roster.Dev || []).length + (p.roster.QA || []).length, 0),
-  [pods]);
+  const onLoad = useCallback(() => {
+    const frame = frameRef.current;
+    fitFrame();
+    try {
+      const doc = frame.contentDocument;
+      if (!doc) return;
+      // The pods app re-renders (#root innerHTML swaps) on search / filter,
+      // so watch for both size and DOM changes and re-fit.
+      const ro = new ResizeObserver(fitFrame);
+      ro.observe(doc.documentElement);
+      const mo = new MutationObserver(fitFrame);
+      mo.observe(doc.body, { childList: true, subtree: true });
+      frame._observers = { ro, mo };
+    } catch { /* isolated origin — nothing to observe */ }
+  }, [fitFrame]);
 
-  const personOnPods = useMemo(() => {
-    if (!activePerson) return [];
-    return pods.filter(p => podHasPerson(p, activePerson)).map(p => p.name);
-  }, [activePerson, pods]);
-
-  const podActive = useCallback((pod) => {
-    if (query) {
-      const q = query.toLowerCase();
-      const nameHit = pod.name.toLowerCase().includes(q) || pod.lob.toLowerCase().includes(q);
-      const personHit = Object.values(pod.roster).some(list => list.some(n => podNameMatches(n, query)));
-      if (!nameHit && !personHit) return false;
+  useEffect(() => () => {
+    const frame = frameRef.current;
+    if (frame && frame._observers) {
+      frame._observers.ro.disconnect();
+      frame._observers.mo.disconnect();
     }
-    if (activePerson && !podHasPerson(pod, activePerson)) return false;
-    return true;
-  }, [query, activePerson]);
-
-  const visibleCount = pods.filter(podActive).length;
-
-  const onPersonClick = useCallback((name) => {
-    setActivePerson(prev => prev === name ? null : name);
   }, []);
 
   return (
-    <div className="screen pods-screen">
+    <div className="screen">
       <div className="crumbs-nav">
         <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
-        <span className="sep">/</span><span>The Pods</span>
+        <span className="sep">/</span><span>Pods Directory</span>
       </div>
-
-      {/* ── MASTHEAD ── */}
-      <div className="pods-hero">
-        <div className="pods-hero-meta">
-          <div className="l">J&amp;J <strong>DIT</strong> — Internal Directory</div>
-          <div className="c">VOL. <strong>I</strong> · ISSUE <strong>05·29 / 2026</strong></div>
-          <div className="r">A Roster of Working Groups</div>
-        </div>
-        <div className="pods-hero-title">
-          <h1>The Pods<span className="amp">.</span></h1>
-          <div className="pods-hero-issue">
-            <span className="num">№ 09</span>
-            Pods on Record
-          </div>
-        </div>
-        <div className="pods-toc">
-          <div className="pods-toc-item">
-            <div className="pods-toc-num">I.</div>
-            <div className="pods-toc-head">Working Groups</div>
-            <div className="pods-toc-sub">{pods.length} pods, organized by line of business.</div>
-          </div>
-          <div className="pods-toc-item">
-            <div className="pods-toc-num">II.</div>
-            <div className="pods-toc-head">Project Managers</div>
-            <div className="pods-toc-sub">{pjms.length} PJMs across the org.</div>
-          </div>
-          <div className="pods-toc-item">
-            <div className="pods-toc-num">III.</div>
-            <div className="pods-toc-head">Engineering</div>
-            <div className="pods-toc-sub">{totalDevQa} Dev &amp; QA practitioners.</div>
-          </div>
-          <div className="pods-toc-item">
-            <div className="pods-toc-num">IV.</div>
-            <div className="pods-toc-head">Practice</div>
-            <div className="pods-toc-sub">{allPeople.length} unique people on the floor.</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── CONTROLS ── */}
-      <div className="pods-controls">
-        <div className={cx("pods-search", query && "has-value")}>
-          <span className="glyph">⌕</span>
-          <input
-            type="text"
-            placeholder="Search a name, a pod, a line of business…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button className="pods-clear" onClick={() => setQuery("")}>Clear</button>
-        </div>
-      </div>
-
-      <div className="pods-result-strip">
-        <div>
-          <span className="echo"><em>{visibleCount}</em> of {pods.length} pods shown</span>
-          {(query || activePerson) && <span style={{ marginLeft: 14, color: "var(--p-ink-40)" }}>· filters active</span>}
-        </div>
-        <div>Sourced from Smartsheet · Pods sheet</div>
-      </div>
-
-      {/* ── PERSON HIGHLIGHT ── */}
-      {activePerson && (
-        <div className="pods-highlight">
-          <div className="who"><em>Highlighting</em>{activePerson}</div>
-          <div className="meta">
-            Appears on {personOnPods.length} pod{personOnPods.length === 1 ? "" : "s"} · {personOnPods.join(" · ")}
-          </div>
-          <button className="pods-clear" onClick={() => setActivePerson(null)}>Clear</button>
-        </div>
-      )}
-
-      {/* ── GRID ── */}
-      <div className="pods-grid">
-        {pods.map((pod) => {
-          const active = podActive(pod);
-          const isHit = activePerson && podHasPerson(pod, activePerson);
-          return (
-            <div key={pod.id} className={cx("pod-cell", !active && "is-dim", isHit && "is-hit")}>
-              <DossierCard pod={pod} query={query} activePerson={activePerson} onPersonClick={onPersonClick}/>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── COLOPHON ── */}
-      <div className="pods-colophon">
-        <div>
-          <h4>On Method</h4>
-          <p>Each pod is a small, durable working group anchored by a Product Manager and a Project Manager,
-             supported by a Development Team and Quality Analysts. Pods are organized first by line of business,
-             second by initiative.</p>
-        </div>
-        <div>
-          <h4>Glossary</h4>
-          <ul className="pods-legend">
-            <li><code>PM</code> Product Manager</li>
-            <li><code>PJM</code> Project Manager</li>
-            <li><code>Dev</code> Software Engineer</li>
-            <li><code>QA</code> Quality Analyst</li>
-            <li><code>LOB</code> Line of Business</li>
-            <li><code>№</code> Pod Code</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="pods-signoff">
-        <div>J&amp;J Insurance · DIT</div>
-        <div className="pharrell">Quietly assembled, May 29 2026</div>
-        <div>Edition I · 05·29 · 26</div>
-      </div>
+      <iframe
+        ref={frameRef}
+        src="https://bdotm-jj.github.io/smartsheet/index.html"
+        title="Pods Directory — J&amp;J DIT"
+        onLoad={onLoad}
+        style={{ width: "100%", minHeight: 900, border: "none", display: "block" }}
+      />
     </div>
   );
 }
@@ -1058,6 +878,7 @@ function App() {
     { id: "article", label: "Article reader" },
     { id: "search",  label: "Search" },
     { id: "recent",  label: "Recent" },
+    { id: "pods",    label: "Pods" },
     { id: "edit",    label: "Admin — edit" },
   ];
 
@@ -1092,6 +913,7 @@ function App() {
           {articleId  &&  <ArticleScreen  articleId={articleId}   bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>
