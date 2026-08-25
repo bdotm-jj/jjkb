@@ -277,6 +277,24 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
       </div>
 
       <div className="section-head">
+        <h2 className="section-title">Monthly reports</h2>
+        <div className="meta">UAT &amp; phase · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports"); }}>All reports →</a></div>
+      </div>
+      <div className="grid-3" style={{ marginBottom: 56 }}>
+        {reportsSorted().slice(0, 3).map(r => (
+          <div key={r.id} className="card" onClick={() => setScreen("report:" + r.id)} style={{ cursor: "pointer" }}>
+            <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
+            <h3>{r.title}</h3>
+            <p>{r.summary}</p>
+            <div className="meta-row">
+              <span>{r.stats.map(s => s.value).slice(0, 3).join(" · ")}</span>
+              <span>Open →</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section-head">
         <h2 className="section-title">The index</h2>
         <div className="meta">All documents · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("browse"); }}>Browse categories →</a></div>
       </div>
