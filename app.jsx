@@ -108,9 +108,6 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen === "search" && "active")} onClick={() => setScreen("search")}>
           <span className="dot"/> Search
         </div>
-        <a className="nav-item" href="../pods/index.html" target="_blank" style={{ textDecoration: "none", color: "inherit" }}>
-          <span className="dot"/> The Pods ↗
-        </a>
       </div>
 
       <div className="nav-group">
@@ -131,6 +128,20 @@ function Sidebar({ screen, setScreen, bookmarks }) {
             <span className="count">{c.count}</span>
           </div>
         ))}
+      </div>
+
+      <div className="nav-group">
+        <h4>Operations</h4>
+        <a className="nav-item" href="https://bdotm-jj.github.io/smartsheet/index.html"
+           target="_blank" rel="noopener noreferrer"
+           style={{ textDecoration: "none", color: "inherit" }}>
+          <span className="dot"/> Pods Directory ↗
+        </a>
+        <a className="nav-item" href="https://bdotm-jj.github.io/portfolio-gantt/"
+           target="_blank" rel="noopener noreferrer"
+           style={{ textDecoration: "none", color: "inherit" }}>
+          <span className="dot"/> Portfolio Gantt ↗
+        </a>
       </div>
 
       <div className="nav-group">
