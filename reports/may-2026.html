@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cathy Parmley UAT Testing Report — May 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+    --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--grotesk);
+    background: var(--bg);
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-raised);
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--rule-soft);
+    flex-shrink: 0;
+    user-select: none;
+  }
+  #nav .title { font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0.1em; text-transform: uppercase; }
+  #nav .controls { display: flex; align-items: center; gap: 12px; }
+  #nav button {
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-soft);
+    color: var(--ink);
+    padding: 6px 18px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 12px;
+    transition: background 0.15s;
+  }
+  #nav button:hover { background: var(--bg-sunken); }
+  #nav button:disabled { opacity: 0.35; cursor: default; }
+  #nav .counter { font-family: var(--mono); color: var(--ink-3); font-size: 12px; min-width: 60px; text-align: center; }
+  #slides { flex: 1; overflow: hidden; position: relative; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    padding: 32px 48px;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .slide.active { display: flex; flex-direction: column; }
+  .slide-tag {
+    font-family: var(--mono);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-3); margin-bottom: 6px; font-weight: 500;
+  }
+  h1 { font-family: var(--serif); font-size: 40px; font-weight: 400; color: var(--ink); line-height: 1.08; }
+  h2 { font-family: var(--serif); font-size: 28px; font-weight: 400; color: var(--ink); margin-bottom: 18px; line-height: 1.1; }
+  .subtitle { color: var(--ink-3); font-size: 14px; margin-top: 6px; }
+  #slide1 {
+    justify-content: center;
+    background: var(--bg);
+  }
+  .cover-inner { max-width: 680px; }
+  .cover-inner h1 { font-size: 46px; margin-bottom: 10px; }
+  .cover-divider {
+    width: 56px; height: 2px;
+    background: var(--accent);
+    border-radius: var(--radius); margin: 20px 0;
+  }
+  .cover-stats { display: flex; gap: 36px; flex-wrap: wrap; margin-top: 24px; }
+  .cover-stat { display: flex; flex-direction: column; gap: 4px; }
+  .cover-stat .val { font-family: var(--mono); font-size: 28px; font-weight: 500; color: var(--accent); }
+  .cover-stat .lbl { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+  .date-range { font-family: var(--mono); margin-top: 28px; font-size: 12px; color: var(--ink-3); }
+  .date-range span { color: var(--ink-2); }
+  .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+  .metric-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--accent);
+  }
+  .metric-card .m-label { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .metric-card .m-val { font-family: var(--mono); font-size: 24px; font-weight: 500; color: var(--ink); }
+  .metric-card .m-delta { font-family: var(--mono); font-size: 12px; margin-top: 4px; font-weight: 500; }
+  .delta-up { color: var(--hot); }
+  .delta-down { color: var(--ok); }
+  .delta-watch { color: var(--amber); }
+  .metric-card .m-baseline { font-family: var(--mono); font-size: 11px; color: var(--ink-4); margin-top: 2px; }
+  .insights-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .insight-card {
+    background: var(--bg-raised); border: 1px solid var(--rule-soft); border-radius: var(--radius); padding: 14px 16px;
+    border-left: 3px solid;
+  }
+  .insight-card.finding { border-left-color: var(--accent); }
+  .insight-card.outlier { border-left-color: var(--hot); }
+  .insight-card.watch   { border-left-color: var(--amber); }
+  .insight-card .i-tag { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 6px; }
+  .insight-card.finding .i-tag { color: var(--accent); }
+  .insight-card.outlier .i-tag { color: var(--hot); }
+  .insight-card.watch   .i-tag { color: var(--amber); }
+  .insight-card p { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .chart-wrap {
+    background: var(--bg-raised); border: 1px solid var(--rule-soft); border-radius: var(--radius-lg);
+    padding: 20px; flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+  }
+  .chart-inner { flex: 1; min-height: 0; position: relative; }
+  .s4-top { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .table-wrap {
+    background: var(--bg-raised); border: 1px solid var(--rule-soft); border-radius: var(--radius-lg);
+    overflow: hidden; flex-shrink: 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead tr { background: var(--bg-sunken); }
+  thead th {
+    padding: 10px 14px; text-align: left;
+    font-family: var(--mono);
+    color: var(--ink-3); font-weight: 500; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  tbody tr { border-bottom: 1px solid var(--rule-soft); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-sunken); }
+  tbody td { padding: 8px 14px; color: var(--ink-2); }
+  tbody td:first-child { color: var(--ink); font-weight: 500; }
+  .td-num { font-family: var(--mono); text-align: right; color: var(--ink-3); }
+  .td-total { color: var(--accent) !important; font-weight: 700 !important; }
+  .td-na { color: var(--ink-4) !important; }
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; }
+  .findings-col { display: flex; flex-direction: column; gap: 12px; }
+  .finding-item {
+    background: var(--bg-raised); border: 1px solid var(--rule-soft); border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .finding-item .f-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: var(--bg-raised); font-family: var(--mono); font-size: 11px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 6px;
+  }
+  .finding-item h4 { font-size: 13px; color: var(--ink); margin-bottom: 3px; }
+  .finding-item p { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+  .rec-item {
+    background: var(--bg-raised); border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .rec-item .r-label { font-family: var(--mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 4px; }
+  .rec-item h4 { font-size: 13px; color: var(--ink); margin-bottom: 3px; }
+  .rec-item p { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+  #footer {
+    background: var(--bg-raised); border-top: 1px solid var(--rule-soft);
+    padding: 8px 24px; display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #footer span { font-family: var(--mono); font-size: 11px; color: var(--ink-4); }
+  .dots { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink-4); cursor: pointer; transition: background 0.2s;
+  }
+  .dot.active { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="title">JJ Insurance Services &nbsp;·&nbsp; UAT Testing Report</span>
+  <div class="controls">
+    <button id="btnPrev" onclick="navigate(-1)">&#8592; Prev</button>
+    <span class="counter" id="counter">1 / 5</span>
+    <button id="btnNext" onclick="navigate(1)">Next &#8594;</button>
+  </div>
+  <div class="dots">
+    <div class="dot active" onclick="goTo(0)" id="dot0"></div>
+    <div class="dot" onclick="goTo(1)" id="dot1"></div>
+    <div class="dot" onclick="goTo(2)" id="dot2"></div>
+    <div class="dot" onclick="goTo(3)" id="dot3"></div>
+    <div class="dot" onclick="goTo(4)" id="dot4"></div>
+  </div>
+</div>
+
+<div id="slides">
+
+<!-- SLIDE 1 — Cover -->
+<div class="slide active" id="slide1">
+  <div class="cover-inner">
+    <div class="slide-tag">Monthly Performance Report</div>
+    <h1>Cathy Parmley UAT Testing Report<br>&#8212; May 2026</h1>
+    <div class="cover-divider"></div>
+    <p class="subtitle">Operations &amp; Acceptance Testing Summary<br>Reporting period: Nov 2025 &#8211; May 2026</p>
+    <div class="cover-stats">
+      <div class="cover-stat">
+        <span class="val">13</span>
+        <span class="lbl">Projects Tested</span>
+      </div>
+      <div class="cover-stat">
+        <span class="val">30</span>
+        <span class="lbl">Completed Tasks</span>
+      </div>
+      <div class="cover-stat">
+        <span class="val">7.5d</span>
+        <span class="lbl">Avg Days / Project</span>
+      </div>
+      <div class="cover-stat">
+        <span class="val">4</span>
+        <span class="lbl">Future Projects Queued</span>
+      </div>
+    </div>
+    <p class="date-range">
+      Date range: <span>Nov 25, 2025</span> &#8212; <span>May 6, 2026</span> &nbsp;&#183;&nbsp;
+      Prepared: <span>May 8, 2026</span>
+    </p>
+  </div>
+</div>
+
+<!-- SLIDE 2 — Key Metrics -->
+<div class="slide" id="slide2">
+  <h2>Key Metrics <span style="font-family:var(--mono);font-weight:400;font-size:13px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;">vs. April 2026 Baseline</span></h2>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="m-label">Projects Tested</div>
+      <div class="m-val">13</div>
+      <div class="m-delta delta-down">&#8595; &#8722;3 vs baseline</div>
+      <div class="m-baseline">Baseline: 16</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">Avg Total Days</div>
+      <div class="m-val">7.5d</div>
+      <div class="m-delta delta-up">&#8593; +2.1d vs baseline</div>
+      <div class="m-baseline">Baseline: 5.4d</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">Avg R1 Duration</div>
+      <div class="m-val">4.9d</div>
+      <div class="m-delta delta-up">&#8593; +0.3d vs baseline</div>
+      <div class="m-baseline">Baseline: 4.6d</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">Avg R2 Duration</div>
+      <div class="m-val">2.4d</div>
+      <div class="m-delta delta-up">&#8593; +0.6d vs baseline</div>
+      <div class="m-baseline">Baseline: 1.8d</div>
+    </div>
+    <div class="metric-card">
+      <div class="m-label">R1 &#8594; R2 Reduction</div>
+      <div class="m-val">&#8722;50.7%</div>
+      <div class="m-delta delta-watch">&#8593; +10.3 ppts vs baseline</div>
+      <div class="m-baseline">Baseline: &#8722;61%</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Longest Project</div>
+    <div style="background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:10px 16px;display:inline-flex;align-items:center;gap:14px;">
+      <span style="font-family:var(--mono);color:var(--hot);font-size:20px;font-weight:500;">16d</span>
+      <span style="color:var(--ink-2);font-size:14px;">RenRe &#8212; 2 rounds (R1: 11d, R2: 5d)</span>
+    </div>
+  </div>
+
+  <div class="insights-row">
+    <div class="insight-card finding">
+      <div class="i-tag">Finding</div>
+      <p>Average project duration climbed from 5.4d to 7.5d (+39%), driven by three complex projects exceeding 10 days: RenRe, ArielRe, and Scottsdale API.</p>
+    </div>
+    <div class="insight-card outlier">
+      <div class="i-tag">Outlier</div>
+      <p>RenRe required 16 total days across 2 rounds. Its R1 alone (11d) was more than double the cohort average, indicating a highly complex initial integration.</p>
+    </div>
+    <div class="insight-card watch">
+      <div class="i-tag">Watch Item</div>
+      <p>R1&#8594;R2 reduction softened to &#8722;50.7% vs the &#8722;61% April baseline. Six projects still have only R1 complete &#8212; more retest data arriving in June may shift this.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 — Testing Duration Over Time -->
+<div class="slide" id="slide3">
+  <h2>Testing Duration Over Time</h2>
+  <div class="chart-wrap">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Total testing days per project, ordered by start date &nbsp;&#183;&nbsp; dashed line = cohort average (7.5d)</div>
+    <div class="chart-inner">
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 — R1 vs R2 vs R3 -->
+<div class="slide" id="slide4">
+  <h2>R1 vs R2 vs R3 Round Comparison</h2>
+  <div class="s4-top">
+    <div class="chart-wrap" style="padding:16px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Average duration per round (days) with April 2026 baseline</div>
+      <div class="chart-inner" style="min-height:180px;">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:14px 16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Round Averages</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+              <span style="font-size:13px;color:var(--ink-2);">Avg R1 (n=13)</span>
+            </span>
+            <span style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--accent);">4.9d</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--ok);display:inline-block;"></span>
+              <span style="font-size:13px;color:var(--ink-2);">Avg R2 (n=7)</span>
+            </span>
+            <span style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--ok);">2.4d</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="display:flex;align-items:center;gap:8px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--amber);display:inline-block;"></span>
+              <span style="font-size:13px;color:var(--ink-2);">Avg R3 (n=5)</span>
+            </span>
+            <span style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--amber);">1.6d</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:14px 16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Round Coverage</div>
+        <div style="font-size:13px;color:var(--ink-2);line-height:1.7;">
+          13 projects with R1 &nbsp;|&nbsp; 7 with R2 &nbsp;|&nbsp; 5 with R3<br>
+          <span style="color:var(--ink-3);font-size:12px;">6 projects with only R1 complete (testing ongoing)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Start Date</th>
+          <th style="text-align:right;">R1 (d)</th>
+          <th style="text-align:right;">R2 (d)</th>
+          <th style="text-align:right;">R3 (d)</th>
+          <th style="text-align:right;">Total (d)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>GLISE Lifecycle API</td><td>Nov 25, 2025</td><td class="td-num">2.0</td><td class="td-num">3.0</td><td class="td-num">2.0</td><td class="td-num td-total">10.0</td></tr>
+        <tr><td>MARS Online Issuance</td><td>Dec 5, 2025</td><td class="td-num">5.0</td><td class="td-num">3.0</td><td class="td-num">2.0</td><td class="td-num td-total">10.0</td></tr>
+        <tr><td>ArielRe Contract Addition</td><td>Dec 10, 2025</td><td class="td-num">8.0</td><td class="td-num">1.0</td><td class="td-num">1.0</td><td class="td-num td-total">11.0</td></tr>
+        <tr><td>Flood Portal: Agent View Functionality</td><td>Dec 16, 2025</td><td class="td-num">1.0</td><td class="td-num">1.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">2.0</td></tr>
+        <tr><td>GLISE SW Rating in Lloyds Style</td><td>Dec 19, 2025</td><td class="td-num">3.0</td><td class="td-num">3.0</td><td class="td-num">2.0</td><td class="td-num td-total">10.0</td></tr>
+        <tr><td>RenRe</td><td>Feb 26, 2026</td><td class="td-num">11.0</td><td class="td-num">5.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">16.0</td></tr>
+        <tr><td>CPAC &#8212; External Facing Rater</td><td>Mar 2, 2026</td><td class="td-num">5.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">5.0</td></tr>
+        <tr><td>Atrium</td><td>Mar 9, 2026</td><td class="td-num">5.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">5.0</td></tr>
+        <tr><td>Atrium &#8212; PL</td><td>Mar 27, 2026</td><td class="td-num">3.0</td><td class="td-num">1.0</td><td class="td-num">1.0</td><td class="td-num td-total">7.0</td></tr>
+        <tr><td>Scottsdale API</td><td>Apr 8, 2026</td><td class="td-num">10.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">10.0</td></tr>
+        <tr><td>GLISE Forms API</td><td>Apr 27, 2026</td><td class="td-num">2.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">2.0</td></tr>
+        <tr><td>Munich RE</td><td>May 4, 2026</td><td class="td-num">4.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">4.0</td></tr>
+        <tr><td>Markel Artisan Rater</td><td>May 6, 2026</td><td class="td-num">5.0</td><td class="td-num td-na">&#8212;</td><td class="td-num td-na">&#8212;</td><td class="td-num td-total">5.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SLIDE 5 — Key Findings & Recommendations -->
+<div class="slide" id="slide5">
+  <h2>Key Findings &amp; Recommendations</h2>
+  <div class="findings-grid">
+    <div class="findings-col">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;font-weight:500;">Observations</div>
+      <div class="finding-item">
+        <div class="f-num">1</div>
+        <h4>Average Duration Trending Up</h4>
+        <p>May's average of 7.5d per project is 39% above the April baseline of 5.4d. Three outlier projects (RenRe 16d, ArielRe 11d, Scottsdale API 10d) pulled the mean significantly higher.</p>
+      </div>
+      <div class="finding-item">
+        <div class="f-num">2</div>
+        <h4>Retesting Loops Remain Common</h4>
+        <p>5 of 13 projects (38%) required 3+ rounds. ArielRe went to R4 and GLISE Lifecycle API reached R5, suggesting defect resolution cycles that could benefit from earlier developer sign-off gates.</p>
+      </div>
+      <div class="finding-item">
+        <div class="f-num">3</div>
+        <h4>R1&#8594;R2 Reduction Less Pronounced</h4>
+        <p>The &#8722;50.7% R1-to-R2 reduction is 10 percentage points weaker than the April baseline of &#8722;61%. Higher R2 durations on RenRe (5d) and GLISE SW Rating (3d) drove this shift.</p>
+      </div>
+      <div class="finding-item">
+        <div class="f-num">4</div>
+        <h4>Strong Short-Cycle Projects</h4>
+        <p>Flood Portal (2d total) and GLISE Forms API (2d) show that well-scoped integrations can be validated quickly &#8212; these provide a benchmark for future UAT planning.</p>
+      </div>
+      <div class="finding-item">
+        <div class="f-num">5</div>
+        <h4>Active Pipeline Ahead</h4>
+        <p>4 projects are queued with future start dates: Chubb Local Rating, Markel Capacity Program, RenRe Personal Lines, and VAVE New Company Set Up &#8212; pointing to a full June workload.</p>
+      </div>
+    </div>
+    <div class="findings-col">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;font-weight:500;">Recommendations</div>
+      <div class="rec-item">
+        <div class="r-label">Recommendation 1</div>
+        <h4>Gate Complex Integrations Early</h4>
+        <p>Projects with R1 over 5d (RenRe, Scottsdale API, ArielRe) all required significant rework. Implement a pre-UAT readiness checklist for API and carrier integrations to reduce first-round defect density.</p>
+      </div>
+      <div class="rec-item">
+        <div class="r-label">Recommendation 2</div>
+        <h4>Track Root Causes for R3+ Retests</h4>
+        <p>5 projects needed 3 or more rounds. Logging whether retests stem from regressions, new defects, or scope changes would enable trend analysis and targeted process improvements with development teams.</p>
+      </div>
+      <div class="rec-item">
+        <div class="r-label">Recommendation 3</div>
+        <h4>Revisit Baseline After June Retests</h4>
+        <p>Six projects currently have only R1 complete. As Scottsdale API R2 and GLISE Forms API R2 are recorded in June, re-evaluate the R1&#8594;R2 and average total baselines to ensure they reflect the current portfolio.</p>
+      </div>
+      <div style="background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:14px 16px;margin-top:4px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Future Projects Queued</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;"></span>
+            Chubb Local Rating &#8212; Start: May 25, 2026
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;"></span>
+            Markel Capacity Program &#8212; Start: May 18, 2026
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;"></span>
+            RenRe Personal Lines &#8212; Start: May 13, 2026
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;"></span>
+            VAVE New Company Set Up &#8212; Start: May 25, 2026
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slides -->
+
+<div id="footer">
+  <span>Cathy Parmley UAT Testing Report &#183; May 2026 &#183; Auto-generated from Smartsheet &#183; Report ID: 8800191256678276</span>
+  <span>JJ Insurance Services &#183; bertram.moore@jjins.com</span>
+</div>
+
+<script>
+let current = 0;
+const total = 5;
+
+function goTo(n) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === n));
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n));
+  current = n;
+  document.getElementById('counter').textContent = (n + 1) + ' / ' + total;
+  document.getElementById('btnPrev').disabled = n === 0;
+  document.getElementById('btnNext').disabled = n === total - 1;
+  if (n === 2 && !lineChartInited) initLineChart();
+  if (n === 3 && !barChartInited) initBarChart();
+}
+
+function navigate(dir) {
+  goTo(Math.max(0, Math.min(total - 1, current + dir)));
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+});
+
+var lineChartInited = false;
+function initLineChart() {
+  lineChartInited = true;
+  var ctx = document.getElementById('lineChart').getContext('2d');
+  var labels = [
+    'GLISE Lifecycle API','MARS Online Issuance','ArielRe Contract Addn',
+    'Flood Portal','GLISE SW Rating','RenRe',
+    'CPAC Ext Facing Rater','Atrium','Atrium - PL',
+    'Scottsdale API','GLISE Forms API','Munich RE','Markel Artisan Rater'
+  ];
+  var totals = [10,10,11,2,10,16,5,5,7,10,2,4,5];
+  var avg = 7.5;
+  var avgLine = labels.map(function(){ return avg; });
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Total Testing Days',
+          data: totals,
+          borderColor: '#2E6DA4',
+          backgroundColor: 'rgba(46,109,164,0.10)',
+          pointBackgroundColor: '#2E6DA4',
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2.5
+        },
+        {
+          label: 'Cohort Average (7.5d)',
+          data: avgLine,
+          borderColor: '#97A0B2',
+          borderDash: [6,4],
+          pointRadius: 0,
+          fill: false,
+          borderWidth: 1.5,
+          tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#5C6A80', font: { size: 12 } } },
+        tooltip: { backgroundColor: '#0F1B2D', borderColor: 'rgba(15,27,45,0.10)', borderWidth: 1, titleColor: '#F2EDE2', bodyColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5C6A80', font: { size: 10 }, maxRotation: 35,
+            callback: function(val) {
+              var label = this.getLabelForValue(val);
+              return label.length > 18 ? label.substring(0,18) + '...' : label;
+            }
+          },
+          grid: { color: 'rgba(15,27,45,0.10)' }
+        },
+        y: {
+          ticks: { color: '#5C6A80', font: { size: 11 } },
+          grid: { color: 'rgba(15,27,45,0.10)' },
+          title: { display: true, text: 'Days', color: '#5C6A80', font: { size: 11 } },
+          beginAtZero: true, suggestedMax: 18
+        }
+      }
+    }
+  });
+}
+
+var barChartInited = false;
+function initBarChart() {
+  barChartInited = true;
+  var ctx = document.getElementById('barChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['R1', 'R2', 'R3'],
+      datasets: [
+        {
+          label: 'May 2026 Avg',
+          data: [4.9, 2.4, 1.6],
+          backgroundColor: ['rgba(46,109,164,0.85)', 'rgba(61,107,61,0.85)', 'rgba(181,134,13,0.85)'],
+          borderRadius: 6,
+          barPercentage: 0.45
+        },
+        {
+          label: 'Apr 2026 Baseline',
+          data: [4.6, 1.8, null],
+          backgroundColor: ['rgba(46,109,164,0.25)', 'rgba(61,107,61,0.25)', 'rgba(0,0,0,0)'],
+          borderColor: ['#2E6DA4', '#3D6B3D', 'transparent'],
+          borderWidth: 1.5,
+          borderRadius: 6,
+          barPercentage: 0.45
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#5C6A80', font: { size: 11 } } },
+        tooltip: { backgroundColor: '#0F1B2D', borderColor: 'rgba(15,27,45,0.10)', borderWidth: 1, titleColor: '#F2EDE2', bodyColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: { ticks: { color: '#5C6A80', font: { size: 13 } }, grid: { color: 'rgba(15,27,45,0.10)' } },
+        y: {
+          ticks: { color: '#5C6A80', font: { size: 11 } },
+          grid: { color: 'rgba(15,27,45,0.10)' },
+          title: { display: true, text: 'Avg Days', color: '#5C6A80', font: { size: 11 } },
+          beginAtZero: true, max: 7
+        }
+      }
+    }
+  });
+}
+
+goTo(0);
+</script>
+</body>
+</html>

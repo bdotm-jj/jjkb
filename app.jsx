@@ -144,11 +144,8 @@ function Sidebar({ screen, setScreen, bookmarks }) {
 
       <div className="nav-group">
         <h4>Reports</h4>
-        <div className={cx("nav-item", screen === "phasereport" && "active")} onClick={() => setScreen("phasereport")}>
-          <span className="dot"/> Phase Duration
-        </div>
-        <div className={cx("nav-item", screen === "cathyreport" && "active")} onClick={() => setScreen("cathyreport")}>
-          <span className="dot"/> Cathy Parmley UAT
+        <div className={cx("nav-item", (screen === "reports" || screen.startsWith("report:")) && "active")} onClick={() => setScreen("reports")}>
+          <span className="dot"/> UAT &amp; Phase reports
         </div>
       </div>
 
@@ -695,67 +692,114 @@ function PodsScreen({ setScreen }) {
 }
 
 // ============================================================
-// SCREEN: REPORT (embedded monthly report)
-// Monthly reports are self-contained, KB-styled HTML files hosted in
-// site/reports/ (same-origin), embedded as internal tabs. They are
-// swapped in-place each month — the portal just points at the file.
-// autoResize=true  → scrolling document (Phase Duration): fit to content.
-// autoResize=false → fixed-viewport slide deck (Cathy UAT): fixed height.
+// REPORTS — monthly report editions
+// Self-contained, KB-styled HTML files in site/reports/ (same-origin),
+// listed from this manifest and opened in an embedded viewer. To add a
+// month: drop the file in site/reports/ and add one entry below.
 // ============================================================
-function ReportScreen({ setScreen, src, title, crumb, autoResize }) {
-  const frameRef = useRef(null);
+const REPORTS = [
+  { id: "june-2026", kind: "monthly", title: "June 2026", date: "2026-06-01",
+    period: "Current period · Apr 1 – Jun 1, 2026", file: "reports/june-2026.html",
+    summary: "Testing efficiency improved sharply — average project duration fell 40% versus the Nov–Mar baseline. Scottsdale API remains an outlier at 10 days in R1.",
+    stats: [{ value: "6", label: "Projects tested" }, { value: "9", label: "Total tasks" }, { value: "4.8d", label: "Avg / project" }, { value: "−40%", label: "vs baseline" }] },
+  { id: "may-2026", kind: "monthly", title: "May 2026", date: "2026-05-08",
+    period: "Reporting period · Nov 25, 2025 – May 6, 2026", file: "reports/may-2026.html",
+    summary: "Thirteen projects cleared the queue across a six-month window. Average total duration ticked up to 7.5 days as larger integrations entered testing.",
+    stats: [{ value: "13", label: "Projects tested" }, { value: "30", label: "Completed tasks" }, { value: "7.5d", label: "Avg / project" }, { value: "4", label: "Queued" }] },
+  { id: "april-2026", kind: "monthly", title: "April 2026", date: "2026-04-30",
+    period: "Reporting period · Apr 8 – 27, 2026", file: "reports/april-2026.html",
+    summary: "The lightest month since the baseline began — three projects, closed in roughly half the usual time. One API integration ran long; the rest finished in two days or less.",
+    stats: [{ value: "3", label: "Projects tested" }, { value: "4", label: "Completed tasks" }, { value: "4.7d", label: "Avg / project" }] },
+  { id: "phase-duration-baseline", kind: "baseline", title: "Phase Duration Baseline", date: "2026-03-31",
+    period: "Q1 2026 reference · Jan – Mar 2026", file: "reports/phase-duration-baseline.html",
+    summary: "The Q1 2026 reference benchmark. Establishes phase-duration norms across 17 projects and five lines of business, sourced from Smartsheet project plans.",
+    stats: [{ value: "17", label: "Projects" }, { value: "5", label: "Lines of business" }, { value: "5.4d", label: "Baseline avg" }] },
+];
+const REPORTS_BY_ID = Object.fromEntries(REPORTS.map(r => [r.id, r]));
+const reportsSorted = () => [...REPORTS].sort((a, b) => b.date.localeCompare(a.date));
+function fmtReportDate(iso) {
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
 
-  const fitFrame = useCallback(() => {
-    const frame = frameRef.current;
-    if (!frame || !autoResize) return;
-    try {
-      const doc = frame.contentDocument;
-      if (!doc || !doc.documentElement) return;
-      frame.style.height = doc.documentElement.scrollHeight + "px";
-    } catch { /* cross-origin (local file://) — keep min-height */ }
-  }, [autoResize]);
-
-  const onLoad = useCallback(() => {
-    if (!autoResize) return;
-    const frame = frameRef.current;
-    fitFrame();
-    try {
-      const doc = frame.contentDocument;
-      if (!doc) return;
-      const ro = new ResizeObserver(fitFrame);
-      ro.observe(doc.documentElement);
-      const mo = new MutationObserver(fitFrame);
-      mo.observe(doc.body, { childList: true, subtree: true });
-      frame._observers = { ro, mo };
-    } catch { /* isolated origin */ }
-  }, [autoResize, fitFrame]);
-
-  useEffect(() => () => {
-    const frame = frameRef.current;
-    if (frame && frame._observers) {
-      frame._observers.ro.disconnect();
-      frame._observers.mo.disconnect();
-    }
-  }, []);
-
+function ReportsIndexScreen({ setScreen, weirdness }) {
+  const sorted = reportsSorted();
+  const latest = sorted.find(r => r.kind === "monthly") || sorted[0];
+  const archive = sorted.filter(r => r !== latest);
+  const open = (id) => setScreen("report:" + id);
   return (
     <div className="screen">
       <div className="crumbs-nav">
         <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
         <span className="sep">/</span><span>Reports</span>
-        <span className="sep">/</span><span>{crumb}</span>
+      </div>
+      <div className="hero" style={{ paddingBottom: 28, marginBottom: 32 }}>
+        <div className="hero-top">
+          <div className="eyebrow">
+            <span>Quality Operations</span><span>UAT · Cathy Parmley</span><span>{REPORTS.length} editions</span>
+          </div>
+        </div>
+        <h1 style={{ fontSize: "clamp(40px, 5vw, 68px)" }}>Testing <em>reports</em>.</h1>
+        <p className="deck">{latest.summary}</p>
+        <div style={{ display: "flex", gap: 30, flexWrap: "wrap", margin: "24px 0 4px" }}>
+          {latest.stats.slice(0, 4).map((s, i) => (
+            <div key={i}>
+              <div className="mono" style={{ fontSize: 26, color: "var(--accent)", fontWeight: 600, lineHeight: 1 }}>{s.value}</div>
+              <div className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-3)", marginTop: 6 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <button className="btn sm" style={{ marginTop: 24 }} onClick={() => open(latest.id)}>Open {latest.title} →</button>
+      </div>
+
+      <div className="section-head">
+        <h2 className="section-title">Report archive</h2>
+        <div className="meta">{archive.length} earlier · newest first</div>
+      </div>
+      <div className="grid-3">
+        {archive.map(r => (
+          <div key={r.id} className="card" style={{ cursor: "pointer" }} onClick={() => open(r.id)}>
+            <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
+            <h3>{r.title}</h3>
+            <p>{r.summary}</p>
+            <div className="meta-row">
+              <span>{r.stats.map(s => s.value).slice(0, 3).join(" · ")}</span>
+              <span>Open →</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <MarqueeFooter weirdness={weirdness} />
+    </div>
+  );
+}
+
+function ReportViewer({ setScreen, reportId }) {
+  const r = REPORTS_BY_ID[reportId];
+  if (!r) return (
+    <div className="screen">
+      <div className="empty-state">
+        <h3>Report not found.</h3>
+        <p>Choose one from the reports index.</p>
+      </div>
+    </div>
+  );
+  return (
+    <div className="screen">
+      <div className="crumbs-nav" style={{ justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); setScreen("home"); }}>Home</a>
+          <span className="sep">/</span>
+          <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports"); }}>Reports</a>
+          <span className="sep">/</span><span>{r.title}</span>
+        </div>
+        <a href={r.file} target="_blank" rel="noopener noreferrer" className="mono"
+           style={{ fontSize: 11, color: "var(--accent)", textDecoration: "none" }}>Open in new tab ↗</a>
       </div>
       <iframe
-        ref={frameRef}
-        src={src}
-        title={title}
-        onLoad={onLoad}
-        style={{
-          width: "100%",
-          height: autoResize ? undefined : "82vh",
-          minHeight: autoResize ? 900 : 620,
-          border: "none", display: "block", background: "var(--bg)",
-        }}
+        src={r.file}
+        title={r.title}
+        style={{ width: "100%", height: "calc(100vh - 210px)", minHeight: 620,
+                 border: "1px solid var(--rule-soft)", borderRadius: 2, display: "block", background: "var(--bg)" }}
       />
     </div>
   );
@@ -944,10 +988,12 @@ function App() {
 
   const [, categoryId] = screen.startsWith("category:") ? screen.split(":") : [null, null];
   const [, articleId]  = screen.startsWith("article:")  ? screen.split(":") : [null, null];
+  const [, reportId]   = screen.startsWith("report:")   ? screen.split(":") : [null, null];
 
   let screenBase = screen;
   if (screen.startsWith("category:")) screenBase = "browse";
   if (screen.startsWith("article:"))  screenBase = "article";
+  if (screen.startsWith("report:"))   screenBase = "reports";
 
   const TABS = [
     { id: "home",    label: "Home" },
@@ -956,8 +1002,7 @@ function App() {
     { id: "search",  label: "Search" },
     { id: "recent",  label: "Recent" },
     { id: "pods",    label: "Pods" },
-    { id: "phasereport", label: "Phase report" },
-    { id: "cathyreport", label: "Cathy UAT" },
+    { id: "reports", label: "Reports" },
     { id: "edit",    label: "Admin — edit" },
   ];
 
@@ -993,12 +1038,8 @@ function App() {
           {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
-          {screenBase === "phasereport" && <ReportScreen setScreen={setScreen}
-            src="reports/phase-duration-baseline.html" title="Phase Duration Baseline"
-            crumb="Phase Duration Baseline" autoResize={true}/>}
-          {screenBase === "cathyreport" && <ReportScreen setScreen={setScreen}
-            src="reports/cathy-parmley-uat.html" title="Cathy Parmley UAT Testing Report"
-            crumb="Cathy Parmley UAT" autoResize={false}/>}
+          {screen === "reports" && <ReportsIndexScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {reportId && <ReportViewer setScreen={setScreen} reportId={reportId}/>}
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>

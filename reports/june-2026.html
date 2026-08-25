@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cathy Parmley UAT Testing Report — June 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+    --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--grotesk); background: var(--bg); color: var(--ink-2); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .presentation { width: 960px; max-width: 98vw; }
+  .slide { display: none; background: var(--bg-raised); border-radius: var(--radius-lg); padding: 48px 56px; min-height: 560px; border: 1px solid var(--rule-soft); position: relative; flex-direction: column; }
+  .slide.active { display: flex; }
+  .slide-number { position: absolute; top: 20px; right: 28px; font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+
+  /* Cover slide */
+  .cover-title { font-family: var(--serif); font-size: 44px; font-weight: 400; color: var(--ink); line-height: 1.05; margin-bottom: 8px; }
+  .cover-subtitle { font-family: var(--mono); font-size: 14px; color: var(--ink-3); margin-bottom: 40px; }
+  .cover-badge { display: inline-block; background: transparent; color: var(--accent); border: 1px solid var(--accent-soft); font-family: var(--mono); font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: var(--radius); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
+  .stat-card { background: var(--bg-raised); border-radius: var(--radius); padding: 20px 16px; text-align: center; border: 1px solid var(--rule-soft); }
+  .stat-card .value { font-family: var(--serif); font-size: 32px; font-weight: 400; color: var(--accent); }
+  .stat-card .label { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* Slide headers */
+  .slide-header { margin-bottom: 28px; }
+  .slide-header h2 { font-family: var(--serif); font-size: 30px; font-weight: 400; color: var(--ink); line-height: 1.1; }
+  .slide-header .divider { width: 48px; height: 2px; background: var(--accent); border-radius: var(--radius); margin-top: 10px; }
+
+  /* Metrics slide */
+  .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+  .metric-card { background: var(--bg-raised); border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--rule-soft); }
+  .metric-card .metric-label { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .metric-card .metric-value { font-family: var(--serif); font-size: 32px; font-weight: 400; color: var(--ink); }
+  .metric-card .metric-compare { font-family: var(--mono); font-size: 12px; margin-top: 4px; }
+  .up { color: var(--hot); }
+  .down { color: var(--ok); }
+  .neutral { color: var(--ink-3); }
+  .insights-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .insight { background: var(--bg-raised); border-radius: var(--radius); padding: 14px 16px; border: 1px solid var(--rule-soft); border-left: 3px solid var(--accent); }
+  .insight.outlier { border-left-color: var(--hot); }
+  .insight.watch { border-left-color: var(--amber); }
+  .insight-type { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .insight-text { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+
+  /* Chart slide */
+  .chart-container { flex: 1; position: relative; min-height: 320px; }
+
+  /* Table slide */
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--bg-sunken); color: var(--ink-3); font-family: var(--mono); text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--rule-soft); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--rule-soft); color: var(--ink-2); }
+  tr:hover td { background: var(--bg-sunken); }
+  .total-col { font-family: var(--mono); font-weight: 500; color: var(--accent); }
+
+  /* Findings slide */
+  .findings-list { list-style: none; margin-bottom: 24px; }
+  .findings-list li { padding: 10px 0 10px 32px; border-bottom: 1px solid var(--rule-soft); position: relative; font-size: 14px; color: var(--ink-2); line-height: 1.5; }
+  .findings-list li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .findings-list li strong { color: var(--ink); }
+  .rec-label { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .rec-list { list-style: none; }
+  .rec-list li { padding: 8px 0 8px 32px; position: relative; font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+  .rec-list li::before { content: "✦"; position: absolute; left: 2px; color: var(--amber); font-size: 11px; top: 10px; }
+
+  /* Nav */
+  .nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 24px; }
+  .nav button { background: var(--bg-raised); border: 1px solid var(--rule-soft); color: var(--ink-3); font-family: var(--mono); padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .nav button:hover { background: var(--bg-sunken); color: var(--ink); }
+  .nav button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .slide-dots { display: flex; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rule-soft); cursor: pointer; transition: background 0.2s; }
+  .dot.active { background: var(--accent); }
+
+  .baseline-label { font-family: var(--mono); font-size: 11px; color: var(--ink-4); font-style: normal; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="presentation">
+
+  <!-- Slide 1: Cover -->
+  <div class="slide active" id="slide-1">
+    <span class="slide-number">1 / 5</span>
+    <div class="cover-badge">UAT Testing Report</div>
+    <div class="cover-title">Cathy Parmley UAT Testing Report</div>
+    <div class="cover-subtitle">June 2026 &nbsp;·&nbsp; Current Period: April 1 – June 1, 2026</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="value">6</div>
+        <div class="label">Projects Tested</div>
+      </div>
+      <div class="stat-card">
+        <div class="value">9</div>
+        <div class="label">Total Tasks</div>
+      </div>
+      <div class="stat-card">
+        <div class="value">4.8d</div>
+        <div class="label">Avg Days/Project</div>
+      </div>
+      <div class="stat-card">
+        <div class="value">Apr 8 – Jun 1</div>
+        <div class="label">Date Range</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Key Metrics -->
+  <div class="slide" id="slide-2">
+    <span class="slide-number">2 / 5</span>
+    <div class="slide-header"><h2>Key Metrics — Current vs. Baseline</h2><div class="divider"></div></div>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Avg Project Total</div>
+        <div class="metric-value">4.8d</div>
+        <div class="metric-compare down">↓ 40% vs baseline (8.0d)</div>
+        <div class="baseline-label">Nov 2025 – Mar 2026 Baseline</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg R1 Duration</div>
+        <div class="metric-value">4.0d</div>
+        <div class="metric-compare down">↓ 17% vs baseline (4.8d)</div>
+        <div class="baseline-label">Nov 2025 – Mar 2026 Baseline</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg R2 Duration</div>
+        <div class="metric-value">1.5d</div>
+        <div class="metric-compare down">↓ 44% vs baseline (2.7d)</div>
+        <div class="baseline-label">Nov 2025 – Mar 2026 Baseline</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">R1→R2 Reduction</div>
+        <div class="metric-value">−62.5%</div>
+        <div class="metric-compare down">↓ more efficient vs baseline (−44.2%)</div>
+        <div class="baseline-label">Nov 2025 – Mar 2026 Baseline</div>
+      </div>
+    </div>
+    <div class="insights-row">
+      <div class="insight">
+        <div class="insight-type">📊 Finding</div>
+        <div class="insight-text">Overall testing efficiency has improved significantly — avg project duration dropped 40% vs the Nov–Mar baseline, from 8.0d to 4.8d.</div>
+      </div>
+      <div class="insight outlier">
+        <div class="insight-type">⚠ Outlier</div>
+        <div class="insight-text">Scottsdale API consumed 10d in R1 alone — double the current period average — suggesting higher complexity or scope.</div>
+      </div>
+      <div class="insight watch">
+        <div class="insight-type">👁 Watch Item</div>
+        <div class="insight-text">Atrium - PL required 3 rounds of retesting in the current period despite having started in baseline. Track whether issue resolution is accelerating.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Line Chart -->
+  <div class="slide" id="slide-3">
+    <span class="slide-number">3 / 5</span>
+    <div class="slide-header"><h2>Testing Duration Over Time — Current Period</h2><div class="divider"></div></div>
+    <div class="chart-container">
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Slide 4: Bar Chart + Table -->
+  <div class="slide" id="slide-4">
+    <span class="slide-number">4 / 5</span>
+    <div class="slide-header"><h2>R1 vs R2 vs R3 Comparison — Current Period</h2><div class="divider"></div></div>
+    <div style="height:200px; position:relative;">
+      <canvas id="barChart"></canvas>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>R1</th>
+            <th>R2</th>
+            <th>R3</th>
+            <th>Total</th>
+            <th>Start Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Scottsdale API</td><td>10d</td><td>—</td><td>—</td><td class="total-col">10d</td><td>Apr 8</td></tr>
+          <tr><td>Munich RE</td><td>4d</td><td>2d</td><td>—</td><td class="total-col">6d</td><td>May 4</td></tr>
+          <tr><td>Chubb Local Rating</td><td>5d</td><td>—</td><td>—</td><td class="total-col">5d</td><td>Jun 1</td></tr>
+          <tr><td>Atrium - PL</td><td>1d</td><td>1d</td><td>2d</td><td class="total-col">4d</td><td>Apr 20</td></tr>
+          <tr><td>GLISE Forms API</td><td>2d</td><td>—</td><td>—</td><td class="total-col">2d</td><td>Apr 27</td></tr>
+          <tr><td>RenRe Personal Lines</td><td>2d</td><td>—</td><td>—</td><td class="total-col">2d</td><td>May 21</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Slide 5: Findings -->
+  <div class="slide" id="slide-5">
+    <span class="slide-number">5 / 5</span>
+    <div class="slide-header"><h2>Key Findings &amp; Recommendations</h2><div class="divider"></div></div>
+    <ul class="findings-list">
+      <li><strong>Efficiency improvement:</strong> Average total testing duration fell from 8.0d (baseline Nov '25–Mar '26) to 4.8d in the current period — a 40% reduction — suggesting improved defect resolution speed or reduced complexity in recent projects.</li>
+      <li><strong>R1→R2 reduction deepened:</strong> The current period shows a 62.5% reduction from R1 to R2 duration, up from 44.2% in baseline. Fewer defects are carrying forward into second rounds.</li>
+      <li><strong>Scottsdale API is an outlier:</strong> At 10d for R1 (the longest single-round test this period), it skews the average upward. Without it, the current average drops to ~3.8d. This project may warrant a complexity review.</li>
+      <li><strong>GLISE and RenRe lines are efficient:</strong> GLISE Forms API and RenRe Personal Lines both completed in 2d with single rounds — the leanest tests in the dataset, a positive signal for scoped API integrations.</li>
+      <li><strong>Pipeline is building:</strong> Several projects with durations but no start dates (Motion HVH API, Moratorium Service, MeshVI, Chubb API) remain in the queue. These will shift the averages once active.</li>
+    </ul>
+    <div class="rec-label">Recommendations</div>
+    <ul class="rec-list">
+      <li>Investigate Scottsdale API scope to determine whether the 10d R1 is a recurring pattern or a one-time anomaly; document root cause for future planning.</li>
+      <li>Use Atrium - PL's multi-retest pattern as a process improvement case study — examine what drove 3 rounds and whether earlier defect discovery could reduce cycles.</li>
+      <li>Proactively schedule start dates for the 5 backlog projects (Motion HVH, Moratorium, MeshVI, Chubb API, Markel Artisan Rater) to allow workload forecasting for Q3 2026.</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)" disabled>← Prev</button>
+  <div class="slide-dots">
+    <div class="dot active" onclick="goToSlide(0)"></div>
+    <div class="dot" onclick="goToSlide(1)"></div>
+    <div class="dot" onclick="goToSlide(2)"></div>
+    <div class="dot" onclick="goToSlide(3)"></div>
+    <div class="dot" onclick="goToSlide(4)"></div>
+  </div>
+  <button id="nextBtn" onclick="changeSlide(1)">Next →</button>
+</div>
+
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+
+function goToSlide(n) {
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  dots[current].classList.add('active');
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === slides.length - 1;
+  if (current === 2 && !window.lineChartBuilt) buildLineChart();
+  if (current === 3 && !window.barChartBuilt) buildBarChart();
+}
+
+function changeSlide(dir) { goToSlide(current + dir); }
+
+// Current period projects ordered by start date
+const currentProjects = [
+  { name: "Scottsdale API", total: 10, start: "Apr 8" },
+  { name: "Atrium - PL", total: 4, start: "Apr 20" },
+  { name: "GLISE Forms API", total: 2, start: "Apr 27" },
+  { name: "Munich RE", total: 6, start: "May 4" },
+  { name: "RenRe Personal Lines", total: 2, start: "May 21" },
+  { name: "Chubb Local Rating", total: 5, start: "Jun 1" },
+];
+const avg = 4.8;
+
+function buildLineChart() {
+  window.lineChartBuilt = true;
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  const labels = currentProjects.map(p => p.name);
+  const totals = currentProjects.map(p => p.total);
+  const avgLine = currentProjects.map(() => avg);
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Total Testing Days',
+          data: totals,
+          borderColor: '#2E6DA4',
+          backgroundColor: 'rgba(46,109,164,0.12)',
+          pointBackgroundColor: '#2E6DA4',
+          pointRadius: 6,
+          tension: 0.3,
+          fill: true,
+        },
+        {
+          label: 'Average (4.8d)',
+          data: avgLine,
+          borderColor: '#97A0B2',
+          borderDash: [6, 4],
+          pointRadius: 0,
+          borderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#5C6A80', font: { size: 12 } } },
+        tooltip: { backgroundColor: '#0F1B2D', titleColor: 'rgba(242,237,224,0.85)', bodyColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: { ticks: { color: '#5C6A80', font: { size: 11 } }, grid: { color: 'rgba(15,27,45,0.10)' } },
+        y: { ticks: { color: '#5C6A80', callback: v => v + 'd' }, grid: { color: 'rgba(15,27,45,0.10)' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function buildBarChart() {
+  window.barChartBuilt = true;
+  const ctx = document.getElementById('barChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Avg R1', 'Avg R2', 'Avg R3'],
+      datasets: [
+        {
+          label: 'Current (Apr–Jun 2026)',
+          data: [4.0, 1.5, 2.0],
+          backgroundColor: '#2E6DA4',
+          borderRadius: 2,
+        },
+        {
+          label: 'Baseline (Nov 2025–Mar 2026)',
+          data: [4.8, 2.7, 1.8],
+          backgroundColor: '#97A0B2',
+          borderRadius: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#5C6A80', font: { size: 12 } } },
+        tooltip: { backgroundColor: '#0F1B2D', titleColor: 'rgba(242,237,224,0.85)', bodyColor: 'rgba(242,237,224,0.85)' }
+      },
+      scales: {
+        x: { ticks: { color: '#5C6A80' }, grid: { color: 'rgba(15,27,45,0.10)' } },
+        y: { ticks: { color: '#5C6A80', callback: v => v + 'd' }, grid: { color: 'rgba(15,27,45,0.10)' }, beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
