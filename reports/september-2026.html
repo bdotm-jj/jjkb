@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cathy Parmley UAT Testing Report — September 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+    --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);}
+  .deck{max-width:1100px;margin:0 auto;padding:20px;}
+  .slide{
+    display:none;background:var(--bg);border:1px solid var(--rule-soft);border-radius:var(--radius-lg);
+    padding:48px 56px;min-height:600px;position:relative;
+  }
+  .slide.active{display:block;}
+  h1{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:46px;line-height:1.05;margin:0 0 6px;letter-spacing:-0.01em;}
+  h2{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:34px;line-height:1.1;margin:0 0 22px;border-bottom:1px solid var(--rule);padding-bottom:10px;}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:13px;margin-bottom:30px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:20px;text-align:center;}
+  .stat-card .num{font-family:var(--serif);font-size:38px;font-weight:400;color:var(--accent);}
+  .stat-card .lbl{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px;text-transform:uppercase;letter-spacing:.1em;}
+  .cover-wrap{display:flex;flex-direction:column;justify-content:center;height:480px;}
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .metric-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:18px;text-align:center;}
+  .metric-card .num{font-family:var(--serif);font-size:30px;font-weight:400;color:var(--accent);}
+  .metric-card .lbl{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;}
+  .delta{font-family:var(--mono);font-size:12px;font-weight:500;margin-top:6px;}
+  .delta.up{color:var(--hot);}
+  .delta.down{color:var(--ok);}
+  .callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0;}
+  .callout{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:14px 16px;font-size:14px;color:var(--ink-2);line-height:1.55;}
+  .callout.finding{border-left:3px solid var(--accent);}
+  .callout.outlier{border-left:3px solid var(--hot);}
+  .callout.watch{border-left:3px solid var(--amber);}
+  .callout b{display:block;margin-bottom:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--ink-3);font-weight:500;}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px;}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);text-align:left;color:var(--ink-2);}
+  th{background:transparent;color:var(--ink-3);font-family:var(--mono);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--rule);}
+  td{font-variant-numeric:tabular-nums;}
+  tr:nth-child(even){background:var(--bg-sunken);}
+  .baseline-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 20px;margin-top:10px;}
+  .baseline-box h3{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 10px;color:var(--ink-3);font-size:12px;font-weight:500;}
+  .chart-wrap{position:relative;height:380px;margin-top:10px;}
+  ul.findings{font-size:15.5px;line-height:1.7;padding-left:22px;color:var(--ink-2);}
+  ul.findings li{margin-bottom:10px;}
+  ul.findings b{color:var(--ink);}
+  .rec-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--ok);border-radius:var(--radius);padding:16px 20px;margin-top:20px;}
+  .rec-box h3{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 8px;color:var(--ink-3);font-size:12px;font-weight:500;}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius-lg);padding:10px 16px;}
+  .nav button{
+    background:transparent;color:var(--ink);border:1px solid var(--rule-soft);padding:8px 20px;border-radius:var(--radius);
+    cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
+  }
+  .nav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+  .nav button:disabled{color:var(--ink-4);border-color:var(--rule-soft);cursor:not-allowed;}
+  .dots{display:flex;gap:8px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--ink-4);cursor:pointer;}
+  .dot.active{background:var(--accent);}
+  .page-lbl{font-family:var(--mono);color:var(--ink-3);font-size:12px;letter-spacing:.08em;}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- SLIDE 1 -->
+  <div class="slide active" id="slide1">
+    <div class="cover-wrap">
+      <div class="subtitle">Monthly Operations UAT Testing Summary</div>
+      <h1>Cathy Parmley UAT Testing Report — September 2026</h1>
+      <div class="subtitle" style="margin-top:8px;">Current reporting period: Apr 8, 2026 – Aug 31, 2026</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num">11</div><div class="lbl">Projects Tested</div></div>
+        <div class="stat-card"><div class="num">20</div><div class="lbl">Total Tasks</div></div>
+        <div class="stat-card"><div class="num">9.3</div><div class="lbl">Avg Total Days / Project</div></div>
+        <div class="stat-card"><div class="num">Apr–Aug</div><div class="lbl">Date Range (2026)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide" id="slide2">
+    <h2>Key Metrics</h2>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="num">9.27d</div><div class="lbl">Avg Project Total</div></div>
+      <div class="metric-card"><div class="num">6.36d</div><div class="lbl">Avg R1 Duration</div></div>
+      <div class="metric-card"><div class="num">3.43d</div><div class="lbl">Avg R2 Duration</div></div>
+      <div class="metric-card"><div class="num">Workflow Dashboard</div><div class="lbl">Longest Project — 25 days</div></div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout finding"><b>Finding</b>R1→R2 improvement held steady: rounds shrink ~46% from R1 to R2, slightly better than baseline (~43%).</div>
+      <div class="callout outlier"><b>Outlier</b>Workflow Dashboard R1 alone (20 days) exceeds the total testing time of 9 of 11 current-period projects.</div>
+      <div class="callout watch"><b>Watch Item</b>Avg R1 duration is up 21% vs baseline (6.36d vs 5.25d) — early-round testing is taking longer.</div>
+    </div>
+
+    <div class="baseline-box">
+      <h3>Comparison vs Nov 2025 – Mar 2026 Baseline</h3>
+      <table>
+        <tr><th>Metric</th><th>Baseline</th><th>Current</th><th>Delta</th></tr>
+        <tr><td>Avg Total Duration</td><td>8.75d</td><td>9.27d</td><td class="delta up">▲ +0.52d</td></tr>
+        <tr><td>Avg R1 Duration</td><td>5.25d</td><td>6.36d</td><td class="delta up">▲ +1.11d</td></tr>
+        <tr><td>Avg R2 Duration</td><td>3.00d</td><td>3.43d</td><td class="delta up">▲ +0.43d</td></tr>
+        <tr><td>R1→R2 % Reduction</td><td>-42.9%</td><td>-46.1%</td><td class="delta down">▼ 3.3 pts (improved)</td></tr>
+        <tr><td>Projects Tested</td><td>8</td><td>11</td><td class="delta up">▲ +3</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide" id="slide3">
+    <h2>Testing Duration Over Time</h2>
+    <div class="subtitle">Total testing days per project, ordered by start date (current period)</div>
+    <div class="chart-wrap"><canvas id="chart3"></canvas></div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide" id="slide4">
+    <h2>R1 vs R2 vs R3 Comparison</h2>
+    <div class="subtitle">Average round duration, current period</div>
+    <div class="chart-wrap" style="height:280px;"><canvas id="chart4"></canvas></div>
+    <table id="table4">
+      <thead><tr><th>Project</th><th>R1</th><th>R2</th><th>R3</th><th>Total</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide" id="slide5">
+    <h2>Key Findings &amp; Recommendations</h2>
+    <ul class="findings">
+      <li><b>Avg total duration up modestly (+6%):</b> 8.75d baseline → 9.27d current, driven mainly by two outliers — Workflow Dashboard (25d) and Scottsdale API (21d) — rather than a broad slowdown.</li>
+      <li><b>R1 durations lengthening (+21%):</b> avg R1 rose from 5.25d to 6.36d. Larger/more complex integrations (Workflow Dashboard R1 = 20d) are pulling the average up.</li>
+      <li><b>R1→R2 efficiency slightly improved:</b> the proportional drop from R1 to R2 is now 46.1% vs 42.9% at baseline — once a second round starts, issues are resolved faster relative to the first round.</li>
+      <li><b>Testing volume increased:</b> 11 projects completed at least one round in the current period vs 8 in the baseline window, despite a shorter elapsed window (Apr–Aug vs Nov–Mar).</li>
+      <li><b>R3 sample is thin but elevated:</b> only 2 current-period projects reached R3 (avg 4.0d) vs baseline avg 1.75d — too small a sample to call a trend, but worth tracking as more projects progress.</li>
+    </ul>
+    <div class="rec-box">
+      <h3>Recommendations</h3>
+      <ul class="findings">
+        <li>Review R1 entry criteria for large/complex integrations (e.g., Workflow Dashboard, Scottsdale API) — earlier readiness checks may shorten first-round durations.</li>
+        <li>Since R2 rounds are resolving faster than R1 proportionally, consider applying R2-style triage/kickoff practices earlier, at R1 start.</li>
+        <li>Continue monitoring R3+ rounds next month as sample size grows before drawing conclusions about late-round duration trends.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="prevBtn" onclick="go(-1)">&larr; Prev</button>
+    <div class="dots" id="dots"></div>
+    <span class="page-lbl" id="pageLbl"></span>
+    <button id="nextBtn" onclick="go(1)">Next &rarr;</button>
+  </div>
+</div>
+
+<script>
+const total = 5;
+let cur = 1;
+const dotsEl = document.getElementById('dots');
+for(let i=1;i<=total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===1?' active':'');
+  d.onclick=()=>show(i);
+  dotsEl.appendChild(d);
+}
+function show(n){
+  cur = n;
+  for(let i=1;i<=total;i++){
+    document.getElementById('slide'+i).classList.toggle('active', i===n);
+    dotsEl.children[i-1].classList.toggle('active', i===n);
+  }
+  document.getElementById('prevBtn').disabled = n===1;
+  document.getElementById('nextBtn').disabled = n===total;
+  document.getElementById('pageLbl').textContent = n+' / '+total;
+}
+function go(delta){ show(Math.min(total, Math.max(1, cur+delta))); }
+show(1);
+
+// ---- Chart 3: duration over time ----
+const projLabels = ["Scottsdale API","Atrium - PL","GLISE Forms API","Munich RE","Workflow Dashboard","RenRe Personal Lines","Markel Capacity Program","Chubb Local Rating","Auto Renewals - PL","Agency Fees Management","Transportation Rater Update"];
+const projTotals = [21,4,8,6,25,5,5,7,13,3,5];
+const avgTotal = 9.27;
+
+new Chart(document.getElementById('chart3'), {
+  type: 'line',
+  data: {
+    labels: projLabels,
+    datasets: [
+      {
+        label: 'Total Testing Days',
+        data: projTotals,
+        borderColor: '#2E6DA4',
+        backgroundColor: 'rgba(46,109,164,0.1)',
+        tension: 0.25,
+        pointRadius: 5,
+        pointBackgroundColor: '#2E6DA4',
+        fill: true,
+      },
+      {
+        label: 'Average (9.27d)',
+        data: projLabels.map(()=>avgTotal),
+        borderColor: '#97A0B2',
+        borderDash: [6,4],
+        pointRadius: 0,
+        fill: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position:'top', labels:{ color:'#5C6A80' } },
+      tooltip: { backgroundColor:'#0F1B2D', bodyColor:'rgba(242,237,224,0.85)', titleColor:'#F2EDE2' }
+    },
+    scales: {
+      x: { ticks: { maxRotation: 45, minRotation: 30, color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } },
+      y: { beginAtZero: true, title: { display:true, text:'Days', color:'#5C6A80' }, ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } }
+    }
+  }
+});
+
+// ---- Chart 4: R1/R2/R3 grouped bar ----
+new Chart(document.getElementById('chart4'), {
+  type: 'bar',
+  data: {
+    labels: ['R1','R2','R3'],
+    datasets: [{
+      label: 'Average Duration (days)',
+      data: [6.36, 3.43, 4.00],
+      backgroundColor: ['#2E6DA4','#3D6B3D','#B5860D'],
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ backgroundColor:'#0F1B2D', bodyColor:'rgba(242,237,224,0.85)', titleColor:'#F2EDE2' }
+    },
+    scales:{
+      x:{ ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } },
+      y:{ beginAtZero:true, title:{display:true,text:'Days',color:'#5C6A80'}, ticks:{ color:'#5C6A80' }, grid:{ color:'rgba(15,27,45,0.10)' } }
+    }
+  }
+});
+
+// ---- Table 4: per-project round breakdown ----
+const projRounds = [
+  {name:"Scottsdale API", r1:10, r2:5, r3:6, total:21},
+  {name:"Atrium - PL", r1:1, r2:1, r3:2, total:4},
+  {name:"GLISE Forms API", r1:2, r2:6, r3:null, total:8},
+  {name:"Munich RE", r1:4, r2:2, r3:null, total:6},
+  {name:"Workflow Dashboard", r1:20, r2:5, r3:null, total:25},
+  {name:"RenRe Personal Lines", r1:2, r2:3, r3:null, total:5},
+  {name:"Markel Capacity Program", r1:5, r2:null, r3:null, total:5},
+  {name:"Chubb Local Rating", r1:5, r2:2, r3:null, total:7},
+  {name:"Auto Renewals - PL", r1:13, r2:null, r3:null, total:13},
+  {name:"Agency Fees Management", r1:3, r2:null, r3:null, total:3},
+  {name:"Transportation Rater Update", r1:5, r2:null, r3:null, total:5},
+];
+const tbody = document.querySelector('#table4 tbody');
+projRounds.forEach(p => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${p.name}</td><td>${p.r1 ?? '—'}</td><td>${p.r2 ?? '—'}</td><td>${p.r3 ?? '—'}</td><td><b>${p.total}</b></td>`;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

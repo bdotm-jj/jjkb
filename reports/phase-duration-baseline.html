@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* ── KB light design tokens ── */
+    /* ── KB design tokens ── */
     --bg: #F2EDE2;
     --bg-raised: #FBF7EC;
     --bg-sunken: #E7E1D2;
@@ -29,7 +29,7 @@
     --radius: 2px;
     --radius-lg: 4px;
 
-    /* ── Legacy names re-pointed onto KB tokens (so body markup is untouched) ── */
+    /* ── Report variable names re-pointed onto KB tokens ── */
     --surface: var(--bg-raised);
     --surface-raised: var(--bg-sunken);
     --border: var(--rule-soft);
@@ -39,7 +39,7 @@
     --text-muted: var(--ink-3);
     --accent-light: var(--accent-soft);
 
-    /* ── Phase category encodings (data) ── */
+    /* Phase category encodings — kept as distinct hues */
     --phase-intake: #1D9E75;
     --phase-req: #0F6E56;
     --phase-dev: #2B6CB0;
@@ -49,13 +49,13 @@
     --phase-stab: #C04A20;
     --phase-retro: #7A7570;
 
-    /* ── Quarter encodings (data); featured baseline quarter → KB accent ── */
+    /* Quarter encodings — q1 (featured baseline) = KB accent */
     --q1: var(--accent);
     --q2: #2B5A7A;
     --q3: #6B3A7A;
     --q4: #7A3A20;
 
-    --q1-light: var(--accent-soft);
+    --q1-light: #E4EDF6;
     --q2-light: #E6F1FB;
     --q3-light: #F0EAFE;
     --q4-light: #FAECE7;
@@ -66,7 +66,7 @@
   body {
     background: var(--bg);
     font-family: var(--grotesk);
-    color: var(--text-primary);
+    color: var(--ink-2);
     min-height: 100vh;
     padding: 48px 32px;
     -webkit-font-smoothing: antialiased;
@@ -86,11 +86,11 @@
 
   .page-title {
     font-family: var(--serif);
-    font-size: 44px;
+    font-size: 46px;
     font-weight: 400;
-    line-height: 1.05;
+    line-height: 1.02;
     letter-spacing: -0.01em;
-    color: var(--text-primary);
+    color: var(--ink);
   }
 
   .page-title em {
@@ -101,8 +101,8 @@
   .page-meta {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-align: right;
     line-height: 1.8;
@@ -120,7 +120,7 @@
 
   .quarter-card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule-soft);
     border-radius: var(--radius-lg);
     padding: 20px;
     position: relative;
@@ -148,7 +148,7 @@
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     font-weight: 500;
   }
 
@@ -157,7 +157,7 @@
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-bottom: 6px;
   }
 
@@ -165,7 +165,7 @@
     font-family: var(--serif);
     font-size: 18px;
     font-weight: 400;
-    color: var(--text-secondary);
+    color: var(--ink-2);
     margin-bottom: 14px;
   }
 
@@ -180,17 +180,17 @@
     font-family: var(--mono);
     font-size: 22px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--ink);
     line-height: 1;
   }
-  .q-stat-val.placeholder { color: var(--text-muted); font-size: 18px; }
+  .q-stat-val.placeholder { color: var(--ink-4); font-size: 18px; }
   .q-stat-label {
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-top: 3px;
+    margin-top: 4px;
   }
 
   /* Phase table */
@@ -199,7 +199,7 @@
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -209,12 +209,12 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--border);
+    background: var(--rule-soft);
   }
 
   .phase-table {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule-soft);
     border-radius: var(--radius-lg);
     overflow: hidden;
     margin-bottom: 40px;
@@ -225,13 +225,13 @@
     grid-template-columns: 200px 1fr 70px 70px 70px 70px 90px 50px;
     gap: 0;
     padding: 11px 20px;
-    background: var(--surface-raised);
+    background: var(--bg-sunken);
     border-bottom: 2px solid var(--ink);
     font-family: var(--mono);
     font-size: 10px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
   }
 
   .phase-table-header span { text-align: right; }
@@ -243,16 +243,16 @@
     grid-template-columns: 200px 1fr 70px 70px 70px 70px 90px 50px;
     gap: 0;
     padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--rule-soft);
     align-items: center;
   }
   .phase-row:last-child { border-bottom: none; }
-  .phase-row:hover { background: var(--surface-raised); }
+  .phase-row:hover { background: var(--bg-sunken); }
 
   .phase-name {
     font-size: 12px;
-    font-weight: 500;
-    color: var(--text-primary);
+    font-weight: 600;
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -279,7 +279,7 @@
 
   .bar-q1 {
     height: 6px;
-    border-radius: 2px;
+    border-radius: var(--radius);
     position: absolute;
     top: 0;
     left: 0;
@@ -287,11 +287,11 @@
 
   .bar-q2, .bar-q3, .bar-q4 {
     height: 4px;
-    border-radius: 2px;
+    border-radius: var(--radius);
     position: absolute;
     top: 1px;
     left: 0;
-    opacity: 0.35;
+    opacity: 0.4;
   }
 
   .cell-val {
@@ -299,19 +299,19 @@
     font-size: 12px;
     font-weight: 500;
     text-align: right;
-    color: var(--text-primary);
+    color: var(--ink);
   }
 
-  .cell-val.q1 { color: var(--accent); }
+  .cell-val.q1 { }
   .cell-val.q2 { color: var(--q2); }
   .cell-val.q3 { color: var(--q3); }
   .cell-val.q4 { color: var(--q4); }
-  .cell-val.placeholder { color: var(--text-muted); font-weight: 400; }
+  .cell-val.placeholder { color: var(--ink-4); font-weight: 400; }
 
   .cell-n {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ink-3);
     text-align: right;
   }
 
@@ -328,20 +328,22 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    font-family: var(--mono);
     font-size: 11px;
-    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    color: var(--ink-2);
   }
 
   .legend-swatch {
     width: 20px;
     height: 6px;
-    border-radius: 2px;
+    border-radius: var(--radius);
   }
 
   /* Notes */
   .notes-section {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule-soft);
     border-radius: var(--radius-lg);
     padding: 24px;
     margin-bottom: 32px;
@@ -358,26 +360,27 @@
   .note-label {
     font-family: var(--mono);
     font-size: 10px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-bottom: 6px;
   }
   .note-text {
+    font-family: var(--grotesk);
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--ink-2);
     line-height: 1.6;
   }
 
   .footer {
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 0.06em;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-align: center;
     padding-top: 24px;
-    border-top: 1px solid var(--border);
+    border-top: 2px solid var(--ink);
     margin-top: 8px;
   }
 
@@ -385,16 +388,16 @@
   .class-tabs-container { margin-bottom: 40px; }
   .class-tab-nav { display: flex; gap: 4px; flex-wrap: wrap; }
   .ctab {
-    background: var(--bg); border: 1px solid var(--border);
-    border-bottom-color: var(--border-strong);
+    background: var(--bg-sunken); border: 1px solid var(--rule-soft);
+    border-bottom-color: var(--ink);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 10px 16px; cursor: pointer;
-    font-family: var(--mono); font-size: 11px; color: var(--text-secondary);
-    display: flex; align-items: center; gap: 8px; letter-spacing: 0.02em;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+    display: flex; align-items: center; gap: 8px; letter-spacing: 0.04em;
   }
-  .ctab:hover { background: var(--surface-raised); color: var(--text-primary); }
+  .ctab:hover { background: var(--bg-raised); color: var(--ink); }
   .ctab.active {
-    background: var(--surface); color: var(--text-primary);
-    border-color: var(--border-strong); border-bottom-color: var(--surface);
+    background: var(--surface); color: var(--ink);
+    border-color: var(--ink); border-bottom-color: var(--surface);
     margin-bottom: -1px; position: relative; z-index: 1; font-weight: 500;
   }
   .ctab-count {
@@ -402,46 +405,45 @@
     padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 500;
   }
   .ctab-panel {
-    background: var(--surface); border: 1px solid var(--border-strong);
+    background: var(--surface); border: 1px solid var(--ink);
     border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg); overflow: hidden;
   }
   .class-panel-header {
-    padding: 16px 20px; background: var(--surface-raised);
+    padding: 16px 20px; background: var(--bg-sunken);
     border-bottom: 2px solid var(--ink);
     display: flex; justify-content: space-between; align-items: flex-start;
     gap: 16px; flex-wrap: wrap;
   }
   .class-panel-title {
-    font-family: var(--serif); font-size: 21px; font-weight: 400;
-    color: var(--text-primary); margin-bottom: 4px;
+    font-family: var(--serif); font-size: 20px; font-weight: 400;
+    color: var(--ink); margin-bottom: 4px;
   }
-  .class-panel-meta { font-size: 11px; color: var(--text-secondary); line-height: 1.8; }
-  .class-panel-note { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-align: right; font-style: italic; }
+  .class-panel-meta { font-family: var(--grotesk); font-size: 11px; color: var(--ink-2); line-height: 1.8; }
+  .class-panel-note { font-family: var(--grotesk); font-size: 11px; color: var(--ink-3); text-align: right; font-style: italic; }
   .comp-hdr {
     display: grid; grid-template-columns: 200px 70px 86px 70px 1fr 40px;
-    padding: 9px 20px; background: var(--surface-raised);
+    padding: 10px 20px; background: var(--bg-sunken);
     border-bottom: 2px solid var(--ink);
-    font-family: var(--mono);
-    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
   }
   .comp-hdr span { text-align: right; }
   .comp-hdr span:first-child { text-align: left; }
   .comp-hdr .bar-hdr { text-align: left; padding-left: 16px; }
   .comp-row {
     display: grid; grid-template-columns: 200px 70px 86px 70px 1fr 40px;
-    padding: 13px 20px; border-bottom: 1px solid var(--border); align-items: center;
+    padding: 13px 20px; border-bottom: 1px solid var(--rule-soft); align-items: center;
   }
   .comp-row:last-child { border-bottom: none; }
-  .comp-row:hover { background: var(--surface-raised); }
-  .comp-phase { font-size: 12px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
-  .comp-val { font-family: var(--mono); font-size: 12px; font-weight: 500; text-align: right; color: var(--text-primary); }
-  .comp-val.empty { color: var(--text-muted); font-weight: 400; }
-  .comp-base { font-family: var(--mono); font-size: 12px; text-align: right; color: var(--text-secondary); }
+  .comp-row:hover { background: var(--bg-sunken); }
+  .comp-phase { font-size: 12px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .comp-val { font-family: var(--mono); font-size: 12px; font-weight: 500; text-align: right; color: var(--ink); }
+  .comp-val.empty { color: var(--ink-4); font-weight: 400; }
+  .comp-base { font-family: var(--mono); font-size: 12px; text-align: right; color: var(--ink-2); }
   .comp-delta { font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: right; }
   .comp-delta.above { color: var(--hot); }
   .comp-delta.below { color: var(--ok); }
-  .comp-delta.same, .comp-delta.empty { color: var(--text-muted); font-weight: 400; }
-  .comp-n { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-align: right; }
+  .comp-delta.same, .comp-delta.empty { color: var(--ink-4); font-weight: 400; }
+  .comp-n { font-family: var(--mono); font-size: 11px; color: var(--ink-3); text-align: right; }
 
   @media (max-width: 900px) {
     .quarter-grid { grid-template-columns: 1fr 1fr; }
@@ -520,14 +522,14 @@
     <!-- Q3 — populated -->
     <div class="quarter-card q3" style="opacity:1">
       <div class="q-label">Q3 · Jul – Sep 2026</div>
-      <div class="q-range">Refreshed Aug 25, 2026 (through Aug 25)</div>
+      <div class="q-range">Refreshed Sep 2, 2026 (through Sep 2)</div>
       <div class="q-stats">
         <div class="q-stat">
-          <div class="q-stat-val">17</div>
+          <div class="q-stat-val">19</div>
           <div class="q-stat-label">Projects</div>
         </div>
         <div class="q-stat">
-          <div class="q-stat-val">~32d</div>
+          <div class="q-stat-val">~29d</div>
           <div class="q-stat-label">Avg days</div>
         </div>
         <div class="q-stat">
@@ -597,15 +599,15 @@
         <div class="bar-track">
           <div class="bar-q1" style="width:22%;background:var(--phase-intake)"></div>
           <div class="bar-q2" style="width:14%;background:var(--phase-intake)"></div>
-          <div class="bar-q3" style="width:30%;background:var(--phase-intake)"></div>
+          <div class="bar-q3" style="width:27%;background:var(--phase-intake)"></div>
         </div>
       </div>
       <div class="cell-val q1">22d</div>
       <div class="cell-val q2">12d</div>
-      <div class="cell-val q3">30d</div>
+      <div class="cell-val q3">27d</div>
       <div class="cell-val placeholder">—</div>
       <div class="cell-val" style="font-size:10px;color:var(--text-muted)">1–174d</div>
-      <div class="cell-n">31</div>
+      <div class="cell-n">32</div>
     </div>
 
     <!-- Requirements & Design -->
@@ -659,15 +661,15 @@
         <div class="bar-track">
           <div class="bar-q1" style="width:61%;background:var(--phase-alpha)"></div>
           <div class="bar-q2" style="width:49%;background:var(--phase-alpha)"></div>
-          <div class="bar-q3" style="width:60%;background:var(--phase-alpha)"></div>
+          <div class="bar-q3" style="width:31%;background:var(--phase-alpha)"></div>
         </div>
       </div>
       <div class="cell-val q1">61d</div>
       <div class="cell-val q2">41d</div>
-      <div class="cell-val q3">60d</div>
+      <div class="cell-val q3">31d</div>
       <div class="cell-val placeholder">—</div>
       <div class="cell-val" style="font-size:10px;color:var(--text-muted)">1–273d</div>
-      <div class="cell-n">14</div>
+      <div class="cell-n">15</div>
     </div>
 
     <!-- UAT -->
@@ -709,7 +711,7 @@
       <div class="cell-val q3">2d</div>
       <div class="cell-val placeholder">—</div>
       <div class="cell-val" style="font-size:10px;color:var(--text-muted)">1–34d</div>
-      <div class="cell-n">19</div>
+      <div class="cell-n">20</div>
     </div>
 
     <!-- Stabilization -->
@@ -837,16 +839,21 @@
           Agency Fees Management<br>
           Mailing Suppression
         </div>
+        <div class="note-label" style="margin-top:16px;margin-bottom:8px">Unclassified &nbsp;<span style="background:var(--q3-light);color:var(--q3);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500">1</span></div>
+        <div class="note-text" style="line-height:2">
+          Quote Funnel Dashboard <span style="font-size:10px;color:var(--text-muted)">(blank in intake sheet)</span>
+        </div>
       </div>
 
       <div>
-        <div class="note-label" style="margin-bottom:8px">New Feature — MARS (Existing System) &nbsp;<span style="background:var(--q3-light);color:var(--q3);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500">11</span></div>
+        <div class="note-label" style="margin-bottom:8px">New Feature — MARS (Existing System) &nbsp;<span style="background:var(--q3-light);color:var(--q3);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500">12</span></div>
         <div class="note-text" style="line-height:2">
           Chubb API<br>
           Earthquake transition to MARS – UI, additional companies, rating<br>
           Excess Wind transition to MARS – UI, additional companies, rating<br>
           HVH GLISE Contract Phase 1<br>
           Markel Capacity Program<br>
+          Markel State Expansion - Group 3 (CA, CT, GA, KY, MA, ME, TX, VA)<br>
           Markel X-Wind transition to MARS<br>
           RenRe Personal Lines<br>
           Scottsdale API<br>
@@ -858,9 +865,11 @@
 
       <div>
         <div class="note-label" style="margin-bottom:8px">Note</div>
-        <div class="note-text">Q3 is a partial-quarter refresh (Jul 1 – Aug 25, 2026; the quarter runs through Sep 30). 17 unique projects have contributed at least one qualifying completed phase so far, across 26 phase-completions. Four projects joined since the Aug 10 refresh: Automation: Self-Serve / rules, Chubb API, Earthquake transition to MARS, and VAVE State Expansion - Group 5.</div>
-        <div class="note-text" style="margin-top:12px">Two long single phases are driving this month's averages and should be read as outliers rather than trend: Automation: Self-Serve / rules ran a <strong>174-day Intake &amp; Planning</strong> (Jan 30 – Jul 22), which lifted the Q3 Intake average from 13d to 30d and extended the all-time Intake range to 174d; and Chubb API ran a <strong>162-day Development</strong> phase (Mar 9 – Aug 17), which lifted Q3 Development from 29d to 96d. Both phase-header rows only flipped to Complete after the Aug 10 pull — the same header-rollup lag pattern seen last month.</div>
-        <div class="note-text" style="margin-top:12px">Requirements &amp; Design still has <strong>zero</strong> Q3 completions (n=0). Alpha Testing remains n=1 — treat as provisional.</div>
+        <div class="note-text">Q3 is a partial-quarter refresh (Jul 1 – Sep 2, 2026; the quarter runs through Sep 30). 19 unique projects have contributed at least one qualifying completed phase so far, across 29 phase-completions, at an overall average of 29.2 days. Two projects joined since the Aug 25 refresh: Markel State Expansion - Group 3 and Quote Funnel Dashboard.</div>
+        <div class="note-text" style="margin-top:12px">A quiet month — only <strong>three</strong> new phase-completions since Aug 25, all short: Markel State Expansion - Group 3 Intake &amp; Planning (1d), Quote Funnel Dashboard Alpha Testing (1d), and Agency Fees Management Release (2d). Both averages that moved did so because a short phase diluted a small sample: <strong>Intake &amp; Planning 30d → 27d</strong> (n 8→9) and <strong>Alpha Testing 60d → 31d</strong> (n 1→2). No all-time range was extended this month.</div>
+        <div class="note-text" style="margin-top:12px">The two long outliers flagged last month still dominate and should be read as outliers rather than trend: Automation: Self-Serve / rules' <strong>174-day Intake &amp; Planning</strong> (Jan 30 – Jul 22) and Chubb API's <strong>162-day Development</strong> phase (Mar 9 – Aug 17). Development remains the longest phase by average (95.5d, n=2).</div>
+        <div class="note-text" style="margin-top:12px">Requirements &amp; Design still has <strong>zero</strong> Q3 completions (n=0) — now three consecutive refreshes with no data. Alpha Testing is n=2 and Development n=2 — both still provisional.</div>
+        <div class="note-text" style="margin-top:12px"><strong>Quote Funnel Dashboard has no Project Classification</strong> in the Projects Intake Sheet, so it is shown as Unclassified rather than being forced into "Other". Its Alpha Testing row was flagged last month as a future-dated completion (end 2026-08-31); that date is now in the past, so the row qualifies legitimately this cycle.</div>
       </div>
 
     </div>
@@ -1319,12 +1328,12 @@
       </div>
       <div class="note-item">
         <div class="note-label">Classification tabs scope</div>
-        <div class="note-text">The "Phase duration by project classification · Q2 vs Q1 baseline" comparison tabs above are not part of the automated monthly refresh — they still reflect the Jul 2, 2026 snapshot and are not updated with Q3 data. Treat those tabs as a point-in-time Q2 analysis, not a live view. <strong>This is now the third consecutive refresh (Jul, Aug 10, Aug 25) in which these tabs have gone stale</strong> — they should either be brought into the scheduled task's scope or removed from the report.</div>
+        <div class="note-text">The "Phase duration by project classification · Q2 vs Q1 baseline" comparison tabs above are not part of the automated monthly refresh — they still reflect the Jul 2, 2026 snapshot and are not updated with Q3 data. Treat those tabs as a point-in-time Q2 analysis, not a live view. <strong>This is now the fourth consecutive refresh (Jul, Aug 10, Aug 25, Sep 2) in which these tabs have gone stale</strong> — a decision is overdue: either bring them into the scheduled task's scope or remove them from the report.</div>
       </div>
     </div>
   </div>
 
-  <div class="footer">Phase Duration Baseline · Internal PMO Reporting · Refreshed Aug 25, 2026</div>
+  <div class="footer">Phase Duration Baseline · Internal PMO Reporting · Refreshed Sep 2, 2026</div>
 
 </main>
 </body>

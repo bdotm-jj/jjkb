@@ -725,6 +725,10 @@ function PodsScreen({ setScreen }) {
 // month: drop the file in site/reports/ and add one entry below.
 // ============================================================
 const REPORTS = [
+  { id: "september-2026", group: "uat", kind: "monthly", title: "September 2026", date: "2026-09-01",
+    period: "Current period · Apr – Aug 2026", file: "reports/september-2026.html",
+    summary: "Average total testing duration edged up to 9.3 days per project across eleven projects — both R1 and R2 rounds lengthened slightly versus the prior period.",
+    stats: [{ value: "11", label: "Projects tested" }, { value: "20", label: "Total tasks" }, { value: "9.3d", label: "Avg / project" }, { value: "+16%", label: "vs baseline" }] },
   { id: "august-2026", group: "uat", kind: "monthly", title: "August 2026", date: "2026-08-01",
     period: "Current period · Apr 8 – Jul 27, 2026", file: "reports/august-2026.html",
     summary: "Average total testing duration rose to 8.9 days per project — an 11% increase over the Nov 2025–Mar 2026 baseline (8.0d), driven mainly by longer R1 rounds.",
@@ -745,10 +749,10 @@ const REPORTS = [
     period: "Reporting period · Apr 8 – 27, 2026", file: "reports/april-2026.html",
     summary: "The lightest month since the baseline began — three projects, closed in roughly half the usual time. One API integration ran long; the rest finished in two days or less.",
     stats: [{ value: "3", label: "Projects tested" }, { value: "4", label: "Completed tasks" }, { value: "4.7d", label: "Avg / project" }] },
-  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-08-25",
-    period: "Q1 baseline → Q3 · refreshed Aug 25, 2026", file: "reports/phase-duration-baseline.html",
+  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-09-02",
+    period: "Q1 baseline → Q3 · refreshed Sep 2, 2026", file: "reports/phase-duration-baseline.html",
     summary: "Phase-duration reference benchmark, refreshed monthly from Smartsheet project plans. The Q1 2026 baseline with Q2 and Q3 actuals now recorded; Q4 pending.",
-    stats: [{ value: "Q3", label: "Latest quarter" }, { value: "17", label: "Q3 projects" }, { value: "~32d", label: "Q3 avg days" }] },
+    stats: [{ value: "Q3", label: "Latest quarter" }, { value: "19", label: "Q3 projects" }, { value: "~29d", label: "Q3 avg days" }] },
 ];
 const REPORT_GROUPS = {
   uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
