@@ -79,6 +79,17 @@ function extractSections(bodyHtml) {
   }))
 }
 
+// Give each <h2> an id (matching extractSections' slug) so the article
+// Table-of-Contents anchor links have something to scroll to.
+function injectSectionIds(bodyHtml) {
+  if (!bodyHtml) return bodyHtml
+  return bodyHtml.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (full, attrs, inner) => {
+    if (/\bid\s*=/.test(attrs)) return full
+    const id = slugify(inner.replace(/<[^>]+>/g, ''))
+    return `<h2${attrs} id="${id}">${inner}</h2>`
+  })
+}
+
 function buildDocId(doc) {
   return `${doc.doc_type || 'DOC'}-${(doc.domain || '').replace(/[^A-Z]/gi, '').toUpperCase().slice(0, 3)}-${doc.confluence_id}`
 }
@@ -121,7 +132,7 @@ async function getArticle(id) {
     updated: formatDate(d.last_updated),
     readTime: readTime(d.body),
     tags: d.tags || [],
-    body: d.body_html || '',
+    body: injectSectionIds(d.body_html) || '',
     sections: extractSections(d.body_html),
     related: related.map(r => r.confluence_id),
   }

@@ -475,7 +475,12 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
         <aside className="article-toc">
           <h5>Contents</h5>
           {article.sections.map((s, i) => (
-            <a key={s.id} href={"#" + s.id} className={i === 0 ? "active" : ""}>
+            <a key={s.id} href={"#" + s.id} className={i === 0 ? "active" : ""}
+               onClick={(e) => {
+                 e.preventDefault();
+                 const el = document.getElementById(s.id);
+                 if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+               }}>
               {String(i + 1).padStart(2, "0")} — {s.label}
             </a>
           ))}
@@ -631,7 +636,8 @@ function RecentScreen({ setScreen, weirdness }) {
       </div>
       <div>
         {data && data.recent.map((r, i) => (
-          <div key={i} className="feed-row" style={{ cursor: "pointer" }}>
+          <div key={i} className="feed-row" style={{ cursor: r._id ? "pointer" : "default" }}
+               onClick={() => r._id && setScreen("article:" + r._id)}>
             <span className="when">{r.when}</span>
             <div className="title">
               {r.title}
@@ -824,6 +830,7 @@ function ReportsIndexScreen({ setScreen, weirdness, group = "uat" }) {
 
 function ReportViewer({ setScreen, reportId }) {
   const r = REPORTS_BY_ID[reportId];
+  const [copied, setCopied] = useState(false);
   if (!r) return (
     <div className="screen">
       <div className="empty-state">
@@ -832,6 +839,16 @@ function ReportViewer({ setScreen, reportId }) {
       </div>
     </div>
   );
+  // Absolute URL to the standalone report file — the shareable link to send out.
+  const copyLink = () => {
+    const url = new URL(r.file, window.location.href).href;
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1600); };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, () => window.prompt("Copy this link:", url));
+      } else { window.prompt("Copy this link:", url); }
+    } catch { window.prompt("Copy this link:", url); }
+  };
   return (
     <div className="screen">
       <div className="crumbs-nav" style={{ justifyContent: "space-between" }}>
@@ -843,8 +860,16 @@ function ReportViewer({ setScreen, reportId }) {
           </a>
           <span className="sep">/</span><span>{r.title}</span>
         </div>
-        <a href={r.file} target="_blank" rel="noopener noreferrer" className="mono"
-           style={{ fontSize: 11, color: "var(--accent)", textDecoration: "none" }}>Open in new tab ↗</a>
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <button onClick={copyLink} className="mono"
+            style={{ fontSize: 11, color: copied ? "var(--ok)" : "var(--accent)", background: "none",
+                     border: "none", cursor: "pointer", padding: 0 }}
+            title="Copy the direct link to this report (for emailing)">
+            {copied ? "Link copied ✓" : "Copy direct link"}
+          </button>
+          <a href={r.file} target="_blank" rel="noopener noreferrer" className="mono"
+             style={{ fontSize: 11, color: "var(--accent)", textDecoration: "none" }}>Open in new tab ↗</a>
+        </div>
       </div>
       <iframe
         src={r.file}
