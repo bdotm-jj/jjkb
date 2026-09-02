@@ -74,7 +74,7 @@ const DOMAIN_MAP = {
   '~7120201b68ac6b3ece484297ce13489a5f9603': 'PMO', // personal space
   'DEV': 'Development',
   'DIT': 'PMO',
-  'DP':  'Data & Product',
+  'DP':  'PMO', // "J&J DIT PMO" space
   'PL1': 'PL Pod',
 }
 
