@@ -811,6 +811,27 @@ h2.section-title {
   padding-top: 6px;
 }
 
+/* Definition card — pinned glossary result, ranked above article matches */
+.result-row.def-row {
+  background: var(--chip-bg);
+  border-left: 3px solid var(--accent);
+  border-bottom: 1px solid var(--rule);
+  padding-left: 14px; padding-right: 12px;
+}
+.result-row.def-row .idx {
+  color: var(--accent);
+  font-weight: 600;
+}
+.result-row.def-row h4 { font-style: italic; }
+.def-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
 /* ==========================================================================
    RECENT FEED
    ========================================================================== */

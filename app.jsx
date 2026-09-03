@@ -596,8 +596,22 @@ function SearchScreen({ setScreen, weirdness }) {
         </div>
       ) : (
         <div className="search-results">
-          {results.map(r => (
-            <div key={r.idx} className="result-row" onClick={() => r._id && setScreen("article:" + r._id)}>
+          {results.map((r, i) => r.kind === "definition" ? (
+            <div key={"def" + i + r._id} className="result-row def-row" onClick={() => r._id && setScreen("article:" + r._id)}>
+              <span className="idx">DEF</span>
+              <div>
+                <div className="def-badge">Definition · Glossary</div>
+                <h4 dangerouslySetInnerHTML={{ __html: r.title }}/>
+                <p dangerouslySetInnerHTML={{ __html: r.snippet }}/>
+                <div className="crumbs">{r.crumbs}</div>
+              </div>
+              <div className="right-meta">
+                <div style={{ color: "var(--accent)", fontWeight: 600 }}>{r.score}</div>
+                <div>{r.meta}</div>
+              </div>
+            </div>
+          ) : (
+            <div key={r.idx + i + r._id} className="result-row" onClick={() => r._id && setScreen("article:" + r._id)}>
               <span className="idx">№ {r.idx}</span>
               <div>
                 <h4 dangerouslySetInnerHTML={{ __html: r.title }}/>
