@@ -191,6 +191,17 @@ function decodeEntities(s) {
     .replace(/\s+/g, ' ').trim()
 }
 
+// Derive a likely acronym from a multi-word term (initials of significant
+// words), so a query like "PMO" can match "Project Management Office".
+const _acronymStop = new Set(['and', 'or', 'of', 'the', 'for', 'to', 'a', 'an', 'in', 'on', 'with', 'by', 'as'])
+function inferInitialism(label) {
+  const words = (label || '').replace(/\([^)]*\)/g, ' ').replace(/[^A-Za-z\s]/g, ' ').split(/\s+/).filter(Boolean)
+  const sig = words.filter(w => !_acronymStop.has(w.toLowerCase()))
+  if (sig.length < 2) return ''
+  const ac = sig.map(w => w[0].toUpperCase()).join('')
+  return ac.length >= 2 && ac.length <= 6 ? ac : ''
+}
+
 function parseGlossaryTerms(html) {
   if (!html) return []
   const out = []
@@ -206,6 +217,9 @@ function parseGlossaryTerms(html) {
     if (!label || label.length > 80) continue
     const aliases = (label.match(/\(([^)]+)\)/g) || []).map(x => x.replace(/[()]/g, '').trim()).filter(Boolean)
     const base = label.replace(/\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim()
+    // Light acronym inference (only when not already an explicit alias).
+    const ac = inferInitialism(base || label)
+    if (ac && !aliases.some(a => a.toUpperCase() === ac)) aliases.push(ac)
     out.push({ term: base || label, display: label, aliases, def })
   }
   return out
@@ -242,7 +256,7 @@ function matchGlossaryTerms(query, terms) {
     if (names.includes(q)) s = 100
     else if (qc && names.some(n => n.replace(/[^a-z0-9]/g, '') === qc)) s = 95
     else if (q.length >= 3 && names.some(n => n.startsWith(q))) s = 72
-    else if (q.length >= 3 && names.some(n => (' ' + n + ' ').includes(' ' + q + ' '))) s = 60
+    else if (q.length >= 3 && !_acronymStop.has(q) && names.some(n => (' ' + n + ' ').includes(' ' + q + ' '))) s = 60
     if (s > 0) scored.push({ t, s })
   }
   scored.sort((a, b) => b.s - a.s || a.t.term.length - b.t.term.length)
