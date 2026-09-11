@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MARS Dev Team — Weekly Report · Aug 31 – Sep 4, 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
@@ -84,6 +85,26 @@
   .tbl-notes{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:12px;line-height:1.55;}
   .tbl-notes div{margin-top:4px;}
   .tbl-notes b{color:var(--ink-2);}
+  /* overview / dashboard */
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:30px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+  .alert{background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--ink-4);border-radius:var(--radius);padding:13px 15px;}
+  .alert.crit{border-left-color:var(--hot);}
+  .alert.warn{border-left-color:var(--amber);}
+  .alert.good{border-left-color:var(--ok);}
+  .alert .lbl{display:flex;align-items:center;gap:7px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:600;color:var(--ink-3);margin-bottom:6px;}
+  .alert .ico{font-size:12px;}
+  .alert.crit .ico{color:var(--hot);} .alert.warn .ico{color:var(--amber);} .alert.good .ico{color:var(--ok);} .alert.info .ico{color:var(--accent);}
+  .alert .big{font-family:var(--serif);font-size:24px;line-height:1;color:var(--ink);margin-bottom:5px;}
+  .alert .txt{font-size:12.5px;line-height:1.5;color:var(--ink-2);}
+  .chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .chart-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px 12px;}
+  .chart-card.wide{grid-column:1 / -1;}
+  .chart-card h3{font-family:var(--serif);font-weight:400;font-size:19px;margin:0 0 2px;color:var(--ink);}
+  .chart-card .sub{font-size:12px;color:var(--ink-3);margin-bottom:12px;line-height:1.45;}
+  .chart-box{position:relative;height:300px;}
+  .chart-box.tall{height:420px;}
+  @media(max-width:760px){ .chart-grid{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -108,6 +129,17 @@ const DATA = {"devCloses":{"headers":["Developer","Role","Closed Count","Ticket 
 
 // ---- helpers ----
 const FLAGS = {RED:'red',HIGH:'high',ORANGE:'orange',WATCH:'watch',OK:'ok','N/A':'na','n/a':'na',PTO:'pto'};
+const INK={ink:'#0F1B2D',ink2:'#2A3A52',ink3:'#5C6A80',ink4:'#97A0B2',rule:'rgba(15,27,45,0.14)',
+  accent:'#2E6DA4',ok:'#3D6B3D',amber:'#B5860D',hot:'#C24B1E'};
+// role groups ("dept") + fixed categorical color + point shape (secondary encoding, CVD-safe)
+const ROLE_GROUPS=[
+  {key:'Developer',   color:'#2E6DA4', pt:'circle'},
+  {key:'Jr Dev',      color:'#B5860D', pt:'triangle'},
+  {key:'Senior/Staff',color:'#3D6B3D', pt:'rectRot'},
+  {key:'QA',          color:'#C24B1E', pt:'rect'},
+  {key:'Data/Other',  color:'#6D5B9E', pt:'star'},
+];
+const RG_BY_KEY=Object.fromEntries(ROLE_GROUPS.map(g=>[g.key,g]));
 function isNum(v){ return v!=='' && v!=null && !isNaN(parseFloat(v)) && isFinite(v.toString().replace(/,/g,'')) && /^-?\d/.test(v.toString()); }
 function fmtNum(v){
   const n = parseFloat(v);
@@ -226,6 +258,8 @@ function makeTable(container, def, opts){
 
 // ---- tabs ----
 const TABS=[
+  {id:'overview', label:'Overview', title:'The Week at a Glance', def:null,
+   desc:'Bird’s-eye view with automatic alerts, then a role-by-role breakdown. Hover any chart for detail.'},
   {id:'weekly', label:'Weekly Summary', title:'Weekly Summary', def:DATA.weekly,
    desc:'Per-person hours Mon–Fri, tickets worked, bounce activity, and flags for the report week (Aug 31 – Sep 4).',
    opts:{nameFirst:true, defaultSort:8, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
@@ -252,7 +286,8 @@ TABS.forEach((t,i)=>{
   head.innerHTML='<div><h2>'+esc(t.title)+'</h2>'+(t.desc?'<div class="desc">'+esc(t.desc)+'</div>':'')+'</div>';
   p.appendChild(head);
   panelsEl.appendChild(p);
-  if(t.id==='notes'){ renderNotes(p); }
+  if(t.id==='overview'){ renderOverview(p); }
+  else if(t.id==='notes'){ renderNotes(p); }
   else if(t.def && t.def.rows.length){ makeTable(p, t.def, t.opts); renderTblNotes(p, t.def.notes); }
   else { const e=document.createElement('p'); e.className='desc'; e.textContent='No rows.'; p.appendChild(e); }
 });
@@ -278,13 +313,154 @@ function renderNotes(p){
   p.appendChild(box);
 }
 
+// ================= OVERVIEW / DASHBOARD =================
+function roleGroup(role){
+  const r=(role||'').toLowerCase();
+  if(r==='developer') return 'Developer';
+  if(r==='jr dev') return 'Jr Dev';
+  if(r.includes('senior')||r.includes('staff')) return 'Senior/Staff';
+  if(r==='qa') return 'QA';
+  return 'Data/Other';
+}
+function num(v){ const n=parseFloat(v); return isFinite(n)?n:null; }
+function expWk(v){ const s=String(v||''); if(s.includes('-')){ const p=s.split('-').map(parseFloat); return (p[0]+p[1])/2; } return num(s)||0; }
+
+function computeAgg(){
+  const w=DATA.weekly, H=w.headers;
+  const ci=n=>H.findIndex(h=>h.toLowerCase().includes(n));
+  const cX={exp:ci('exp/wk'),wk:ci('wk total'),tix:ci('tickets worked'),
+    bflag:ci('bounce flag'),lvol:ci('low volume'),lhrs:ci('low hours'),role:1,name:0};
+  const days=[3,4,5,6,7], dayLabels=['Mon 8/31','Tue 9/1','Wed 9/2','Thu 9/3','Fri 9/4'];
+  const A={people:0, logged:0, expected:0, tickets:0, byDay:[0,0,0,0,0], dayLabels,
+    byRole:{}, persons:[], flags:{lhrs:{},lvol:{},bounce:{}}, zero:[], bounceHigh:[], lowHoursRed:[], lowVolRed:[]};
+  ROLE_GROUPS.forEach(g=>A.byRole[g.key]={key:g.key,count:0,logged:0,expected:0,tickets:0,closes:0});
+  for(const r of w.rows){
+    const g=roleGroup(r[cX.role]);
+    const wk=num(r[cX.wk])||0, ex=expWk(r[cX.exp]), tx=num(r[cX.tix])||0;
+    A.people++; A.logged+=wk; A.expected+=ex; A.tickets+=tx;
+    days.forEach((d,i)=>{ const v=num(r[d]); if(v!=null) A.byDay[i]+=v; });
+    const R=A.byRole[g]; R.count++; R.logged+=wk; R.expected+=ex; R.tickets+=tx;
+    A.persons.push({name:r[cX.name], group:g, hours:wk, tickets:tx});
+    const bf=(r[cX.bflag]||'').toUpperCase(), lv=(r[cX.lvol]||'').toUpperCase(), lh=(r[cX.lhrs]||'').toUpperCase();
+    const bump=(o,k)=>{o[k]=(o[k]||0)+1;};
+    bump(A.flags.bounce,bf||'—'); bump(A.flags.lvol,lv||'—'); bump(A.flags.lhrs,lh||'—');
+    if(wk===0) A.zero.push(r[cX.name]);
+    if(bf==='HIGH') A.bounceHigh.push(r[cX.name]);
+    if(lh==='RED') A.lowHoursRed.push(r[cX.name]);
+    if(lv==='RED') A.lowVolRed.push(r[cX.name]);
+  }
+  // closes by role from devCloses
+  const dc=DATA.devCloses;
+  for(const r of dc.rows){ const g=roleGroup(r[1]); const c=num(r[2])||0; if(A.byRole[g]) A.byRole[g].closes+=c; }
+  return A;
+}
+
+function renderOverview(p){
+  const A=computeAgg();
+  const util=A.expected? A.logged/A.expected : 0;
+  const monThu=A.byDay.slice(0,4).reduce((a,b)=>a+b,0)/4, fri=A.byDay[4];
+  const friDrop= monThu? (monThu-fri)/monThu : 0;
+
+  // ---- alerts ----
+  const alerts=[];
+  alerts.push({sev: util>=0.9?'good':util>=0.8?'warn':'crit', ico: util>=0.9?'●':'▲', lbl:'Capacity this week',
+    big: Math.round(util*100)+'%', txt: Math.round(A.logged).toLocaleString()+' h logged of ~'+Math.round(A.expected).toLocaleString()+' h expected across '+A.people+' people.'});
+  if(A.bounceHigh.length) alerts.push({sev:'crit',ico:'▲',lbl:'Elevated bounce (HIGH)', big:A.bounceHigh.length+(A.bounceHigh.length===1?' dev':' devs'),
+    txt: A.bounceHigh.join(', ')+' — rework rate flagged HIGH this week.'});
+  if(A.lowHoursRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low logged hours', big:A.lowHoursRed.length+' flagged',
+    txt: 'Below the role hours threshold (RED). Some reflect partial PTO — verify against the PTO column.'});
+  if(A.lowVolRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low ticket volume', big:A.lowVolRed.length+' flagged',
+    txt: 'Fewer tickets worked than expected for the role (RED) — mostly QA capacity.'});
+  alerts.push({sev: friDrop>0.25?'warn':'info', ico: friDrop>0.25?'▲':'▬', lbl:'Within-week trend',
+    big:(friDrop>0? '−'+Math.round(friDrop*100)+'%':'+'+Math.round(-friDrop*100)+'%'),
+    txt:'Friday team hours vs the Mon–Thu daily average ('+fri.toFixed(0)+' h vs '+monThu.toFixed(0)+' h/day).'});
+  if(A.zero.length) alerts.push({sev:'info',ico:'○',lbl:'Out this week', big:A.zero.length+(A.zero.length===1?' person':' people'),
+    txt:'No hours logged: '+A.zero.join(', ')+'.'});
+
+  const alertsHTML='<div class="ov-section-title">Alerts &amp; watch items</div><div class="alerts">'+
+    alerts.map(a=>'<div class="alert '+a.sev+'"><div class="lbl"><span class="ico">'+a.ico+'</span>'+esc(a.lbl)+'</div><div class="big">'+esc(a.big)+'</div><div class="txt">'+esc(a.txt)+'</div></div>').join('')+'</div>';
+
+  const gridHTML=
+    '<div class="ov-section-title">The week at a glance</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Team hours by day</h3><div class="sub">Total hours logged across the team, Mon–Fri.</div><div class="chart-box"><canvas id="c-day"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Capacity by role</h3><div class="sub">Hours logged vs expected, per role group.</div><div class="chart-box"><canvas id="c-role"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Health &amp; distribution</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Flag health</h3><div class="sub">How many people sit at each flag level, by flag type.</div><div class="chart-box"><canvas id="c-flags"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Tickets vs hours</h3><div class="sub">One dot per person, shaped &amp; coloured by role. Hover for names.</div><div class="chart-box"><canvas id="c-scatter"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Output — August month-to-date</div><div class="chart-grid">'+
+    '<div class="chart-card wide"><h3>Top closers (MTD)</h3><div class="sub">Tickets closed per person across August, coloured by role. Top 15 shown.</div><div class="chart-box tall"><canvas id="c-closers"></canvas></div></div>'+
+    '</div>';
+
+  const legendKey='<div class="legend-key">Role groups: '+ROLE_GROUPS.map(g=>'<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:'+g.color+';display:inline-block"></span>'+g.key+'</span>').join(' ')+'</div>';
+
+  p.insertAdjacentHTML('beforeend', alertsHTML + gridHTML + legendKey);
+  if(typeof Chart==='undefined'){ return; }
+  Chart.defaults.font.family="Inter, system-ui, sans-serif";
+  Chart.defaults.font.size=11; Chart.defaults.color=INK.ink3;
+  const grid={color:INK.rule, drawBorder:false}, noGrid={display:false};
+  const axT={ticks:{color:INK.ink3}, grid};
+
+  // 1) hours by day (single series bar)
+  new Chart(document.getElementById('c-day'),{type:'bar',
+    data:{labels:A.dayLabels,datasets:[{label:'Hours',data:A.byDay,backgroundColor:INK.accent,borderRadius:4,barPercentage:.7,categoryPercentage:.7}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 2) capacity by role (grouped: expected vs logged)
+  const roleKeys=ROLE_GROUPS.map(g=>g.key).filter(k=>A.byRole[k].count>0);
+  new Chart(document.getElementById('c-role'),{type:'bar',
+    data:{labels:roleKeys,datasets:[
+      {label:'Expected',data:roleKeys.map(k=>Math.round(A.byRole[k].expected)),backgroundColor:'rgba(92,106,128,0.28)',borderRadius:4,barPercentage:.8,categoryPercentage:.66},
+      {label:'Logged',data:roleKeys.map(k=>Math.round(A.byRole[k].logged)),backgroundColor:INK.accent,borderRadius:4,barPercentage:.8,categoryPercentage:.66}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toLocaleString()+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 3) flag health (stacked: OK / Watch / Red) across three flag types
+  const types=[['Low Hours','lhrs'],['Low Volume','lvol'],['Bounce','bounce']];
+  const okC=t=> (A.flags[t]['OK']||0);
+  const watchC=t=> (A.flags[t]['ORANGE']||0)+(A.flags[t]['WATCH']||0);
+  const redC=t=> (A.flags[t]['RED']||0)+(A.flags[t]['HIGH']||0);
+  new Chart(document.getElementById('c-flags'),{type:'bar',
+    data:{labels:types.map(t=>t[0]),datasets:[
+      {label:'OK',data:types.map(t=>okC(t[1])),backgroundColor:INK.ok,borderRadius:3},
+      {label:'Watch',data:types.map(t=>watchC(t[1])),backgroundColor:INK.amber,borderRadius:3},
+      {label:'Red / High',data:types.map(t=>redC(t[1])),backgroundColor:INK.hot,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.x+' people'}}},
+      scales:{x:{stacked:true,beginAtZero:true,grid,ticks:{color:INK.ink3,precision:0}},y:{stacked:true,grid:noGrid,ticks:{color:INK.ink2}}}}});
+
+  // 4) tickets vs hours scatter, per role group (color + shape)
+  const scDatasets=ROLE_GROUPS.filter(g=>A.persons.some(p=>p.group===g.key)).map(g=>({
+    label:g.key, pointStyle:g.pt, backgroundColor:g.color+'cc', borderColor:g.color, borderWidth:1, pointRadius:5, pointHoverRadius:7,
+    data:A.persons.filter(p=>p.group===g.key).map(p=>({x:p.hours,y:p.tickets,name:p.name}))}));
+  new Chart(document.getElementById('c-scatter'),{type:'scatter',
+    data:{datasets:scDatasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}},
+        tooltip:{callbacks:{label:c=>c.raw.name+' — '+c.parsed.x.toFixed(1)+' h, '+c.parsed.y+' tickets'}}},
+      scales:{x:{title:{display:true,text:'Hours logged (wk)',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}},
+        y:{title:{display:true,text:'Tickets worked',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 5) top closers MTD (horizontal bar, top 15, colored by role)
+  const closers=DATA.devCloses.rows.map(r=>({name:r[0],role:roleGroup(r[1]),count:num(r[2])||0}))
+    .sort((a,b)=>b.count-a.count).slice(0,15);
+  new Chart(document.getElementById('c-closers'),{type:'bar',
+    data:{labels:closers.map(c=>c.name),datasets:[{label:'Closed',data:closers.map(c=>c.count),
+      backgroundColor:closers.map(c=>RG_BY_KEY[c.role].color),borderRadius:4,barThickness:16}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' closed · '+closers[c.dataIndex].role}}},
+      scales:{x:{beginAtZero:true,grid,ticks:{color:INK.ink3}},y:{grid:noGrid,ticks:{color:INK.ink2,font:{size:11}}}}}});
+}
+
 function activate(id){
   TABS.forEach(t=>{
     document.getElementById('panel-'+t.id).classList.toggle('active', t.id===id);
     [...tabsEl.children].forEach(b=>b.classList.toggle('active', b.dataset.id===id));
   });
 }
-activate('weekly');
+activate('overview');
 </script>
 </body>
 </html>
