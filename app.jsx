@@ -150,6 +150,9 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen.startsWith("reports:phase") && "active")} onClick={() => setScreen("reports:phase")}>
           <span className="dot"/> Phase Report
         </div>
+        <div className={cx("nav-item", screen.startsWith("reports:mars") && "active")} onClick={() => setScreen("reports:mars")}>
+          <span className="dot"/> MARS Weekly
+        </div>
       </div>
 
       <div className="nav-group">
@@ -281,12 +284,12 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 
       <div className="section-head">
         <h2 className="section-title">Monthly reports</h2>
-        <div className="meta">UAT · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:uat"); }}>All UAT reports →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:phase"); }}>Phase report →</a></div>
+        <div className="meta"><a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:uat"); }}>UAT reports →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:phase"); }}>Phase report →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:mars"); }}>MARS weekly →</a></div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
         {reportsSorted().slice(0, 3).map(r => (
           <div key={r.id} className="card" onClick={() => setScreen("report:" + r.id)} style={{ cursor: "pointer" }}>
-            <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
+            <div className="cat">{r.kind === "baseline" ? "Reference" : r.kind === "weekly" ? "Weekly" : "Monthly"} · {fmtReportDate(r.date)}</div>
             <h3>{r.title}</h3>
             <p>{r.summary}</p>
             <div className="meta-row">
@@ -767,10 +770,15 @@ const REPORTS = [
     period: "Q1 baseline → Q3 · refreshed Sep 2, 2026", file: "reports/phase-duration-baseline.html",
     summary: "Phase-duration reference benchmark, refreshed monthly from Smartsheet project plans. The Q1 2026 baseline with Q2 and Q3 actuals now recorded; Q4 pending.",
     stats: [{ value: "Q3", label: "Latest quarter" }, { value: "19", label: "Q3 projects" }, { value: "~29d", label: "Q3 avg days" }] },
+  { id: "mars-weekly-2026-08-31", group: "mars", kind: "weekly", title: "Week of Aug 31 – Sep 4, 2026", date: "2026-08-31",
+    period: "Weekly · Aug 31 – Sep 4, 2026", file: "reports/mars-weekly-2026-08-31.html",
+    summary: "MARS dev-team time & ticket reporting: per-person hours, tickets worked, bounce activity and flags for the week — plus August month-to-date, closes by person, and the full sortable worklog.",
+    stats: [{ value: "52", label: "Team members" }, { value: "1,129", label: "Hours logged" }, { value: "516", label: "Tickets worked" }, { value: "590", label: "Closes · MTD" }] },
 ];
 const REPORT_GROUPS = {
   uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
   phase: { label: "Phase Reports", eyebrow: ["PMO", "Phase Duration"],                       titleA: "Phase", titleEm: "duration" },
+  mars:  { label: "MARS Weekly",   eyebrow: ["Development", "Dev Time & Tickets"],           titleA: "MARS", titleEm: "weekly" },
 };
 const REPORTS_BY_ID = Object.fromEntries(REPORTS.map(r => [r.id, r]));
 const reportsInGroup = (g) => REPORTS.filter(r => r.group === g).sort((a, b) => b.date.localeCompare(a.date));
@@ -829,7 +837,7 @@ function ReportsIndexScreen({ setScreen, weirdness, group = "uat" }) {
           <div className="grid-3">
             {archive.map(r => (
               <div key={r.id} className="card" style={{ cursor: "pointer" }} onClick={() => open(r.id)}>
-                <div className="cat">{r.kind === "baseline" ? "Reference" : "Monthly"} · {fmtReportDate(r.date)}</div>
+                <div className="cat">{r.kind === "baseline" ? "Reference" : r.kind === "weekly" ? "Weekly" : "Monthly"} · {fmtReportDate(r.date)}</div>
                 <h3>{r.title}</h3>
                 <p>{r.summary}</p>
                 <div className="meta-row">
