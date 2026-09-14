@@ -760,10 +760,18 @@ const REPORTS = [
     period: "Q1 baseline → Q3 · refreshed Sep 2, 2026", file: "reports/phase-duration-baseline.html",
     summary: "Phase-duration reference benchmark, refreshed monthly from Smartsheet project plans. The Q1 2026 baseline with Q2 and Q3 actuals now recorded; Q4 pending.",
     stats: [{ value: "Q3", label: "Latest quarter" }, { value: "19", label: "Q3 projects" }, { value: "~29d", label: "Q3 avg days" }] },
+  { id: "mars-weekly-2026-09-07", group: "mars", kind: "weekly", title: "Week of Sep 7 – 11, 2026", date: "2026-09-07",
+    period: "Weekly · Sep 7 – 11, 2026 · Labor Day holiday week", file: "reports/mars-weekly-2026-09-07.html",
+    summary: "Holiday-shortened week (Mon 9/7 was Labor Day). Capacity utilisation held steady at 75% (holiday-adjusted); total hours, tickets and avg hours/person dipped as expected for the four-day week.",
+    stats: [{ value: "52", label: "Team members" }, { value: "848", label: "Hours logged" }, { value: "469", label: "Tickets worked" }, { value: "136", label: "Closes · MTD" }] },
   { id: "mars-weekly-2026-08-31", group: "mars", kind: "weekly", title: "Week of Aug 31 – Sep 4, 2026", date: "2026-08-31",
     period: "Weekly · Aug 31 – Sep 4, 2026", file: "reports/mars-weekly-2026-08-31.html",
     summary: "MARS dev-team time & ticket reporting: per-person hours, tickets worked, bounce activity and flags for the week — plus August month-to-date, closes by person, and the full sortable worklog.",
     stats: [{ value: "52", label: "Team members" }, { value: "1,129", label: "Hours logged" }, { value: "516", label: "Tickets worked" }, { value: "590", label: "Closes · MTD" }] },
+  { id: "mars-weekly-2026-08-24", group: "mars", kind: "weekly", title: "Week of Aug 24 – 28, 2026", date: "2026-08-24",
+    period: "Weekly · Aug 24 – 28, 2026", file: "reports/mars-weekly-2026-08-24.html",
+    summary: "MARS dev-team time & ticket reporting: per-person hours, tickets worked, bounce activity and flags for the week, plus closes by person and the full sortable worklog.",
+    stats: [{ value: "53", label: "Team members" }, { value: "1,089", label: "Hours logged" }, { value: "501", label: "Tickets worked" }, { value: "111", label: "Closes · MTD" }] },
 ];
 const REPORT_GROUPS = {
   uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
