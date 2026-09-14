@@ -546,7 +546,7 @@ function SearchScreen({ setScreen, query, setQuery, weirdness }) {
   const [filter, setFilter] = useState("All");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const filters = ["All", "PMO", "Development"];
+  const filters = ["All", "PMO", "Development", "QA"];
 
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
