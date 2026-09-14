@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARS Dev Team — Weekly Report · __TITLE_RANGE__</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif:"Instrument Serif","GT Super Display","Times New Roman",serif;
+    --grotesk:"Inter","Neue Haas Grotesk","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px 20px 60px;}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:12px;}
+  h1{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:clamp(34px,5vw,52px);line-height:1.03;margin:10px 0 6px;letter-spacing:-0.01em;}
+  .byline{font-size:14px;color:var(--ink-3);margin-bottom:22px;}
+  .byline b{color:var(--ink-2);font-weight:600;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:22px 0 6px;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px;text-align:center;}
+  .stat-card .num{font-family:var(--serif);font-size:34px;font-weight:400;color:var(--accent);line-height:1;}
+  .stat-card .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:30px 0 0;border-bottom:1px solid var(--rule);}
+  .tabs button{
+    background:transparent;color:var(--ink-3);border:1px solid transparent;border-bottom:none;
+    padding:10px 16px;border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;
+    font-family:var(--mono);font-size:11.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;
+    position:relative;top:1px;
+  }
+  .tabs button:hover{color:var(--accent);}
+  .tabs button.active{color:var(--ink);background:var(--bg-raised);border-color:var(--rule-soft);border-bottom:1px solid var(--bg-raised);}
+  .panel{display:none;padding-top:22px;}
+  .panel.active{display:block;}
+  .panel-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+  .panel-head h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:0;line-height:1.1;}
+  .panel-head .desc{font-size:13px;color:var(--ink-3);max-width:640px;line-height:1.5;margin-top:4px;}
+  .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 4px;}
+  .toolbar input{
+    font-family:var(--grotesk);font-size:13px;padding:8px 12px;min-width:240px;
+    background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);color:var(--ink);
+  }
+  .toolbar input:focus{outline:none;border-color:var(--accent);}
+  .toolbar .count{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.06em;}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius);margin-top:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    position:sticky;top:0;z-index:2;background:var(--bg-sunken);
+    color:var(--ink-3);font-family:var(--mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
+    text-align:left;padding:10px 12px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none;
+  }
+  thead th:hover{color:var(--accent);}
+  thead th .arr{opacity:.45;margin-left:4px;font-size:9px;}
+  thead th.sorted{color:var(--ink);}
+  thead th.sorted .arr{opacity:1;color:var(--accent);}
+  thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tbody td{padding:8px 12px;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--bg-raised);}
+  tbody tr:hover{background:var(--accent-soft);}
+  td.keys{font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.5;max-width:520px;word-break:break-word;}
+  td.name{font-weight:600;color:var(--ink);white-space:nowrap;}
+  .flag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+  .flag.red{background:rgba(194,75,30,.15);color:var(--hot);}
+  .flag.high{background:rgba(194,75,30,.15);color:var(--hot);}
+  .flag.orange{background:rgba(181,134,13,.16);color:var(--amber);}
+  .flag.watch{background:rgba(181,134,13,.16);color:var(--amber);}
+  .flag.ok{background:rgba(61,107,61,.15);color:var(--ok);}
+  .flag.na{background:rgba(15,27,45,.06);color:var(--ink-4);}
+  .flag.pto{background:rgba(46,109,164,.13);color:var(--accent);}
+  .notes h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:22px 0 8px;}
+  .notes p{font-size:14px;line-height:1.6;color:var(--ink-2);margin:8px 0;max-width:900px;}
+  .notes p.lead{font-size:15px;color:var(--ink);}
+  .notes p.bullet{padding-left:18px;position:relative;}
+  .notes p.bullet::before{content:"—";position:absolute;left:0;color:var(--accent);}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .legend-key{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:10px;align-items:center;}
+  .tbl-notes{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:12px;line-height:1.55;}
+  .tbl-notes div{margin-top:4px;}
+  .tbl-notes b{color:var(--ink-2);}
+  /* overview / dashboard */
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:30px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+  .alert{background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--ink-4);border-radius:var(--radius);padding:13px 15px;}
+  .alert.crit{border-left-color:var(--hot);}
+  .alert.warn{border-left-color:var(--amber);}
+  .alert.good{border-left-color:var(--ok);}
+  .alert .lbl{display:flex;align-items:center;gap:7px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:600;color:var(--ink-3);margin-bottom:6px;}
+  .alert .ico{font-size:12px;}
+  .alert.crit .ico{color:var(--hot);} .alert.warn .ico{color:var(--amber);} .alert.good .ico{color:var(--ok);} .alert.info .ico{color:var(--accent);}
+  .alert .big{font-family:var(--serif);font-size:24px;line-height:1;color:var(--ink);margin-bottom:5px;}
+  .alert .txt{font-size:12.5px;line-height:1.5;color:var(--ink-2);}
+  .chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .chart-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px 12px;}
+  .chart-card.wide{grid-column:1 / -1;}
+  .chart-card h3{font-family:var(--serif);font-weight:400;font-size:19px;margin:0 0 2px;color:var(--ink);}
+  .chart-card .sub{font-size:12px;color:var(--ink-3);margin-bottom:12px;line-height:1.45;}
+  .chart-box{position:relative;height:300px;}
+  .chart-box.tall{height:420px;}
+  @media(max-width:760px){ .chart-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="subtitle">MARS Dev Team · Dev Time &amp; Ticket Reporting</div>
+  <h1>Weekly Report</h1>
+  <div class="byline">Report window <b>__WEEK_RANGE__</b> (weekdays only) · Produced by <b>Amy Perez</b></div>
+
+  <div class="stat-grid" id="kpis"></div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+
+  <div class="footer">
+    <span>MARS Dev Team Weekly Report · Week of __WEEK_ISO__</span>
+    <span>Click any column header to sort · type to filter</span>
+  </div>
+</div>
+
+<script>
+const DATA = __DATA__;
+// TRENDS: accumulating array of per-week AGGREGATE summaries (no individual names),
+// oldest→newest. The last entry is this week. Lines light up once length >= 2.
+const TRENDS = __TRENDS__;
+
+// ---- helpers ----
+const FLAGS = {RED:'red',HIGH:'high',ORANGE:'orange',WATCH:'watch',OK:'ok','N/A':'na','n/a':'na',PTO:'pto'};
+const INK={ink:'#0F1B2D',ink2:'#2A3A52',ink3:'#5C6A80',ink4:'#97A0B2',rule:'rgba(15,27,45,0.14)',
+  accent:'#2E6DA4',ok:'#3D6B3D',amber:'#B5860D',hot:'#C24B1E'};
+// role groups ("dept") + fixed categorical color + point shape (secondary encoding, CVD-safe)
+const ROLE_GROUPS=[
+  {key:'Developer',   color:'#2E6DA4', pt:'circle'},
+  {key:'Jr Dev',      color:'#B5860D', pt:'triangle'},
+  {key:'Senior/Staff',color:'#3D6B3D', pt:'rectRot'},
+  {key:'QA',          color:'#C24B1E', pt:'rect'},
+  {key:'Data/Other',  color:'#6D5B9E', pt:'star'},
+];
+const RG_BY_KEY=Object.fromEntries(ROLE_GROUPS.map(g=>[g.key,g]));
+let trendCharts=[]; // populated by renderTrends; resized when the Trends tab is shown
+function isNum(v){ return v!=='' && v!=null && !isNaN(parseFloat(v)) && isFinite(v.toString().replace(/,/g,'')) && /^-?\d/.test(v.toString()); }
+function fmtNum(v){
+  const n = parseFloat(v);
+  if (!isFinite(n)) return v;
+  const r = Math.round(n*100)/100;
+  return (Math.abs(r) >= 1000) ? r.toLocaleString('en-US') : String(r);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// classify a column as numeric if >=60% of non-empty values are numeric
+function numericCols(headers, rows){
+  return headers.map((h,ci)=>{
+    let num=0,tot=0;
+    for(const r of rows){ const v=r[ci]; if(v!=='' && v!=null){ tot++; if(isNum(v)) num++; } }
+    return tot>0 && num/tot>=0.6;
+  });
+}
+
+function cellHTML(val, header, isNumCol){
+  const raw = (val==null)?'':String(val).trim();
+  if(raw==='') return '';
+  // flag chips
+  const fk = FLAGS[raw] || FLAGS[raw.toUpperCase()];
+  if(fk && raw.length<=6) return '<span class="flag '+fk+'">'+esc(raw)+'</span>';
+  if(/^PTO$/i.test(raw)) return '<span class="flag pto">PTO</span>';
+  // bounce rate -> percentage
+  if(/bounce rate/i.test(header) && isNum(raw)){
+    return (Math.round(parseFloat(raw)*1000)/10).toFixed(1)+'%';
+  }
+  if(isNumCol && isNum(raw)) return esc(fmtNum(raw));
+  return esc(raw);
+}
+
+function sortVal(val, isNumCol){
+  const raw=(val==null)?'':String(val).trim();
+  if(isNumCol){ const n=parseFloat(raw); return isFinite(n)? n : -Infinity; }
+  return raw.toLowerCase();
+}
+
+// ---- table renderer ----
+function makeTable(container, def, opts){
+  opts = opts || {};
+  const headers = def.headers, rows = def.rows.slice();
+  const numCols = numericCols(headers, rows);
+  let sortIdx = opts.defaultSort!=null ? opts.defaultSort : -1;
+  let sortDir = opts.defaultDir || -1; // -1 desc, 1 asc
+  let filter = '';
+
+  const wrap = document.createElement('div');
+  const tools = document.createElement('div'); tools.className='toolbar';
+  const inp = document.createElement('input'); inp.type='search'; inp.placeholder=opts.filterPlaceholder||'Filter…';
+  const cnt = document.createElement('span'); cnt.className='count';
+  tools.appendChild(inp); tools.appendChild(cnt);
+  wrap.appendChild(tools);
+
+  const scroll = document.createElement('div'); scroll.className='tbl-scroll';
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+  table.appendChild(thead); table.appendChild(tbody);
+  scroll.appendChild(table); wrap.appendChild(scroll);
+  container.appendChild(wrap);
+
+  function renderHead(){
+    const tr=document.createElement('tr');
+    headers.forEach((h,ci)=>{
+      const th=document.createElement('th');
+      th.innerHTML=esc(h)+(sortIdx===ci?'<span class="arr">'+(sortDir===1?'▲':'▼')+'</span>':'<span class="arr">↕</span>');
+      if(numCols[ci]) th.classList.add('num');
+      if(sortIdx===ci) th.classList.add('sorted');
+      th.onclick=()=>{ if(sortIdx===ci){ sortDir=-sortDir; } else { sortIdx=ci; sortDir = numCols[ci]?-1:1; } renderHead(); renderBody(); };
+      tr.appendChild(th);
+    });
+    thead.innerHTML=''; thead.appendChild(tr);
+  }
+  function renderBody(){
+    let data=rows;
+    if(filter){ const f=filter.toLowerCase(); data=data.filter(r=>r.some(c=>String(c).toLowerCase().includes(f))); }
+    if(sortIdx>=0){
+      const nc=numCols[sortIdx];
+      data=data.slice().sort((a,b)=>{
+        const av=sortVal(a[sortIdx],nc), bv=sortVal(b[sortIdx],nc);
+        if(av<bv) return -sortDir; if(av>bv) return sortDir; return 0;
+      });
+    }
+    const keyCol = headers.findIndex(h=>/ticket keys/i.test(h));
+    tbody.innerHTML = data.map(r=>'<tr>'+r.map((c,ci)=>{
+      let cls=''; if(numCols[ci]) cls='num';
+      if(ci===0 && opts.nameFirst) cls=(cls?cls+' ':'')+'name';
+      if(ci===keyCol) cls=(cls?cls+' ':'')+'keys';
+      return '<td'+(cls?' class="'+cls+'"':'')+'>'+cellHTML(c,headers[ci],numCols[ci])+'</td>';
+    }).join('')+'</tr>').join('');
+    cnt.textContent = data.length+' / '+rows.length+' rows';
+  }
+  inp.oninput=()=>{ filter=inp.value; renderBody(); };
+  renderHead(); renderBody();
+}
+
+// ---- KPIs ----
+(function(){
+  const w=DATA.weekly, hi=w.headers;
+  const ci=(name)=>hi.findIndex(h=>h.toLowerCase().includes(name));
+  const wkTot=ci('wk total'), tix=ci('tickets worked');
+  let hours=0, tickets=0, people=w.rows.length;
+  for(const r of w.rows){ const h=parseFloat(r[wkTot]); if(isFinite(h)) hours+=h; const t=parseFloat(r[tix]); if(isFinite(t)) tickets+=t; }
+  let closes=0; for(const r of DATA.devCloses.rows){ const c=parseFloat(r[2]); if(isFinite(c)) closes+=c; }
+  const kpis=[
+    {num:people, lbl:'Team members'},
+    {num:Math.round(hours).toLocaleString('en-US'), lbl:'Hours logged (wk)'},
+    {num:tickets.toLocaleString('en-US'), lbl:'Tickets worked (wk)'},
+    {num:closes.toLocaleString('en-US'), lbl:'Closes · MTD'},
+    {num:DATA.raw.rows.length.toLocaleString('en-US'), lbl:'Worklog entries'},
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>'<div class="stat-card"><div class="num">'+k.num+'</div><div class="lbl">'+k.lbl+'</div></div>').join('');
+})();
+
+// ---- tabs ----
+const TABS=[
+  {id:'overview', label:'Overview', title:'The Week at a Glance', def:null,
+   desc:'Bird’s-eye view with automatic alerts, then a role-by-role breakdown. Hover any chart for detail.'},
+  {id:'trends', label:'Trends', title:'Multi-week Trends', def:null,
+   desc:'Week-over-week direction as new weeks are added. Each new week extends these lines automatically.'},
+  {id:'weekly', label:'Weekly Summary', title:'Weekly Summary', def:DATA.weekly,
+   desc:'Per-person hours Mon–Fri, tickets worked, bounce activity, and flags for the report week.',
+   opts:{nameFirst:true, defaultSort:8, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
+  {id:'mtd', label:'Month-to-Date', title:'Month-to-Date', def:DATA.mtd,
+   desc:'Month-to-date roll-up (shown when the workbook includes an MTD tab for the month).',
+   opts:{nameFirst:true, defaultSort:3, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
+  {id:'dev', label:'Closes — MTD', title:'Closes by Person — Month-to-Date', def:DATA.devCloses,
+   desc:'Tickets closed per person (all roles) this month, with the closed ticket keys. MTD-scoped per spec.',
+   opts:{nameFirst:true, defaultSort:2, defaultDir:-1, filterPlaceholder:'Filter by person, role, ticket key…'}},
+  {id:'qa', label:'QA Closes', title:'QA Sub-ticket Closes', def:DATA.qaCloses,
+   desc:DATA.qaCloses.note||'', opts:{nameFirst:true, defaultSort:1, defaultDir:-1, filterPlaceholder:'Filter…'}},
+  {id:'raw', label:'Raw Worklog', title:'Raw Worklog (daily)', def:DATA.raw,
+   desc:'Every worklog entry for the week — user, ticket, and hours per day. Sort or filter to trace any person or ticket.',
+   opts:{defaultSort:3, defaultDir:-1, filterPlaceholder:'Filter by day, user, or ticket key…'}},
+  {id:'notes', label:'Legend & Notes', title:'Legend & Run Notes', def:null},
+];
+
+const tabsEl=document.getElementById('tabs'), panelsEl=document.getElementById('panels');
+TABS.forEach((t,i)=>{
+  const b=document.createElement('button'); b.textContent=t.label; b.dataset.id=t.id;
+  b.onclick=()=>activate(t.id); tabsEl.appendChild(b);
+  const p=document.createElement('div'); p.className='panel'; p.id='panel-'+t.id;
+  const head=document.createElement('div'); head.className='panel-head';
+  head.innerHTML='<div><h2>'+esc(t.title)+'</h2>'+(t.desc?'<div class="desc">'+esc(t.desc)+'</div>':'')+'</div>';
+  p.appendChild(head);
+  panelsEl.appendChild(p);
+  if(t.id==='overview'){ renderOverview(p); }
+  else if(t.id==='trends'){ renderTrends(p); }
+  else if(t.id==='notes'){ renderNotes(p); }
+  else if(t.def && t.def.rows.length){ makeTable(p, t.def, t.opts); renderTblNotes(p, t.def.notes); }
+  else { const e=document.createElement('p'); e.className='desc'; e.textContent='No rows.'; p.appendChild(e); }
+});
+
+function renderTblNotes(p, notes){
+  if(!notes || !notes.length) return;
+  const d=document.createElement('div'); d.className='tbl-notes';
+  d.innerHTML = notes.map(n=>'<div>'+esc(n)+'</div>').join('');
+  p.appendChild(d);
+}
+
+function renderNotes(p){
+  const box=document.createElement('div'); box.className='notes';
+  const lines=DATA.legend||[];
+  lines.forEach((ln,i)=>{
+    const el=document.createElement('p');
+    if(i===0){ const h=document.createElement('h3'); h.textContent=ln; box.appendChild(h); return; }
+    if(/^[•·]/.test(ln)){ el.className='bullet'; el.textContent=ln.replace(/^[•·]\s*/,''); }
+    else if(ln.length<70 && !/[.:]$/.test(ln) && /^[A-Z0-9]/.test(ln) && !/\d\./.test(ln)){ el.className='lead'; el.innerHTML='<b>'+esc(ln)+'</b>'; }
+    else { el.textContent=ln; }
+    box.appendChild(el);
+  });
+  p.appendChild(box);
+}
+
+// ================= OVERVIEW / DASHBOARD =================
+function roleGroup(role){
+  const r=(role||'').toLowerCase();
+  if(r==='developer') return 'Developer';
+  if(r==='jr dev') return 'Jr Dev';
+  if(r.includes('senior')||r.includes('staff')) return 'Senior/Staff';
+  if(r==='qa') return 'QA';
+  return 'Data/Other';
+}
+function num(v){ const n=parseFloat(v); return isFinite(n)?n:null; }
+function expWk(v){ const s=String(v||''); if(s.includes('-')){ const p=s.split('-').map(parseFloat); return (p[0]+p[1])/2; } return num(s)||0; }
+
+function computeAgg(){
+  const w=DATA.weekly, H=w.headers;
+  const ci=n=>H.findIndex(h=>h.toLowerCase().includes(n));
+  const cX={exp:ci('exp/wk'),wk:ci('wk total'),tix:ci('tickets worked'),
+    bflag:ci('bounce flag'),lvol:ci('low volume'),lhrs:ci('low hours'),role:1,name:0};
+  const days=[], dayLabels=[];
+  H.forEach((h,i)=>{ if(/^(mon|tue|wed|thu|fri)/i.test(h)){ days.push(i); dayLabels.push(h); } });
+  const A={people:0, logged:0, expected:0, tickets:0, byDay:days.map(()=>0), dayLabels,
+    byRole:{}, persons:[], flags:{lhrs:{},lvol:{},bounce:{}}, zero:[], bounceHigh:[], lowHoursRed:[], lowVolRed:[]};
+  ROLE_GROUPS.forEach(g=>A.byRole[g.key]={key:g.key,count:0,logged:0,expected:0,tickets:0,closes:0});
+  for(const r of w.rows){
+    const g=roleGroup(r[cX.role]);
+    const wk=num(r[cX.wk])||0, ex=expWk(r[cX.exp]), tx=num(r[cX.tix])||0;
+    A.people++; A.logged+=wk; A.expected+=ex; A.tickets+=tx;
+    days.forEach((d,i)=>{ const v=num(r[d]); if(v!=null) A.byDay[i]+=v; });
+    const R=A.byRole[g]; R.count++; R.logged+=wk; R.expected+=ex; R.tickets+=tx;
+    A.persons.push({name:r[cX.name], group:g, hours:wk, tickets:tx});
+    const bf=(r[cX.bflag]||'').toUpperCase(), lv=(r[cX.lvol]||'').toUpperCase(), lh=(r[cX.lhrs]||'').toUpperCase();
+    const bump=(o,k)=>{o[k]=(o[k]||0)+1;};
+    bump(A.flags.bounce,bf||'—'); bump(A.flags.lvol,lv||'—'); bump(A.flags.lhrs,lh||'—');
+    if(wk===0) A.zero.push(r[cX.name]);
+    if(bf==='HIGH') A.bounceHigh.push(r[cX.name]);
+    if(lh==='RED') A.lowHoursRed.push(r[cX.name]);
+    if(lv==='RED') A.lowVolRed.push(r[cX.name]);
+  }
+  // closes by role from devCloses
+  const dc=DATA.devCloses;
+  for(const r of dc.rows){ const g=roleGroup(r[1]); const c=num(r[2])||0; if(A.byRole[g]) A.byRole[g].closes+=c; }
+  return A;
+}
+
+function renderOverview(p){
+  const A=computeAgg();
+  const META = DATA.meta || {};
+  // prefer the sheet's prorated (holiday/PTO-adjusted) capacity target
+  const expectedTeam = (META.expectedProrated>0) ? META.expectedProrated : A.expected;
+  const util = expectedTeam ? A.logged/expectedTeam : 0;
+  // within-week trend: average non-zero weekdays (so a holiday's 0 doesn't skew it)
+  const mt = A.byDay.slice(0,4).filter(v=>v>0);
+  const monThu = mt.length ? mt.reduce((a,b)=>a+b,0)/mt.length : 0;
+  const fri = A.byDay[A.byDay.length-1] || 0;
+  const friDrop = monThu ? (monThu-fri)/monThu : 0;
+
+  // ---- alerts ----
+  const alerts=[];
+  alerts.push({sev: util>=0.9?'good':util>=0.8?'warn':'crit', ico: util>=0.9?'●':'▲', lbl:'Capacity this week',
+    big: Math.round(util*100)+'%', txt: Math.round(A.logged).toLocaleString()+' h logged of ~'+Math.round(expectedTeam).toLocaleString()+' h available across '+A.people+' people'+(META.expectedProrated>0?' (holiday/PTO-adjusted)':'')+'.'});
+  const _prevW = (TRENDS && TRENDS.length>=2) ? TRENDS[TRENDS.length-2] : null;
+  if(_prevW){
+    const dU=Math.round((util-(_prevW.util||0))*100), dH=Math.round(A.logged-(_prevW.teamHours||0)), dT=A.tickets-(_prevW.tickets||0);
+    alerts.push({sev:dU>=0?'good':'warn', ico:dU>=0?'▲':'▼', lbl:'Week over week',
+      big:(dU>=0?'+':'')+dU+' pts', txt:'Capacity vs '+_prevW.label+'. Hours '+(dH>=0?'+':'')+dH.toLocaleString()+', tickets '+(dT>=0?'+':'')+dT+'.'});
+  }
+  if(A.bounceHigh.length) alerts.push({sev:'crit',ico:'▲',lbl:'Elevated bounce (HIGH)', big:A.bounceHigh.length+(A.bounceHigh.length===1?' dev':' devs'),
+    txt: A.bounceHigh.join(', ')+' — rework rate flagged HIGH this week.'});
+  if(A.lowHoursRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low logged hours', big:A.lowHoursRed.length+' flagged',
+    txt: 'Below the role hours threshold (RED). Some reflect partial PTO — verify against the PTO column.'});
+  if(A.lowVolRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low ticket volume', big:A.lowVolRed.length+' flagged',
+    txt: 'Fewer tickets worked than expected for the role (RED) — mostly QA capacity.'});
+  alerts.push({sev: friDrop>0.25?'warn':'info', ico: friDrop>0.25?'▲':'▬', lbl:'Within-week trend',
+    big:(friDrop>0? '−'+Math.round(friDrop*100)+'%':'+'+Math.round(-friDrop*100)+'%'),
+    txt:'Friday team hours vs the Mon–Thu daily average ('+fri.toFixed(0)+' h vs '+monThu.toFixed(0)+' h/day).'});
+  if(A.zero.length) alerts.push({sev:'info',ico:'○',lbl:'Out this week', big:A.zero.length+(A.zero.length===1?' person':' people'),
+    txt:'No hours logged: '+A.zero.join(', ')+'.'});
+
+  const alertsHTML='<div class="ov-section-title">Alerts &amp; watch items</div><div class="alerts">'+
+    alerts.map(a=>'<div class="alert '+a.sev+'"><div class="lbl"><span class="ico">'+a.ico+'</span>'+esc(a.lbl)+'</div><div class="big">'+esc(a.big)+'</div><div class="txt">'+esc(a.txt)+'</div></div>').join('')+'</div>';
+
+  const gridHTML=
+    '<div class="ov-section-title">The week at a glance</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Team hours by day</h3><div class="sub">Total hours logged across the team, Mon–Fri.</div><div class="chart-box"><canvas id="c-day"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Capacity by role</h3><div class="sub">Hours logged vs expected, per role group.</div><div class="chart-box"><canvas id="c-role"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Health &amp; distribution</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Flag health</h3><div class="sub">How many people sit at each flag level, by flag type.</div><div class="chart-box"><canvas id="c-flags"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Tickets vs hours</h3><div class="sub">One dot per person, shaped &amp; coloured by role. Hover for names.</div><div class="chart-box"><canvas id="c-scatter"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Output — month-to-date</div><div class="chart-grid">'+
+    '<div class="chart-card wide"><h3>Top closers (MTD)</h3><div class="sub">Tickets closed per person this month, coloured by role. Top 15 shown.</div><div class="chart-box tall"><canvas id="c-closers"></canvas></div></div>'+
+    '</div>';
+
+  const legendKey='<div class="legend-key">Role groups: '+ROLE_GROUPS.map(g=>'<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:'+g.color+';display:inline-block"></span>'+g.key+'</span>').join(' ')+'</div>';
+
+  p.insertAdjacentHTML('beforeend', alertsHTML + gridHTML + legendKey);
+  if(typeof Chart==='undefined'){ return; }
+  Chart.defaults.font.family="Inter, system-ui, sans-serif";
+  Chart.defaults.font.size=11; Chart.defaults.color=INK.ink3;
+  const grid={color:INK.rule, drawBorder:false}, noGrid={display:false};
+  const axT={ticks:{color:INK.ink3}, grid};
+
+  // 1) hours by day (single series bar)
+  new Chart(document.getElementById('c-day'),{type:'bar',
+    data:{labels:A.dayLabels,datasets:[{label:'Hours',data:A.byDay,backgroundColor:INK.accent,borderRadius:4,barPercentage:.7,categoryPercentage:.7}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 2) capacity by role (grouped: expected vs logged)
+  const roleKeys=ROLE_GROUPS.map(g=>g.key).filter(k=>A.byRole[k].count>0);
+  const roleExp=k=>(META.expectedProratedByRole && META.expectedProratedByRole[k]>0)?META.expectedProratedByRole[k]:A.byRole[k].expected;
+  new Chart(document.getElementById('c-role'),{type:'bar',
+    data:{labels:roleKeys,datasets:[
+      {label:'Expected',data:roleKeys.map(k=>Math.round(roleExp(k))),backgroundColor:'rgba(92,106,128,0.28)',borderRadius:4,barPercentage:.8,categoryPercentage:.66},
+      {label:'Logged',data:roleKeys.map(k=>Math.round(A.byRole[k].logged)),backgroundColor:INK.accent,borderRadius:4,barPercentage:.8,categoryPercentage:.66}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toLocaleString()+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 3) flag health (stacked: OK / Watch / Red) across three flag types
+  const types=[['Low Hours','lhrs'],['Low Volume','lvol'],['Bounce','bounce']];
+  const okC=t=> (A.flags[t]['OK']||0);
+  const watchC=t=> (A.flags[t]['ORANGE']||0)+(A.flags[t]['WATCH']||0);
+  const redC=t=> (A.flags[t]['RED']||0)+(A.flags[t]['HIGH']||0);
+  new Chart(document.getElementById('c-flags'),{type:'bar',
+    data:{labels:types.map(t=>t[0]),datasets:[
+      {label:'OK',data:types.map(t=>okC(t[1])),backgroundColor:INK.ok,borderRadius:3},
+      {label:'Watch',data:types.map(t=>watchC(t[1])),backgroundColor:INK.amber,borderRadius:3},
+      {label:'Red / High',data:types.map(t=>redC(t[1])),backgroundColor:INK.hot,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.x+' people'}}},
+      scales:{x:{stacked:true,beginAtZero:true,grid,ticks:{color:INK.ink3,precision:0}},y:{stacked:true,grid:noGrid,ticks:{color:INK.ink2}}}}});
+
+  // 4) tickets vs hours scatter, per role group (color + shape)
+  const scDatasets=ROLE_GROUPS.filter(g=>A.persons.some(p=>p.group===g.key)).map(g=>({
+    label:g.key, pointStyle:g.pt, backgroundColor:g.color+'cc', borderColor:g.color, borderWidth:1, pointRadius:5, pointHoverRadius:7,
+    data:A.persons.filter(p=>p.group===g.key).map(p=>({x:p.hours,y:p.tickets,name:p.name}))}));
+  new Chart(document.getElementById('c-scatter'),{type:'scatter',
+    data:{datasets:scDatasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}},
+        tooltip:{callbacks:{label:c=>c.raw.name+' — '+c.parsed.x.toFixed(1)+' h, '+c.parsed.y+' tickets'}}},
+      scales:{x:{title:{display:true,text:'Hours logged (wk)',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}},
+        y:{title:{display:true,text:'Tickets worked',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 5) top closers MTD (horizontal bar, top 15, colored by role)
+  const closers=DATA.devCloses.rows.map(r=>({name:r[0],role:roleGroup(r[1]),count:num(r[2])||0}))
+    .sort((a,b)=>b.count-a.count).slice(0,15);
+  new Chart(document.getElementById('c-closers'),{type:'bar',
+    data:{labels:closers.map(c=>c.name),datasets:[{label:'Closed',data:closers.map(c=>c.count),
+      backgroundColor:closers.map(c=>RG_BY_KEY[c.role].color),borderRadius:4,barThickness:16}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' closed · '+closers[c.dataIndex].role}}},
+      scales:{x:{beginAtZero:true,grid,ticks:{color:INK.ink3}},y:{grid:noGrid,ticks:{color:INK.ink2,font:{size:11}}}}}});
+}
+
+// ================= TRENDS (multi-week) =================
+function renderTrends(p){
+  const T=Array.isArray(TRENDS)?TRENDS:[];
+  const cur=T[T.length-1]||null;
+  if(!cur){ p.insertAdjacentHTML('beforeend','<p class="desc">No weekly summary data yet.</p>'); return; }
+
+  if(T.length<2){
+    const f=cur.flags||{};
+    const chips=[
+      ['Team hours', Math.round(cur.teamHours||0).toLocaleString()],
+      ['Capacity', Math.round((cur.util||0)*100)+'%'],
+      ['Tickets worked', (cur.tickets||0).toLocaleString()],
+      ['Weekly closes', (cur.weeklyCloses!=null?cur.weeklyCloses.toLocaleString():'—')],
+      ['Avg hrs / person', (cur.avgHours!=null?cur.avgHours.toFixed(1):'—')],
+      ['Low-hours flags', (f.lowHoursRed||0)],
+    ];
+    p.insertAdjacentHTML('beforeend',
+      '<div class="alert info" style="border-left-color:var(--accent);max-width:780px"><div class="lbl"><span class="ico">▬</span>Baseline week captured</div>'
+      +'<div class="txt">This is <b>week 1</b> of the trend. The lines light up once a second week is added — every weekly file that gets loaded extends them automatically, and the Overview alerts gain a “vs last week” reading. Below are this week’s baseline values that future weeks are measured against.</div></div>'
+      +'<div class="ov-section-title">Week 1 baseline — '+esc(cur.label||cur.week)+'</div>'
+      +'<div class="stat-grid">'+chips.map(c=>'<div class="stat-card"><div class="num">'+esc(String(c[1]))+'</div><div class="lbl">'+esc(c[0])+'</div></div>').join('')+'</div>'
+      +'<div class="ov-section-title">What appears here at ≥ 2 weeks</div>'
+      +'<div class="chart-grid">'
+      +'<div class="chart-card"><h3>Hours &amp; capacity / week</h3><div class="sub">Team hours logged and % of expected, tracked each week.</div></div>'
+      +'<div class="chart-card"><h3>Throughput / week</h3><div class="sub">Tickets worked and weekly closes.</div></div>'
+      +'<div class="chart-card"><h3>Flags / week</h3><div class="sub">Low-hours, low-volume and elevated-bounce counts over time.</div></div>'
+      +'<div class="chart-card"><h3>Avg hours per person / week</h3><div class="sub">Team capacity signal, normalised for headcount.</div></div>'
+      +'</div>');
+    return;
+  }
+
+  // >= 2 weeks: real line charts
+  const labels=T.map(t=>t.label||t.week);
+  p.insertAdjacentHTML('beforeend',
+    '<div class="ov-section-title">Effort</div><div class="chart-grid">'
+    +'<div class="chart-card"><h3>Team hours / week</h3><div class="sub">Total hours logged across the team.</div><div class="chart-box"><canvas id="t-hours"></canvas></div></div>'
+    +'<div class="chart-card"><h3>Capacity utilisation / week</h3><div class="sub">Logged as a share of expected.</div><div class="chart-box"><canvas id="t-util"></canvas></div></div>'
+    +'</div>'
+    +'<div class="ov-section-title">Throughput</div><div class="chart-grid">'
+    +'<div class="chart-card"><h3>Tickets &amp; closes / week</h3><div class="sub">Tickets worked and weekly dev closes.</div><div class="chart-box"><canvas id="t-thru"></canvas></div></div>'
+    +'<div class="chart-card"><h3>Avg hours per person / week</h3><div class="sub">Hours normalised for headcount.</div><div class="chart-box"><canvas id="t-avg"></canvas></div></div>'
+    +'</div>'
+    +'<div class="ov-section-title">Health</div><div class="chart-grid">'
+    +'<div class="chart-card wide"><h3>Flags / week</h3><div class="sub">People flagged for low hours, low ticket volume, and elevated bounce, each week.</div><div class="chart-box"><canvas id="t-flags"></canvas></div></div>'
+    +'</div>');
+
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.font.family="Inter, system-ui, sans-serif"; Chart.defaults.font.size=11; Chart.defaults.color=INK.ink3;
+  const grid={color:INK.rule,drawBorder:false};
+  const base=(yTitle,pct)=>({responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10,usePointStyle:true}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+(pct?Math.round(c.parsed.y*100)+'%':c.parsed.y.toLocaleString())}}},
+    scales:{x:{grid:{display:false},ticks:{color:INK.ink3}},
+      y:{beginAtZero:true,grid,ticks:{color:INK.ink3,callback:v=>pct?Math.round(v*100)+'%':v}}}});
+  const line=(id,datasets,opts)=>{ const el=document.getElementById(id); if(!el) return;
+    trendCharts.push(new Chart(el,{type:'line',data:{labels,datasets},options:opts})); };
+  const ds=(label,data,color)=>({label,data,borderColor:color,backgroundColor:color,tension:.25,borderWidth:2,pointRadius:3,pointHoverRadius:5});
+
+  line('t-hours',[ds('Hours',T.map(t=>Math.round(t.teamHours||0)),INK.accent)],base('Hours',false));
+  line('t-util',[ds('Capacity',T.map(t=>t.util||0),INK.accent)],base('%',true));
+  line('t-thru',[ds('Tickets worked',T.map(t=>t.tickets||0),INK.accent),ds('Weekly closes',T.map(t=>t.weeklyCloses||0),INK.ok)],base('Count',false));
+  line('t-avg',[ds('Avg h/person',T.map(t=>t.avgHours!=null?Math.round(t.avgHours*10)/10:null),INK.accent)],base('Hours',false));
+  line('t-flags',[
+    ds('Low hours',T.map(t=>(t.flags||{}).lowHoursRed||0),INK.hot),
+    ds('Low volume',T.map(t=>(t.flags||{}).lowVolRed||0),INK.amber),
+    ds('Bounce HIGH',T.map(t=>(t.flags||{}).bounceHigh||0),INK.accent),
+  ],base('People',false));
+}
+
+function activate(id){
+  TABS.forEach(t=>{
+    document.getElementById('panel-'+t.id).classList.toggle('active', t.id===id);
+    [...tabsEl.children].forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  });
+  if(id==='trends'){ trendCharts.forEach(c=>{ try{c.resize();}catch(e){} }); }
+}
+activate('overview');
+</script>
+</body>
+</html>
