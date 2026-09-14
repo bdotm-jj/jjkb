@@ -23,9 +23,9 @@
   --focus: #14130F;
 
   /* Type */
-  --serif: "GT Super Display", "Canela", "Times New Roman", Times, serif;
-  --grotesk: "Neue Haas Grotesk", "Inter", "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --serif: "Cantata One", "Times New Roman", Times, serif;
+  --grotesk: "Nunito", "Neue Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "Cousine", "Courier New", ui-monospace, Menlo, monospace;
 
   /* Rhythm */
   --radius: 2px;
