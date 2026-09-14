@@ -32,7 +32,8 @@ const PERSONAL_SPACE_PAGES = [
   '3697377281', // Smartsheet RAID Log Standards
   '3700719618', // Data Reporting Team — PM SOP
   '3704619009', // LOB Pod Structure — Team Directory
-  '3705470978', // QA Operating Model — QA Guide
+  // '3705470978' retired Sep 2026 — QA Operating Model — QA Guide superseded by
+  // the QA SOP (SharePoint) under the QA category. Re-add to restore.
 ]
 
 // DEV space: hub + governance only (no sprint records, no indexes, no templates)
