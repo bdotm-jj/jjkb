@@ -181,9 +181,9 @@ function HomeHero() {
     <div className="hero">
       <div className="hero-top">
         <div className="eyebrow">
-          <span>Vol. XII</span><span>No. 04</span><span>Q2 — 2026</span>
+          <span>Vol. XII</span><span>No. 04</span><span>Q3 — 2026</span>
         </div>
-        <div className="dateline">{today} · Newark, NJ</div>
+        <div className="dateline">{today} · Mt Pleasant, SC</div>
       </div>
       <h1>An archive <em>of</em> the work,<br/>for the people doing the work.</h1>
       <p className="deck">

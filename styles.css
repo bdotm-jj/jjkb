@@ -275,7 +275,7 @@ body[data-palette="ink"] .brand small { color: var(--hot); }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
   padding: 7px 10px;
-  font-size: 13px;
+  font-size: 17px;
   color: var(--ink-2);
   border-radius: var(--radius);
   cursor: pointer;
@@ -1084,7 +1084,7 @@ h2.section-title {
   background: transparent;
   padding: 12px 16px;
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 14.5px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--ink-3);
