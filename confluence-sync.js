@@ -150,16 +150,49 @@ function buildFlagReason(doc_type, domain) {
 
 // ─── HTML STRIPPING ──────────────────────────────────────────────────────────
 
+// Normalize raw Confluence storage-format markup into clean, portable HTML so
+// no macro internals leak into the reader or the search text. Runs on EVERY
+// page at sync time, so new content stays clean automatically.
+//   - task lists  -> real checkbox <li>, dropping internal id/uuid/status
+//   - <time>      -> readable date text (the date lives only in the attribute)
+//   - any other ac:/ri: macro tag -> unwrapped (inner text kept, tag removed)
+// Extend here (not per-article) when a new macro type shows up.
+function cleanConfluenceHtml(html) {
+  if (!html) return html
+  let h = html
+  h = h.replace(/<ac:task-id>[\s\S]*?<\/ac:task-id>/gi, '')
+  h = h.replace(/<ac:task-uuid>[\s\S]*?<\/ac:task-uuid>/gi, '')
+  h = h.replace(/<ac:task-status>\s*complete\s*<\/ac:task-status>/gi, '<input type="checkbox" checked disabled> ')
+  h = h.replace(/<ac:task-status>\s*incomplete\s*<\/ac:task-status>/gi, '<input type="checkbox" disabled> ')
+  h = h.replace(/<ac:task-list>/gi, '<ul class="task-list">').replace(/<\/ac:task-list>/gi, '</ul>')
+  h = h.replace(/<ac:task>\s*/gi, '<li class="task-item">').replace(/<\/ac:task>/gi, '</li>')
+  h = h.replace(/<\/?ac:task-body>/gi, '')
+  h = h.replace(/<time[^>]*datetime="([^"]+)"[^>]*\/?>(?:<\/time>)?/gi, (m, dt) => {
+    const p = /^(\d{4})-(\d{2})-(\d{2})/.exec(dt)   // parse as LOCAL date (no UTC shift)
+    if (!p) return dt
+    return new Date(+p[1], +p[2] - 1, +p[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  })
+  h = h.replace(/\s(?:ac|ri):[a-z0-9-]+="[^"]*"/gi, '')
+  h = h.replace(/\s+local-id="[^"]*"/gi, '')
+  h = h.replace(/<\/?ac:[a-z0-9-]+[^>]*>/gi, '').replace(/<\/?ri:[a-z0-9-]+[^>]*>/gi, '')
+  return h
+}
+
+const NAMED_ENTITIES = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  mdash: '—', ndash: '–', hellip: '…',
+  rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
+  rarr: '→', larr: '←', times: '×', deg: '°',
+  copy: '©', reg: '®', trade: '™',
+}
 function stripHtml(html) {
   if (!html) return ''
   return html
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
+    .replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&([a-z0-9]+);/gi, (m, n) =>
+      Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, n.toLowerCase()) ? NAMED_ENTITIES[n.toLowerCase()] : m)
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -268,7 +301,7 @@ async function sync() {
       }
 
       const { doc_type, domain, pod, sub_type } = classifyDocument(page)
-      const bodyHtml  = page.body?.storage?.value || ''
+      const bodyHtml  = cleanConfluenceHtml(page.body?.storage?.value || '')
       const bodyText  = stripHtml(bodyHtml)
       const tags      = (page.metadata?.labels?.results || []).map(l => l.name)
       const owner     = page.history?.createdBy?.displayName || null

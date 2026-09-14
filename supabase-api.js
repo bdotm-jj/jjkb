@@ -36,9 +36,21 @@ function relativeTime(ts) {
   return formatDate(ts).replace(/,\s*\d{4}$/, '')
 }
 
+// Decode HTML entities (named + numeric) for plain-text contexts — TOC labels,
+// standfirst, snippets — where stripped HTML would otherwise show "&mdash;" etc.
+function decodeHtmlEntities(s) {
+  if (!s) return s
+  if (typeof document !== 'undefined') {
+    const t = document.createElement('textarea')
+    t.innerHTML = s
+    return t.value
+  }
+  return s
+}
+
 function standfirst(body) {
   if (!body) return ''
-  const first = body.split(/[.!?]/)[0]
+  const first = decodeHtmlEntities(body).split(/[.!?]/)[0]
   return (first.length > 160 ? first.slice(0, 157) + '...' : first).trim()
 }
 
@@ -73,10 +85,10 @@ function deriveChange(tags) {
 function extractSections(bodyHtml) {
   if (!bodyHtml) return []
   const matches = [...bodyHtml.matchAll(/<h2[^>]*>(.*?)<\/h2>/gi)]
-  return matches.map(m => ({
-    id: slugify(m[1].replace(/<[^>]+>/g, '')),
-    label: m[1].replace(/<[^>]+>/g, ''),
-  }))
+  return matches.map(m => {
+    const txt = decodeHtmlEntities(m[1].replace(/<[^>]+>/g, ''))
+    return { id: slugify(txt), label: txt }
+  })
 }
 
 // Give each <h2> an id (matching extractSections' slug) so the article
@@ -84,14 +96,49 @@ function extractSections(bodyHtml) {
 function injectSectionIds(bodyHtml) {
   if (!bodyHtml) return bodyHtml
   return bodyHtml.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (full, attrs, inner) => {
-    if (/\bid\s*=/.test(attrs)) return full
-    const id = slugify(inner.replace(/<[^>]+>/g, ''))
+    if (/(^|\s)id\s*=/.test(attrs)) return full   // real id= only, not local-id=
+    const id = slugify(decodeHtmlEntities(inner.replace(/<[^>]+>/g, '')))
     return `<h2${attrs} id="${id}">${inner}</h2>`
   })
 }
 
 function buildDocId(doc) {
   return `${doc.doc_type || 'DOC'}-${(doc.domain || '').replace(/[^A-Z]/gi, '').toUpperCase().slice(0, 3)}-${doc.confluence_id}`
+}
+
+// Clean up raw Confluence storage-format markup that leaks through the sync.
+// Chiefly task lists: <ac:task-list>/<ac:task> carry internal <ac:task-id>,
+// <ac:task-uuid> and <ac:task-status> whose values otherwise render as stray
+// numbers/uuids in the article body. Convert to real checkbox list items and
+// drop the internal metadata. Any other stray ac:/ri: tags are unwrapped.
+function sanitizeConfluence(html) {
+  if (!html) return html
+  let h = html
+  // remove internal task metadata (the source of the stray numbers/uuids)
+  h = h.replace(/<ac:task-id>[\s\S]*?<\/ac:task-id>/gi, '')
+  h = h.replace(/<ac:task-uuid>[\s\S]*?<\/ac:task-uuid>/gi, '')
+  // status -> a (disabled) checkbox marker
+  h = h.replace(/<ac:task-status>\s*complete\s*<\/ac:task-status>/gi, '<input type="checkbox" checked disabled> ')
+  h = h.replace(/<ac:task-status>\s*incomplete\s*<\/ac:task-status>/gi, '<input type="checkbox" disabled> ')
+  // list + item wrappers -> real list markup
+  h = h.replace(/<ac:task-list>/gi, '<ul class="task-list">').replace(/<\/ac:task-list>/gi, '</ul>')
+  h = h.replace(/<ac:task>\s*/gi, '<li class="task-item">').replace(/<\/ac:task>/gi, '</li>')
+  h = h.replace(/<\/?ac:task-body>/gi, '')
+  // <time datetime="YYYY-MM-DD"/> carries the date only in the attribute, so it
+  // renders blank — surface it as readable text.
+  h = h.replace(/<time[^>]*datetime="([^"]+)"[^>]*\/?>(?:<\/time>)?/gi, (m, dt) => {
+    const p = /^(\d{4})-(\d{2})-(\d{2})/.exec(dt)   // parse as LOCAL date (no UTC shift)
+    if (!p) return dt
+    return new Date(+p[1], +p[2] - 1, +p[3]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  })
+  // strip Confluence namespaced attributes (ac:local-id, ri:space-key, …) and the
+  // bare local-id="…" Confluence stamps on headings/elements — invisible but
+  // invalid, and local-id also breaks heading-anchor detection.
+  h = h.replace(/\s(?:ac|ri):[a-z0-9-]+="[^"]*"/gi, '')
+  h = h.replace(/\s+local-id="[^"]*"/gi, '')
+  // best-effort: unwrap any remaining Confluence macro tags, keep inner text
+  h = h.replace(/<\/?ac:[a-z0-9-]+[^>]*>/gi, '').replace(/<\/?ri:[a-z0-9-]+[^>]*>/gi, '')
+  return h
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -132,7 +179,7 @@ async function getArticle(id) {
     updated: formatDate(d.last_updated),
     readTime: readTime(d.body),
     tags: d.tags || [],
-    body: injectSectionIds(d.body_html) || '',
+    body: injectSectionIds(sanitizeConfluence(d.body_html)) || '',
     sections: extractSections(d.body_html),
     related: related.map(r => r.confluence_id),
   }
@@ -167,7 +214,7 @@ async function getRecent(days = 30) {
     _id: d.confluence_id,
     when: relativeTime(d.last_updated),
     title: d.title,
-    note: (d.body || '').slice(0, 80),
+    note: decodeHtmlEntities(d.body || '').slice(0, 80),
     cat: d.domain,
     author: d.owner || '',
     authorInit: (d.owner || ' ')[0].toUpperCase(),
@@ -311,7 +358,7 @@ async function search(query, category = '') {
     : rows
 
   const docResults = articleRows.slice(0, 20).map((d, i) => {
-    const bodyText = d.body || ''
+    const bodyText = decodeHtmlEntities(d.body || '')
     const idx = bodyText.toLowerCase().indexOf(query.toLowerCase())
     const start = Math.max(0, idx === -1 ? 0 : idx - 40)
     const snippet = bodyText.slice(start, start + 120)

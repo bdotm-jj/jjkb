@@ -69,22 +69,29 @@ function LoadingScreen() {
 // ============================================================
 // CHROME
 // ============================================================
-function TopBar({ onSearchNav, onOpenTweaks }) {
+function TopBar({ query, onQuery, onFocusSearch, mode, onSetMode }) {
   return (
     <header className="topbar">
       <div className="brand">
         <img src="assets/jj-logo.png" alt="Johnson & Johnson" className="brand-logo"/>
         <small>Knowledge Base</small>
       </div>
-      <div className="topbar-search" onClick={onSearchNav}>
+      <div className="topbar-search">
         <span className="sicon"><Icon.search/></span>
-        <input readOnly placeholder="Search the archive — SOPs, runbooks, role charters…" onFocus={onSearchNav}/>
+        <input
+          value={query}
+          placeholder="Search the archive — SOPs, runbooks, role charters…"
+          onChange={e => onQuery(e.target.value)}
+          onFocus={onFocusSearch}
+          onKeyDown={e => { if (e.key === "Enter") onFocusSearch(); }}
+        />
         <span className="kbd">⌘K</span>
       </div>
       <div className="topbar-right">
-        <button className="icon-btn" title="Notifications"><Icon.bell/></button>
-        <button className="icon-btn" title="Tweaks" onClick={onOpenTweaks}><Icon.sliders/></button>
-        <div className="avatar" title="Jin"><em>J</em></div>
+        <div className="theme-toggle header-toggle" role="group" aria-label="Theme">
+          <button className={cx("theme-btn", mode === "light" && "active")} onClick={() => onSetMode("light")}>☀ Light</button>
+          <button className={cx("theme-btn", mode === "dark" && "active")} onClick={() => onSetMode("dark")}>☾ Dark</button>
+        </div>
       </div>
     </header>
   );
@@ -108,16 +115,6 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen === "search" && "active")} onClick={() => setScreen("search")}>
           <span className="dot"/> Search
         </div>
-      </div>
-
-      <div className="nav-group">
-        <h4>Personal</h4>
-        <div className="nav-item">
-          <span className="dot"/> Bookmarks
-          <span className="count">{String(bookmarks.ids.length).padStart(2, "0")}</span>
-        </div>
-        <div className="nav-item"><span className="dot"/> My drafts <span className="count">03</span></div>
-        <div className="nav-item"><span className="dot"/> Assigned to me <span className="count">02</span></div>
       </div>
 
       <div className="nav-group">
@@ -155,12 +152,6 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         </div>
       </div>
 
-      <div className="nav-group">
-        <h4>Admin</h4>
-        <div className={cx("nav-item", screen === "edit" && "active")} onClick={() => setScreen("edit")}>
-          <span className="dot"/> Edit an article
-        </div>
-      </div>
     </aside>
   );
 }
@@ -551,8 +542,7 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
 // ============================================================
 // SCREEN: SEARCH (async)
 // ============================================================
-function SearchScreen({ setScreen, weirdness }) {
-  const [query, setQuery] = useState("");
+function SearchScreen({ setScreen, query, setQuery, weirdness }) {
   const [filter, setFilter] = useState("All");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -577,7 +567,7 @@ function SearchScreen({ setScreen, weirdness }) {
       </div>
       <div className="search-query-bar">
         <span className="ink-4" style={{ fontFamily: "var(--serif)", fontSize: 36, fontStyle: "italic" }}>'</span>
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="What are you looking for?" autoFocus/>
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="What are you looking for?"/>
         <span className="mono" style={{ color: "var(--ink-3)" }}>
           {searching ? "Searching…" : `${results.length} found`}
         </span>
@@ -1012,33 +1002,23 @@ function MarqueeFooter({ weirdness }) {
 // ============================================================
 // TWEAKS PANEL
 // ============================================================
-function TweaksPanel({ open, onClose, palette, setPalette, weirdness, setWeirdness }) {
-  const palettes = [
-    { id: "bone",  name: "J&J Blue",  colors: ["#F2EDE2", "#0F1B2D", "#2E6DA4", "#A9C4DD"] },
-    { id: "ink",   name: "Ink",       colors: ["#14130F", "#F2EDE0", "#4A8BC2", "#A9C4DD"] },
-    { id: "cream", name: "Cream",     colors: ["#F5F1E8", "#1A1A1A", "#2E6DA4", "#4A8BC2"] },
-    { id: "navy",  name: "Navy",      colors: ["#1A1F2E", "#EADDC4", "#6BA3D1", "#A9C4DD"] },
-    { id: "moss",  name: "Moss",      colors: ["#E4E4D8", "#1B1F15", "#4F5C2E", "#7B8A4A"] },
-  ];
+function TweaksPanel({ open, onClose, palette, setPalette, setWeirdness }) {
+  // Two presets only: Light = J&J (bone) @ 70, Dark = Ink @ 100.
+  const mode = palette === "ink" ? "dark" : "light";
+  const apply = (m) => {
+    if (m === "dark") { setPalette("ink"); setWeirdness(100); }
+    else { setPalette("bone"); setWeirdness(70); }
+  };
   return (
     <div className={cx("tweaks-panel", !open && "hidden")}>
-      <div className="tweaks-header"><h4>Tweaks</h4><button className="close" onClick={onClose}>×</button></div>
+      <div className="tweaks-header"><h4>Appearance</h4><button className="close" onClick={onClose}>×</button></div>
       <div className="tweaks-body">
         <div className="tweak-row">
-          <label>Palette</label>
-          <div className="palette-swatches">
-            {palettes.map(p => (
-              <div key={p.id} className={cx("swatch", palette === p.id && "active")} onClick={() => setPalette(p.id)} title={p.name}>
-                <span style={{ background: p.colors[0] }}/><span style={{ background: p.colors[1] }}/>
-                <span style={{ background: p.colors[2] }}/><span style={{ background: p.colors[3] }}/>
-              </div>
-            ))}
+          <label>Theme</label>
+          <div className="theme-toggle">
+            <button className={cx("theme-btn", mode === "light" && "active")} onClick={() => apply("light")}>☀ Light</button>
+            <button className={cx("theme-btn", mode === "dark" && "active")} onClick={() => apply("dark")}>☾ Dark</button>
           </div>
-        </div>
-        <div className="tweak-row">
-          <label>Weirdness dial — {weirdness}</label>
-          <input type="range" min="0" max="100" value={weirdness} className="weird-slider" onChange={e => setWeirdness(parseInt(e.target.value, 10))}/>
-          <div className="weird-readout"><span>Institutional</span><span>Off the rack</span></div>
         </div>
       </div>
     </div>
@@ -1048,7 +1028,7 @@ function TweaksPanel({ open, onClose, palette, setPalette, weirdness, setWeirdne
 // ============================================================
 // APP
 // ============================================================
-const DEFAULT_TWEAKS = /*EDITMODE-BEGIN*/{ "palette": "bone", "weirdness": 15 }/*EDITMODE-END*/;
+const DEFAULT_TWEAKS = /*EDITMODE-BEGIN*/{ "palette": "bone", "weirdness": 70 }/*EDITMODE-END*/;
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -1059,6 +1039,7 @@ function App() {
   const [palette, setPalette] = useState(DEFAULT_TWEAKS.palette);
   const [weirdness, setWeirdness] = useState(DEFAULT_TWEAKS.weirdness);
   const [tweaksOpen, setTweaksOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const bookmarks = useBookmarks();
 
   useEffect(() => {
@@ -1085,6 +1066,11 @@ function App() {
   const persistTweaks = (edits) => window.parent.postMessage({ type: "__edit_mode_set_keys", edits }, "*");
   const changePalette  = (p) => { setPalette(p);  persistTweaks({ palette: p }); };
   const changeWeirdness = (w) => { setWeirdness(w); persistTweaks({ weirdness: w }); };
+  // Light = J&J (bone) @ 70 · Dark = Ink @ 100
+  const setMode = (m) => {
+    if (m === "dark") { changePalette("ink"); changeWeirdness(100); }
+    else { changePalette("bone"); changeWeirdness(70); }
+  };
 
   if (loading) return <LoadingScreen/>;
 
@@ -1102,22 +1088,23 @@ function App() {
   if (screen === "reports" || screen.startsWith("reports:")) screenBase = "reports";
 
   const TABS = [
-    { id: "home",    label: "Home" },
-    { id: "browse",  label: "Categories" },
-    { id: "article", label: "Article reader" },
-    { id: "search",  label: "Search" },
-    { id: "recent",  label: "Recent" },
-    { id: "pods",    label: "Pods" },
-    { id: "reports", label: "Reports" },
-    { id: "edit",    label: "Admin — edit" },
+    { id: "home",     label: "Home" },
+    { id: "browse",   label: "Categories" },
+    { id: "search",   label: "Search" },
+    { id: "glossary", label: "Glossary", target: "article:2720727714" },
+    { id: "recent",   label: "Recent" },
+    { id: "pods",     label: "Pods" },
+    { id: "reports",  label: "Reports" },
   ];
-
-  const firstDocId = window.KB_DATA && window.KB_DATA.table_index.length
-    ? window.KB_DATA.table_index[0]._id : null;
 
   return (
     <div className="app">
-      <TopBar onSearchNav={() => setScreen("search")} onOpenTweaks={() => setTweaksOpen(v => !v)}/>
+      <TopBar
+        query={searchQuery}
+        onQuery={(v) => { setSearchQuery(v); setScreen("search"); }}
+        onFocusSearch={() => setScreen("search")}
+        mode={palette === "ink" ? "dark" : "light"}
+        onSetMode={setMode}/>
       <Sidebar screen={screen} setScreen={setScreen} bookmarks={bookmarks}/>
 
       <div className="main">
@@ -1125,9 +1112,9 @@ function App() {
           {TABS.map(t => (
             <button
               key={t.id}
-              className={cx(screenBase === t.id && "active")}
+              className={cx((t.target ? screen === t.target : screenBase === t.id) && "active")}
               onClick={() => {
-                if (t.id === "article" && firstDocId) setScreen("article:" + firstDocId);
+                if (t.target) setScreen(t.target);
                 else if (t.id === "reports") setScreen("reports:uat");
                 else setScreen(t.id);
               }}
@@ -1142,7 +1129,7 @@ function App() {
           {screenBase === "browse" && !categoryId && <BrowseScreen setScreen={setScreen} weirdness={weirdness}/>}
           {categoryId &&  <CategoryScreen categoryId={categoryId} setScreen={setScreen} bookmarks={bookmarks} weirdness={weirdness}/>}
           {articleId  &&  <ArticleScreen  articleId={articleId}   bookmarks={bookmarks} setScreen={setScreen} weirdness={weirdness}/>}
-          {screenBase === "search" && <SearchScreen setScreen={setScreen} weirdness={weirdness}/>}
+          {screenBase === "search" && <SearchScreen setScreen={setScreen} query={searchQuery} setQuery={setSearchQuery} weirdness={weirdness}/>}
           {screenBase === "recent" && <RecentScreen setScreen={setScreen} weirdness={weirdness}/>}
           {screenBase === "pods"   && <PodsScreen   setScreen={setScreen}/>}
           {reportsGroup && <ReportsIndexScreen setScreen={setScreen} weirdness={weirdness} group={reportsGroup}/>}
@@ -1150,10 +1137,6 @@ function App() {
           {screenBase === "edit"   && <EditScreen   weirdness={weirdness}/>}
         </div>
       </div>
-
-      <TweaksPanel open={tweaksOpen} onClose={() => setTweaksOpen(false)}
-        palette={palette} setPalette={changePalette}
-        weirdness={weirdness} setWeirdness={changeWeirdness}/>
     </div>
   );
 }
