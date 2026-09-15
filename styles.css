@@ -1072,6 +1072,8 @@ h2.section-title {
    ========================================================================== */
 .screen-tabs {
   display: flex;
+  align-items: center;
+  min-height: 48px;
   gap: 2px;
   padding: 0 28px;
   border-bottom: 1px solid var(--rule);
@@ -1095,12 +1097,23 @@ h2.section-title {
 }
 .screen-tabs button:hover { color: var(--ink); }
 .screen-tabs button.active { color: var(--ink); }
-.screen-tabs button.active::after {
+/* Animated double-underline on hover (house blues). The bottom line stays put
+   for the active tab. */
+.screen-tabs button::before,
+.screen-tabs button::after {
   content: "";
-  position: absolute; left: 12px; right: 12px; bottom: -1px;
+  position: absolute;
+  left: 12px; right: 12px;
   height: 2px;
-  background: var(--ink);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform: scaleX(0);
+  transition: transform 0.35s ease-out;
 }
+.screen-tabs button::after  { bottom: -1px; transform-origin: right; }
+.screen-tabs button::before { top: 0;       transform-origin: left;  }
+.screen-tabs button:hover::before,
+.screen-tabs button:hover::after { transform: scaleX(1); }
+.screen-tabs button.active::after { transform: scaleX(1); }
 
 /* ==========================================================================
    BREADCRUMB
