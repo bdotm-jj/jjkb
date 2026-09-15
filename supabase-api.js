@@ -13,6 +13,19 @@ async function sbFetch(path) {
   return res.json()
 }
 
+// Record an article "Was this useful?" vote. Best-effort — if the feedback
+// table isn't there yet, it just no-ops rather than surfacing an error.
+async function submitFeedback(confluenceId, helpful) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback`, {
+      method: 'POST',
+      headers: { ...HEADERS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ confluence_id: String(confluenceId), helpful: !!helpful }),
+    })
+    return res.ok
+  } catch { return false }
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function slugify(str) {
@@ -378,4 +391,4 @@ async function search(query, category = '') {
   return [...defResults, ...docResults]
 }
 
-window.SupabaseAPI = { getCategories, getArticle, getDocumentIndex, getRecent, search }
+window.SupabaseAPI = { getCategories, getArticle, getDocumentIndex, getRecent, search, submitFeedback }

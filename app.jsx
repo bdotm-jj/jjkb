@@ -434,13 +434,24 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [helpful, setHelpful] = useState(null);
+  const [recorded, setRecorded] = useState(false);
 
   useEffect(() => {
-    setLoading(true); setArticle(null);
+    setLoading(true); setArticle(null); setHelpful(null); setRecorded(false);
     window.SupabaseAPI.getArticle(articleId)
       .then(a => { setArticle(a); setLoading(false); })
       .catch(() => setLoading(false));
   }, [articleId]);
+
+  // Record a usefulness vote; confirm only when the write actually lands.
+  const vote = async (val) => {
+    const changed = helpful !== val;
+    setHelpful(val);
+    if (changed && article) {
+      const ok = await window.SupabaseAPI.submitFeedback(article.id, val === "yes");
+      if (ok) setRecorded(true);
+    }
+  };
 
   if (loading) return (
     <div className="screen" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
@@ -494,9 +505,9 @@ function ArticleScreen({ articleId, bookmarks, setScreen, weirdness }) {
           <div dangerouslySetInnerHTML={{ __html: article.body }}/>
           <div style={{ marginTop: 48, padding: "24px 0", borderTop: "1px solid var(--rule)", display: "flex", alignItems: "center", gap: 16 }}>
             <span className="eyebrow">Was this useful?</span>
-            <button className={cx("btn", "sm", helpful === "yes" ? "" : "ghost")} onClick={() => setHelpful("yes")}>Yes</button>
-            <button className={cx("btn", "sm", helpful === "no" ? "" : "ghost")} onClick={() => setHelpful("no")}>No</button>
-            {helpful && <span className="ink-3" style={{ fontSize: 12, fontStyle: "italic", fontFamily: "var(--serif)" }}>— Noted. Your feedback goes to {article.owner}.</span>}
+            <button className={cx("btn", "sm", helpful === "yes" ? "" : "ghost")} onClick={() => vote("yes")}>Yes</button>
+            <button className={cx("btn", "sm", helpful === "no" ? "" : "ghost")} onClick={() => vote("no")}>No</button>
+            {recorded && <span className="ink-3" style={{ fontSize: 12, fontStyle: "italic", fontFamily: "var(--serif)" }}>— Thanks, your feedback was recorded.</span>}
           </div>
           <span className="weird-quote">{weirdQuote}</span>
         </main>
