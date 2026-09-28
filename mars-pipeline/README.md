@@ -26,10 +26,25 @@ cp mars_data.json weeks/data-<MON>.json     # <MON> = week's Monday, YYYY-MM-DD
 # 3. build: updates trends.json AND writes the report
 perl build.pl <MON> "<label>" weeks/data-<MON>.json ../site/reports/mars-weekly-<MON>.html
 #   e.g. perl build.pl 2026-09-07 "Sep 7-11" weeks/data-2026-09-07.json ../site/reports/mars-weekly-2026-09-07.html
+
+# 4. regenerate the landing / index page so the new week shows up + is linkable
+perl build_index.pl          # reads trends.json -> ../site/reports/mars-weekly.html
 ```
 
-Then, in `../site/app.jsx`, add a `REPORTS` entry (`group: "mars"`) pointing at the
-new file (or repoint a single rolling entry), and deploy.
+`mars-weekly.html` is the **entry point**: a sortable table (one row per week,
+newest first) linking to each week's full report; every report has a
+"← All weekly reports" back-link to it. Point the single gated MARS link (see
+`CLOUDFLARE-ACCESS-RUNBOOK.md`) at `reports/mars-weekly.html`.
+
+> **Hosting:** MARS is OFF the public site (VP directive — employee data). Do NOT
+> push these `reports/mars-weekly*.html` to the public repo. They live locally and
+> deploy only behind the Cloudflare Access gate.
+
+- **Labels must be ASCII** (use `-`, not an en-dash) — they pass through the shell
+  into JSON and a non-ASCII dash mojibakes.
+- The **Trends tab** shows a baseline card at 1 week and real week-over-week line
+  charts at ≥2 weeks; the Overview gains a "Week over week" alert at ≥2 weeks —
+  all automatic from `trends.json`.
 
 - **Labels must be ASCII** (use `-`, not an en-dash) — they pass through the shell
   into JSON and a non-ASCII dash mojibakes.

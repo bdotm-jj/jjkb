@@ -105,10 +105,14 @@
   .chart-box{position:relative;height:300px;}
   .chart-box.tall{height:420px;}
   @media(max-width:760px){ .chart-grid{grid-template-columns:1fr;} }
+  .backlink{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);text-decoration:none;padding:5px 0;margin-bottom:4px;}
+  .backlink:hover{color:var(--accent);}
+  .backlink .arw{font-size:13px;}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="backlink" href="mars-weekly.html"><span class="arw">&larr;</span> All weekly reports</a>
   <div class="subtitle">MARS Dev Team · Dev Time &amp; Ticket Reporting</div>
   <h1>Weekly Report</h1>
   <div class="byline">Report window <b>__WEEK_RANGE__</b> (weekdays only) · Produced by <b>Amy Perez</b></div>
