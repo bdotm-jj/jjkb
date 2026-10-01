@@ -740,6 +740,10 @@ function PodsScreen({ setScreen }) {
 // month: drop the file in site/reports/ and add one entry below.
 // ============================================================
 const REPORTS = [
+  { id: "october-2026", group: "uat", kind: "monthly", title: "October 2026", date: "2026-10-01",
+    period: "Current period · Apr 8 – Sep 11, 2026", file: "reports/october-2026.html",
+    summary: "Twelve projects tested — volume up 50% versus baseline while average total duration held flat at 8.7 days. First rounds lengthened (+15.9%) even as retests shortened; Workflow Dashboard's 20-day R1 is the standout outlier.",
+    stats: [{ value: "12", label: "Projects tested" }, { value: "23", label: "Total tasks" }, { value: "8.7d", label: "Avg / project" }, { value: "~0%", label: "vs baseline" }] },
   { id: "september-2026", group: "uat", kind: "monthly", title: "September 2026", date: "2026-09-01",
     period: "Current period · Apr – Aug 2026", file: "reports/september-2026.html",
     summary: "Average total testing duration edged up to 9.3 days per project across eleven projects — both R1 and R2 rounds lengthened slightly versus the prior period.",
