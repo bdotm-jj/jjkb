@@ -10,7 +10,20 @@ KB-styled, sortable HTML report **and** accumulates a multi-week trend history.
 | `build.pl` | `mars_data.json` → per-week **aggregate** summary → upsert `trends.json` → inject `DATA` + `TRENDS` into the template → write the report HTML |
 | `report_template.html` | the report shell (Overview + Trends + data tabs). Placeholders `__DATA__` and `__TRENDS__` are filled by `build.pl` |
 | `trends.json` | accumulating array of per-week aggregate summaries, oldest→newest. **Aggregate only — no individual names.** |
-| `weeks/` | archived per-week `data-YYYY-MM-DD.json` (the full DATA for each week) |
+| `build_index.pl` | `trends.json` + any `mars-monthly-*.html` → the landing page `../site/reports/mars-weekly.html` (sortable week table + a "Monthly roll-ups" section) |
+| `build_mtd.pl` + `mtd_template.html` | month-end **Month-to-Date** report: a workbook's `<Month> Month-to-Date` + Dev/QA Closes sheets → `../site/reports/mars-monthly-YYYY-MM.html` (whole-month dashboard, NOT part of the weekly trend) |
+| `weeks/`, `monthly/` | archived per-period `data-*.json` (full DATA). **Gitignored — raw per-person data stays out of the repo; the HTML reports are the deliverables.** |
+
+### Month-end / straddling weeks
+A month-end workbook often holds BOTH the final week (e.g. Sep 28–Oct 2) AND a
+`<Month> Month-to-Date` sheet whose Dev-Closes column is **cumulative for the
+month**. `build.pl` auto-detects this (weekly closes == MTD closes with an MTD
+sheet present) and records that week's `weeklyCloses` as **null (n/a)** so the
+straddling week keeps real hours/tickets/util but doesn't spike the closes trend;
+the index + report render it as `—`. Build the monthly roll-up separately with
+`build_mtd.pl` (e.g. `perl build_mtd.pl "September 2026" "Sep 1 - 30, 2026" 21
+monthly/data-2026-09.json ../site/reports/mars-monthly-2026-09.html`; the
+workdays arg excludes holidays — Sept = 21, Labor Day out).
 
 ## Add a new week
 From this folder:

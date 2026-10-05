@@ -539,7 +539,7 @@ function renderTrends(p){
 
   line('t-hours',[ds('Hours',T.map(t=>Math.round(t.teamHours||0)),INK.accent)],base('Hours',false));
   line('t-util',[ds('Capacity',T.map(t=>t.util||0),INK.accent)],base('%',true));
-  line('t-thru',[ds('Tickets worked',T.map(t=>t.tickets||0),INK.accent),ds('Weekly closes',T.map(t=>t.weeklyCloses||0),INK.ok)],base('Count',false));
+  line('t-thru',[ds('Tickets worked',T.map(t=>t.tickets||0),INK.accent),ds('Weekly closes',T.map(t=>t.weeklyCloses!=null?t.weeklyCloses:null),INK.ok)],base('Count',false));
   line('t-avg',[ds('Avg h/person',T.map(t=>t.avgHours!=null?Math.round(t.avgHours*10)/10:null),INK.accent)],base('Hours',false));
   line('t-flags',[
     ds('Low hours',T.map(t=>(t.flags||{}).lowHoursRed||0),INK.hot),

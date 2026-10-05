@@ -1,3 +1,7 @@
 # transient build artifacts — not source
 mars_x/
+mtd_x/
 mars_data.json
+# per-person raw data (the HTML reports are the deliverables; keep raw out of git)
+weeks/data-*.json
+monthly/data-*.json

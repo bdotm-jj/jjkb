@@ -49,12 +49,19 @@ my $monThu = @dayCols>=5 ? ($day[0]+$day[1]+$day[2]+$day[3])/4 : 0;
 my $fri    = @dayCols>=5 ? $day[4] : 0;
 my $friDrop= $monThu ? ($monThu-$fri)/$monThu : 0;
 my $closesMTD=0; for my $r (@{$D->{devCloses}{rows}}){ $closesMTD += tonum($r->[2])//0; }
+# Month-end combined workbook: its Weekly Summary "Dev Closes" column carries the
+# MONTH-to-date closes, not the week's (the straddling week shares the file with a
+# Month-to-Date sheet). Detect that (weekly closes == MTD closes while an MTD sheet
+# is present) and report weekly closes as n/a (null) so this week doesn't plot a
+# false spike in the closes trend; hours/tickets/util remain the real weekly values.
+my $wclosesVal = $wcloses + 0;
+if (@{$D->{mtd}{rows}} && $closesMTD > 0 && $wcloses == $closesMTD) { $wclosesVal = undef; }
 # round role aggregates
 for my $g (keys %role){ $role{$g}{logged}=0+sprintf('%.1f',$role{$g}{logged}); $role{$g}{expected}=0+sprintf('%.1f',$role{$g}{expected}); }
 
 my $summary={ week=>$week, label=>$label, people=>$people+0,
   teamHours=>0+sprintf('%.2f',$hours), expected=>0+sprintf('%.1f',$expected),
-  util=>0+sprintf('%.4f',$expected?$hours/$expected:0), tickets=>$tickets+0, weeklyCloses=>$wcloses+0,
+  util=>0+sprintf('%.4f',$expected?$hours/$expected:0), tickets=>$tickets+0, weeklyCloses=>$wclosesVal,
   closesMTD=>$closesMTD+0, avgHours=>0+sprintf('%.2f',$people?$hours/$people:0),
   flags=>{lowHoursRed=>$lhR+0, lowVolRed=>$lvR+0, bounceHigh=>$bH+0},
   friDrop=>0+sprintf('%.4f',$friDrop), expectedBasis=>$expectedBasis, byRole=>\%role };

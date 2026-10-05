@@ -30,6 +30,12 @@
   .stat-card .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;}
   .stat-card .wow{font-family:var(--mono);font-size:10.5px;margin-top:6px;letter-spacing:.03em;}
   .wow.up{color:var(--ok);} .wow.down{color:var(--hot);} .wow.flat{color:var(--ink-4);}
+  .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .month-card{display:block;text-decoration:none;background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--accent-2);border-radius:var(--radius);padding:16px 18px;transition:border-color .12s;}
+  .month-card:hover{border-color:var(--accent);}
+  .month-card .mlabel{font-family:var(--serif);font-size:22px;color:var(--ink);line-height:1;}
+  .month-card .mkind{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);margin-top:8px;}
+  .month-card .msub{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.45;}
   .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:34px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
   .tbl-scroll{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius);}
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
@@ -61,8 +67,11 @@
 <body>
 <div class="wrap">
   <div class="subtitle">MARS Dev Team · Dev Time &amp; Ticket Reporting</div>
-  <h1>Weekly Reports</h1>
+  <h1>MARS Reports</h1>
   <div class="byline" id="byline"></div>
+
+  <div class="ov-section-title" id="monthly-title" style="display:none">Monthly roll-ups</div>
+  <div class="month-grid" id="months"></div>
 
   <div class="ov-section-title">Latest week</div>
   <div class="stat-grid" id="kpis"></div>
@@ -91,9 +100,21 @@
 </div>
 
 <script>
-const TRENDS = [{"avgHours":20.54,"byRole":{"Data/Other":{"closes":0,"count":3,"expected":80,"logged":63.1,"tickets":18},"Developer":{"closes":20,"count":23,"expected":680,"logged":542.4,"tickets":171},"Jr Dev":{"closes":20,"count":12,"expected":360,"logged":312.4,"tickets":121},"QA":{"closes":48,"count":12,"expected":360,"logged":142.3,"tickets":149},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":28.3,"tickets":42}},"closesMTD":111,"expected":1527.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":3,"lowHoursRed":9,"lowVolRed":10},"friDrop":0.2776,"label":"Aug 24-28","people":53,"teamHours":1088.5,"tickets":501,"util":0.7126,"week":"2026-08-24","weeklyCloses":111},{"avgHours":21.72,"byRole":{"Data/Other":{"closes":14,"count":3,"expected":80,"logged":64.2,"tickets":25},"Developer":{"closes":47,"count":22,"expected":650,"logged":548.4,"tickets":182},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":328,"tickets":113},"QA":{"closes":26,"count":12,"expected":360,"logged":130.2,"tickets":152},"Senior/Staff":{"closes":28,"count":3,"expected":47.5,"logged":58.5,"tickets":44}},"closesMTD":590,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":0.0571,"label":"Aug 31-Sep 4","people":52,"teamHours":1129.35,"tickets":516,"util":0.7542,"week":"2026-08-31","weeklyCloses":143},{"avgHours":16.3,"byRole":{"Data/Other":{"closes":13,"count":3,"expected":80,"logged":39.3,"tickets":15},"Developer":{"closes":27,"count":22,"expected":650,"logged":409.3,"tickets":157},"Jr Dev":{"closes":27,"count":12,"expected":360,"logged":247,"tickets":115},"QA":{"closes":31,"count":12,"expected":360,"logged":122.5,"tickets":143},"Senior/Staff":{"closes":38,"count":3,"expected":47.5,"logged":29.7,"tickets":39}},"closesMTD":136,"expected":1124.2,"expectedBasis":"prorated","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":-0.1808,"label":"Sep 7-11","people":52,"teamHours":847.8,"tickets":469,"util":0.7541,"week":"2026-09-07","weeklyCloses":136},{"avgHours":18.37,"byRole":{"Data/Other":{"closes":20,"count":3,"expected":80,"logged":36.6,"tickets":20},"Developer":{"closes":55,"count":22,"expected":650,"logged":513.6,"tickets":157},"Jr Dev":{"closes":26,"count":12,"expected":360,"logged":242.5,"tickets":94},"QA":{"closes":22,"count":12,"expected":360,"logged":130.2,"tickets":120},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":32.1,"tickets":35}},"closesMTD":146,"expected":1366.2,"expectedBasis":"prorated","flags":{"bounceHigh":4,"lowHoursRed":15,"lowVolRed":11},"friDrop":0.2055,"label":"Sep 14-18","people":52,"teamHours":955.03,"tickets":426,"util":0.699,"week":"2026-09-14","weeklyCloses":146},{"avgHours":19.16,"byRole":{"Data/Other":{"closes":17,"count":3,"expected":80,"logged":49.4,"tickets":19},"Developer":{"closes":41,"count":22,"expected":650,"logged":492,"tickets":165},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":304.8,"tickets":108},"QA":{"closes":38,"count":12,"expected":360,"logged":114.3,"tickets":122},"Senior/Staff":{"closes":35,"count":3,"expected":47.5,"logged":36,"tickets":35}},"closesMTD":159,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":4,"lowHoursRed":14,"lowVolRed":13},"friDrop":0.2032,"label":"Sep 21-25","people":52,"teamHours":996.51,"tickets":449,"util":0.6654,"week":"2026-09-21","weeklyCloses":159}];
+const TRENDS = [{"avgHours":20.54,"byRole":{"Data/Other":{"closes":0,"count":3,"expected":80,"logged":63.1,"tickets":18},"Developer":{"closes":20,"count":23,"expected":680,"logged":542.4,"tickets":171},"Jr Dev":{"closes":20,"count":12,"expected":360,"logged":312.4,"tickets":121},"QA":{"closes":48,"count":12,"expected":360,"logged":142.3,"tickets":149},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":28.3,"tickets":42}},"closesMTD":111,"expected":1527.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":3,"lowHoursRed":9,"lowVolRed":10},"friDrop":0.2776,"label":"Aug 24-28","people":53,"teamHours":1088.5,"tickets":501,"util":0.7126,"week":"2026-08-24","weeklyCloses":111},{"avgHours":21.72,"byRole":{"Data/Other":{"closes":14,"count":3,"expected":80,"logged":64.2,"tickets":25},"Developer":{"closes":47,"count":22,"expected":650,"logged":548.4,"tickets":182},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":328,"tickets":113},"QA":{"closes":26,"count":12,"expected":360,"logged":130.2,"tickets":152},"Senior/Staff":{"closes":28,"count":3,"expected":47.5,"logged":58.5,"tickets":44}},"closesMTD":590,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":0.0571,"label":"Aug 31-Sep 4","people":52,"teamHours":1129.35,"tickets":516,"util":0.7542,"week":"2026-08-31","weeklyCloses":143},{"avgHours":16.3,"byRole":{"Data/Other":{"closes":13,"count":3,"expected":80,"logged":39.3,"tickets":15},"Developer":{"closes":27,"count":22,"expected":650,"logged":409.3,"tickets":157},"Jr Dev":{"closes":27,"count":12,"expected":360,"logged":247,"tickets":115},"QA":{"closes":31,"count":12,"expected":360,"logged":122.5,"tickets":143},"Senior/Staff":{"closes":38,"count":3,"expected":47.5,"logged":29.7,"tickets":39}},"closesMTD":136,"expected":1124.2,"expectedBasis":"prorated","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":-0.1808,"label":"Sep 7-11","people":52,"teamHours":847.8,"tickets":469,"util":0.7541,"week":"2026-09-07","weeklyCloses":136},{"avgHours":18.37,"byRole":{"Data/Other":{"closes":20,"count":3,"expected":80,"logged":36.6,"tickets":20},"Developer":{"closes":55,"count":22,"expected":650,"logged":513.6,"tickets":157},"Jr Dev":{"closes":26,"count":12,"expected":360,"logged":242.5,"tickets":94},"QA":{"closes":22,"count":12,"expected":360,"logged":130.2,"tickets":120},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":32.1,"tickets":35}},"closesMTD":146,"expected":1366.2,"expectedBasis":"prorated","flags":{"bounceHigh":4,"lowHoursRed":15,"lowVolRed":11},"friDrop":0.2055,"label":"Sep 14-18","people":52,"teamHours":955.03,"tickets":426,"util":0.699,"week":"2026-09-14","weeklyCloses":146},{"avgHours":19.16,"byRole":{"Data/Other":{"closes":17,"count":3,"expected":80,"logged":49.4,"tickets":19},"Developer":{"closes":41,"count":22,"expected":650,"logged":492,"tickets":165},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":304.8,"tickets":108},"QA":{"closes":38,"count":12,"expected":360,"logged":114.3,"tickets":122},"Senior/Staff":{"closes":35,"count":3,"expected":47.5,"logged":36,"tickets":35}},"closesMTD":159,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":4,"lowHoursRed":14,"lowVolRed":13},"friDrop":0.2032,"label":"Sep 21-25","people":52,"teamHours":996.51,"tickets":449,"util":0.6654,"week":"2026-09-21","weeklyCloses":159},{"avgHours":17.56,"byRole":{"Data/Other":{"closes":67,"count":3,"expected":80,"logged":67.3,"tickets":15},"Developer":{"closes":235,"count":22,"expected":650,"logged":452.4,"tickets":195},"Jr Dev":{"closes":170,"count":12,"expected":360,"logged":258,"tickets":98},"QA":{"closes":131,"count":12,"expected":360,"logged":103,"tickets":135},"Senior/Staff":{"closes":162,"count":3,"expected":47.5,"logged":32.3,"tickets":43}},"closesMTD":765,"expected":1400.4,"expectedBasis":"prorated","flags":{"bounceHigh":1,"lowHoursRed":20,"lowVolRed":10},"friDrop":0.1051,"label":"Sep 28-Oct 2","people":52,"teamHours":913.17,"tickets":486,"util":0.6521,"week":"2026-09-28","weeklyCloses":null}];
+const MONTHS = [{"file":"mars-monthly-2026-09.html","label":"September 2026","sub":"52 developers &middot; 765 dev closes"}];
 const fmt = (n,d=0)=>Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const closesCell = v => (v==null ? '—' : fmt(v));
 const pct = u => (u*100).toFixed(1)+'%';
+
+// ---- monthly roll-ups ----
+if(MONTHS && MONTHS.length){
+  document.getElementById('monthly-title').style.display='';
+  document.getElementById('months').innerHTML = MONTHS.map(m=>
+    '<a class="month-card" href="'+m.file+'"><div class="mlabel">'+m.label+'</div>'+
+    '<div class="mkind">Month-to-date</div>'+
+    (m.sub?'<div class="msub">'+m.sub+'</div>':'')+'</a>'
+  ).join('');
+}
 function flagTotal(w){ const f=w.flags||{}; return (f.lowHoursRed||0)+(f.lowVolRed||0)+(f.bounceHigh||0); }
 function href(w){ return 'mars-weekly-'+w.week+'.html'; }
 
@@ -120,11 +141,11 @@ if(latest){
     {lbl:'Team hours',  v:fmt(latest.teamHours),     cur:latest.teamHours,    prev:prev&&prev.teamHours},
     {lbl:'Utilization', v:pct(latest.util),          cur:latest.util,         prev:prev&&prev.util},
     {lbl:'Tickets',     v:fmt(latest.tickets),       cur:latest.tickets,      prev:prev&&prev.tickets},
-    {lbl:'Dev closes',  v:fmt(latest.weeklyCloses),  cur:latest.weeklyCloses, prev:prev&&prev.weeklyCloses},
+    {lbl:'Dev closes',  v:closesCell(latest.weeklyCloses),  cur:latest.weeklyCloses, prev:prev&&prev.weeklyCloses, na:latest.weeklyCloses==null},
   ];
   document.getElementById('kpis').innerHTML = cards.map(c=>
     '<div class="stat-card"><div class="num">'+c.v+'</div><div class="lbl">'+c.lbl+'</div>'+
-    (prev? wowChip(c.cur, c.prev, false) : '')+'</div>'
+    (prev && !c.na ? wowChip(c.cur, c.prev, false) : '')+'</div>'
   ).join('');
 }
 
@@ -147,7 +168,7 @@ function render(rows){
       '<td class="num">'+fmt(w.teamHours)+'<span class="bar" style="width:'+barW+'px"></span></td>'+
       '<td class="num">'+pct(w.util)+'</td>'+
       '<td class="num">'+fmt(w.tickets)+'</td>'+
-      '<td class="num">'+fmt(w.weeklyCloses)+'</td>'+
+      '<td class="num">'+closesCell(w.weeklyCloses)+'</td>'+
       '<td class="num">'+flagCell(w)+'</td>'+
     '</tr>';
   }).join('');
