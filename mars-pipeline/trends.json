@@ -283,56 +283,56 @@
       "avgHours" : 17.56,
       "byRole" : {
          "Data/Other" : {
-            "closes" : 67,
+            "closes" : 132,
             "count" : 3,
             "expected" : 80,
             "logged" : 67.3,
             "tickets" : 15
          },
          "Developer" : {
-            "closes" : 235,
+            "closes" : 52,
             "count" : 22,
-            "expected" : 650,
-            "logged" : 452.4,
+            "expected" : 600,
+            "logged" : 452.5,
             "tickets" : 195
          },
          "Jr Dev" : {
-            "closes" : 170,
+            "closes" : 33,
             "count" : 12,
             "expected" : 360,
             "logged" : 258,
             "tickets" : 98
          },
          "QA" : {
-            "closes" : 131,
+            "closes" : 27,
             "count" : 12,
             "expected" : 360,
-            "logged" : 103,
+            "logged" : 103.1,
             "tickets" : 135
          },
          "Senior/Staff" : {
-            "closes" : 162,
+            "closes" : 52,
             "count" : 3,
-            "expected" : 47.5,
+            "expected" : 0,
             "logged" : 32.3,
             "tickets" : 43
          }
       },
-      "closesMTD" : 765,
-      "expected" : 1400.4,
-      "expectedBasis" : "prorated",
+      "closesMTD" : 798,
+      "expected" : 1400,
+      "expectedBasis" : "exp/wk",
       "flags" : {
-         "bounceHigh" : 1,
+         "bounceHigh" : 0,
          "lowHoursRed" : 20,
          "lowVolRed" : 10
       },
-      "friDrop" : 0.1051,
+      "friDrop" : 0.056,
       "label" : "Sep 28-Oct 2",
       "people" : 52,
-      "teamHours" : 913.17,
+      "teamHours" : 913.19,
       "tickets" : 486,
-      "util" : 0.6521,
+      "util" : 0.6523,
       "week" : "2026-09-28",
-      "weeklyCloses" : null
+      "weeklyCloses" : 296
    }
 ]
