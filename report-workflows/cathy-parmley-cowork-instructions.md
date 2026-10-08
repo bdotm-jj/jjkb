@@ -31,6 +31,7 @@
 - R1 vs R2 vs R3 round comparison — are retests getting faster?
 - Average duration per round, longest project
 - Change vs the Nov 2025 – Mar 2026 baseline
+- **Quarter-over-quarter** (Q2 Apr–Jun vs Q3 Jul–Sep) on the Key Metrics slide — shown once two quarters of current-period data exist (July report onward); Apr–Jun omit it. A low-confidence note appears when a quarter's R2 rests on a single data point.
 
 ---
 
