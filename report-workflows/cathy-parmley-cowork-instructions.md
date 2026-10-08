@@ -1,127 +1,95 @@
 # Co-Work Instructions — Cathy Parmley UAT Testing Report
-**Frequency:** Monthly  
-**Owner:** PMO Team  
-**Tool:** Co-Work (Desktop Automation)  
-**Output:** Updated HTML presentation file with month-over-month testing metrics
+**Frequency:** Monthly
+**Owner:** PMO Team
+**Output:** Updated KB-styled HTML report (one per month) in the Knowledge Base
 
 ---
 
-## Purpose
+## Conventions (read first — these are fixed)
 
-Every month, export Cathy Parmley's task data from Smartsheet, run it through Claude to produce an updated analysis, and save the HTML presentation. The **first report (April 2026) is the baseline** — all subsequent months are compared against it to show trends over time.
+- **Reports are labeled by the MONTH OF THE METRICS**, not the month they were
+  delivered. A report produced on Oct 1 that covers data through Sep 30 is the
+  **September** report. (Earlier reports were mistakenly named by delivery month,
+  which produced a duplicate "June" and partial May/June — do not repeat that.)
+- **Current period = testing that started on or after Apr 8, 2026**, counted
+  cumulatively **through the month-end** being reported.
+- **Baseline is fixed: Nov 2025 – Mar 2026** (8 projects, avg total **8.75d**,
+  R1 5.25d, R2 3.00d, R1→R2 −42.9%, longest RenRe 16d). Every month is compared
+  to this. **Never change the baseline.**
+- **Rounds (R1/R2/R3) are assigned by start-date order within each project** —
+  the round-name text in Smartsheet is inconsistent, so sequence wins. Rows with
+  **no Start Date or no Duration are excluded** from the averages.
+- The **whole series is recomputed from current Smartsheet data every month**, so
+  late edits (new rounds, corrected durations) stay consistent across all months.
 
 ---
 
 ## What This Report Tracks
 
-- Total testing duration per project (days)
-- Testing duration trend over time (line chart)
+- Projects tested and testing rounds in the current period
+- Total testing duration per project (days) + trend line ordered by start date
 - R1 vs R2 vs R3 round comparison — are retests getting faster?
-- Average duration per round
-- Monthly change from baseline and prior month
+- Average duration per round, longest project
+- Change vs the Nov 2025 – Mar 2026 baseline
 
 ---
 
-## Step-by-Step Instructions
+## Monthly Process (automated pipeline)
 
-### Step 1 — Export the Cathy Parmley Task Report from Smartsheet
+The report build lives in the KB repo (`bdotm-jj/jjkb`) at **`uat-pipeline/`**.
+Run it through Claude Code (or any environment with the Smartsheet connector +
+Perl). See `uat-pipeline/README.md` for the canonical steps; in short:
 
-1. Open Smartsheet and navigate to:
-   **JandJ-SCCAdmin - Projects → Reports folder → Cathy Parmley Task Report**
-2. Click **File → Export → Export to Excel (.xlsx)**
-3. Save the file as:
-   `Cathy_Parmley_Tasks_[MONTH]_[YEAR].xlsx`
-   *(Example: `Cathy_Parmley_Tasks_May_2026.xlsx`)*
-4. Confirm the export includes these columns:
-   - Primary (task name)
-   - Project Name
-   - Duration
-   - Assigned
-   - Section
-   - Start Date
+### Step 1 — Pull the source data
+Source = the Smartsheet **report "Cathy Parmley Task Report"** (report id
+`8800191256678276`), in *JandJ-SCCAdmin - Projects → Reports → Operations*.
+Pull it via the Smartsheet connector (`get_report`) and save the JSON. (It is
+one row per UAT testing round across all Project Plan sheets, with Project Name,
+round, Duration, and Start Date.)
 
-> **Note:** If Start Date is not visible in the report, add it before exporting. It is required for the timeline chart.
-
----
-
-### Step 2 — Open Claude and Upload the File
-
-1. Open a new Claude conversation at claude.ai
-2. Upload the exported `.xlsx` file
-3. Paste the following prompt exactly:
-
----
-
-**Prompt to paste into Claude:**
-
-> **IMPORTANT — use the fixed KB template.** Attach an existing KB-styled report as the template (e.g. `may-2026.html` from the Knowledge Base repo, `bdotm-jj/jjkb` → `reports/`). Every month must reproduce that exact template — same 5-slide structure, same KB styling — with only the data changed. This is what keeps the reports consistent month to month.
-
+### Step 2 — Compute & generate
+From `uat-pipeline/`:
+```bash
+perl parse_cathy.pl <report.json>   # -> cathy_clean.tsv (startdate, project, dur, round)
+perl compute2.pl                    # -> cathy_series.json (baseline + Apr->month-end aggregates)
+perl cathy_gen.pl                   # -> ../site/reports/<month>-2026.html for every month
 ```
-I am running the monthly Cathy Parmley UAT Testing Report. I've attached (a) this month's Smartsheet export and (b) an existing KB-styled report (may-2026.html) to use as the TEMPLATE.
+When a new month ends, add its month-end date to `@MONTHS` in `compute2.pl`
+before running. The generator reproduces the KB-styled 5-slide deck and
+auto-writes the callouts, baseline table, findings, and recommendations.
 
-Produce this month's report as a single self-contained HTML file that reproduces the attached template EXACTLY — same 5-slide structure, same layout, same Chart.js charts, and the same "KB" visual design. Change ONLY the data; do not redesign anything.
+### Step 3 — Register it on the Knowledge Base
+1. Open `site/app.jsx`, find `const REPORTS = [`.
+2. Add/adjust the `uat` entry for the new month: `id` and `file`
+   (`reports/<month>-2026.html`), `title` = the **metrics month**, `date` = the
+   **month-end** (ISO; drives newest-first ordering), `period`
+   (`Current period · Apr 8 – <Month end>, 2026`), `summary`, and `stats`.
+3. Bump the `app.jsx?v=` cache number in `site/index.html`.
 
-KB design system the template uses (do not deviate):
-- Bone paper background #F2EDE2; ink #0F1B2D; accent #2E6DA4; positive/faster #3D6B3D; negative/slower #C24B1E; watch #B5860D.
-- Fonts: Instrument Serif (display headings, with accent-blue italics), Inter (body), JetBrains Mono (eyebrows/labels/numerals, uppercase, letter-spacing).
-- Flat surfaces, hairline rules, 2px radii, NO gradients, NO dark theme, NO emoji.
-- Chart.js: axis ticks #5C6A80, grid rgba(15,27,45,0.10), tooltip bg #0F1B2D; series accent #2E6DA4 / #3D6B3D / #B5860D; trend line #97A0B2.
+### Step 4 — Deploy
+Commit and push to `main`. GitHub Pages redeploys automatically; the new edition
+shows up as the latest UAT report on the KB (Reports → UAT Reports).
 
-The 5 slides:
-   - Slide 1: Cover — "Cathy Parmley UAT Testing Report — [Month] [Year]" + summary stats (projects tested, total tasks, avg total days, date range)
-   - Slide 2: Key metrics — avg project total, avg R1 duration, avg R2 duration, longest project, plus 3 insight callouts (finding / outlier / watch)
-   - Slide 3: Testing duration over time — line chart ordered by start date with average trendline
-   - Slide 4: R1 vs R2 vs R3 round comparison — grouped bar chart + data table
-   - Slide 5: Key findings and recommendations
-
-Month-over-month comparison against the April 2026 baseline:
-   - Baseline avg total days per project: 5.4d | avg R1: 4.6d | avg R2: 1.8d | R1→R2 reduction: -61% | projects tested: 16
-   - Call out any metric that improved or declined vs baseline.
-
-Return the full HTML as a downloadable artifact.
-```
+> **Manual fallback (no pipeline access):** export the report to `.xlsx`, hand it
+> to Claude with an existing KB report as the template, and ask it to reproduce
+> the deck changing only the data — using the conventions and baseline above.
+> The automated pipeline is preferred because it keeps every month consistent.
 
 ---
 
-### Step 3 — Save the Output
+## Tracking Log (optional)
 
-1. When Claude produces the HTML artifact, click the artifact to open it full screen
-2. Right-click anywhere on the page → **Save As**
-3. Save as `[month]-[year].html`, lower-case (e.g. `july-2026.html`)
-4. Save into the Knowledge Base repo at `reports/` (in the `bdotm-jj/jjkb` checkout). Keep a personal copy in `Documents → PMO Reports → Cathy Parmley → Monthly Reports` if desired.
+Keep a running row per month. **The baseline row is fixed — never update it.**
 
----
-
-### Step 3b — Register it on the Knowledge Base
-
-The KB Reports index reads a manifest. To make the new month appear:
-
-1. Open `app.jsx` in the `bdotm-jj/jjkb` repo and find `const REPORTS = [`.
-2. Copy an existing entry (e.g. the newest month) and edit the fields — `id`, `title`, `date` (ISO; drives ordering, newest first), `period`, `file` (`reports/[month]-[year].html`), `summary`, and `stats`.
-3. Commit and push. The new edition shows up automatically as the latest report on the KB — no other change needed.
-
----
-
-### Step 4 — Update the Tracking Log
-
-Open the **Cathy Parmley Monthly Metrics Log** (maintain this as a running spreadsheet) and add a new row with:
-
-| Month | Projects Tested | Avg Total Days | Avg R1 | Avg R2 | R1→R2 % Change | Longest Project | Notes |
-|---|---|---|---|---|---|---|---|
-| Apr 2026 *(baseline)* | 16 | 5.4d | 4.6d | 1.8d | -61% | RenRe (16d) | Baseline established |
-| May 2026 | *fill in* | *fill in* | *fill in* | *fill in* | *fill in* | *fill in* | |
-
-> **Baseline row is fixed — never update it.** All subsequent months are compared to April 2026 values.
-
----
-
-### Step 5 — Distribute
-
-Send the HTML file to:
-- Cathy Parmley (cathy.parmley@jjins.com)
-- Relevant PM / manager
-
-Use the email template below.
+| Month | Projects | Rounds | Avg Total | Avg R1 | Avg R2 | R1→R2 | Longest | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Baseline *(Nov'25–Mar'26)* | 8 | 21 | 8.75d | 5.25d | 3.00d | −42.9% | RenRe (16d) | Fixed reference |
+| April 2026 | 3 | 4 | 4.7d | 4.3d | 1.0d | — | Scottsdale API (10d) | |
+| May 2026 | 6 | 9 | 7.3d | 6.5d | 1.5d | −76.9% | Workflow Dashboard (20d) | |
+| June 2026 | 9 | 15 | 8.6d | 6.9d | 2.6d | −62.3% | Workflow Dashboard (20d) | |
+| July 2026 | 9 | 16 | 9.2d | 6.9d | 2.6d | −62.3% | Scottsdale API (21d) | |
+| August 2026 | 10 | 18 | 8.7d | 6.5d | 2.3d | −64.1% | Scottsdale API (21d) | |
+| September 2026 | 11 | 22 | 9.6d | 6.2d | 2.5d | −59.6% | Auto Renewals - PL (26d) | |
 
 ---
 
@@ -131,16 +99,17 @@ Use the email template below.
 
 > Hi Cathy,
 >
-> Please find attached your monthly UAT testing analysis for [Month] [Year], pulled from your task data in Smartsheet.
+> Please find your monthly UAT testing analysis for [Month] [Year], pulled from
+> your task data in Smartsheet.
 >
 > This month's highlights:
-> - [X] projects tested, [X] total tasks
-> - Average testing duration: [X]d per project ([+/-X%] vs April baseline)
-> - R2 retests averaged [X]d ([+/-X%] vs baseline)
+> - [X] projects tested, [X] testing rounds
+> - Average testing duration: [X]d per project ([+/-X%] vs the Nov–Mar baseline)
+> - R2 retests averaged [X]d
 >
-> Open the attached HTML file in any browser — no login required.
+> Open it on the Knowledge Base (Reports → UAT Reports) — no login required.
 >
-> Best,  
+> Best,
 > [Your name]
 
 ---
@@ -149,23 +118,24 @@ Use the email template below.
 
 | Issue | Fix |
 |---|---|
-| Start Date column missing from export | Add Start Date column to the report in Smartsheet before exporting |
-| Duration column shows blank for some rows | Those tasks have no duration set — Claude will note them as incomplete and exclude from averages |
-| Claude doesn't recognize the file format | Re-export as .xlsx, not .csv |
-| HTML file won't open | Try a different browser — Chrome or Edge recommended |
+| Start Date missing on some rows | Those rows are excluded from averages; add the Start Date in the project plan if the round should count |
+| Duration blank on some rows | Excluded from averages (incomplete) — expected for rows still in progress |
+| A project's R1/R2/R3 looks mislabeled | Rounds are assigned by start-date order, not the round name — check the Start Dates in Smartsheet |
+| Old months' numbers changed | Expected — the series is recomputed from current data each run, so corrected Smartsheet edits flow into prior months |
+| En-dashes / arrows show as mojibake | `cathy_gen.pl` must have `use utf8;` |
 
 ---
 
-## Baseline Reference (April 2026)
+## Baseline Reference (Nov 2025 – Mar 2026) — fixed
 
 | Metric | Value |
 |---|---|
-| Projects tested | 16 |
-| Total tasks | 36 |
-| Date range | Nov 2025 – Apr 2026 |
-| Avg total days per project | 5.4d |
-| Avg R1 duration | 4.6d |
-| Avg R2 duration | 1.8d |
-| R1 → R2 reduction | -61% |
+| Projects tested | 8 |
+| Testing rounds | 21 |
+| Date range | Nov 25, 2025 – Mar 27, 2026 |
+| Avg total days per project | 8.75d |
+| Avg R1 duration | 5.25d |
+| Avg R2 duration | 3.00d |
+| Avg R3 duration | 1.75d |
+| R1 → R2 reduction | −42.9% |
 | Longest project | RenRe — 16d |
-| Only R2 > R1 exception | GLISE Lifecycle API (R2: 3d vs R1: 2d) |
