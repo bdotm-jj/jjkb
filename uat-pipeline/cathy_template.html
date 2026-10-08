@@ -51,6 +51,8 @@
   tr:nth-child(even) td{background:var(--bg-sunken);}
   .baseline-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 20px;margin-top:14px;}
   .baseline-box h3{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px;color:var(--ink-3);font-size:12px;font-weight:500;}
+  .baseline-box.qoq{border-left:3px solid var(--accent-2);}
+  .fine{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:10px;line-height:1.5;}
   .delta{font-family:var(--mono);font-size:12px;font-weight:600;}
   .delta.up{color:var(--hot);} .delta.down{color:var(--ok);} .delta.flat{color:var(--ink-4);}
   .chart-wrap{position:relative;height:380px;margin-top:10px;}
@@ -88,6 +90,11 @@
     <div class="baseline-box">
       <h3 id="b-title"></h3>
       <table id="b-table"></table>
+    </div>
+    <div class="baseline-box qoq" id="qoq-box" style="display:none">
+      <h3 id="qoq-title"></h3>
+      <table id="qoq-table"></table>
+      <div class="fine" id="qoq-note"></div>
     </div>
   </div>
   <!-- SLIDE 3 -->
@@ -138,6 +145,14 @@ document.getElementById('m-callouts').innerHTML=['finding','outlier','watch'].ma
 document.getElementById('b-title').textContent=DATA.baselineLabel;
 document.getElementById('b-table').innerHTML='<tr><th>Metric</th><th class="num">Baseline</th><th class="num">Current</th><th class="num">Δ vs Baseline</th></tr>'+
   DATA.baselineTable.map(r=>`<tr><td>${r.metric}</td><td class="num">${r.base}</td><td class="num">${r.cur}</td><td class="num delta ${r.dir}">${r.delta}</td></tr>`).join('');
+// quarter-over-quarter (shown once there are two quarters of current-period data)
+if(DATA.qoq){
+  document.getElementById('qoq-box').style.display='';
+  document.getElementById('qoq-title').textContent=DATA.qoq.label;
+  document.getElementById('qoq-table').innerHTML='<tr><th>Metric</th><th class="num">Q2 2026</th><th class="num">Q3 2026</th><th class="num">Δ QoQ</th></tr>'+
+    DATA.qoq.rows.map(r=>`<tr><td>${r.metric}</td><td class="num">${r.q2}</td><td class="num">${r.q3}</td><td class="num delta ${r.dir}">${r.delta}</td></tr>`).join('');
+  document.getElementById('qoq-note').textContent=DATA.qoq.note||'';
+}
 // slide3
 document.getElementById('s3-sub').textContent='Total testing days per project, ordered by start date (dashed line = average '+d1(DATA.metrics.avgTotal)+'d).';
 // slide4 table

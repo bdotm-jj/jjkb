@@ -15,6 +15,10 @@ sub deltaCell { # for durations: lower is better (down=ok)
   my ($cur,$b,$unit)=@_; my $p=pct($cur,$b); my $dir= abs($p)<0.5?'flat':($p>0?'up':'down');
   my $arrow= $p>0?'▲':($p<0?'▼':'—'); return { base=>d1($b).$unit, cur=>d1($cur).$unit,
     delta=>sprintf('%s %.1f%%',$arrow,abs($p)), dir=>$dir }; }
+sub qoqPctDelta { # duration-style % delta, lower=better(down=ok)
+  my ($cur,$b)=@_; return {delta=>'—',dir=>'flat'} if !$b;
+  my $p=pct($cur,$b); my $dir= abs($p)<0.5?'flat':($p>0?'up':'down');
+  return { delta=>sprintf('%s %.0f%%',($p>0?'▲':($p<0?'▼':'—')),abs($p)), dir=>$dir }; }
 
 for my $m (@{$S->{order}}){
   my $M=$S->{months}{$m}; my ($mend,$short)=@{$MEND{$m}};
@@ -65,8 +69,28 @@ for my $m (@{$S->{order}}){
     ($M->{nR2}<$M->{nproj} ? sprintf('Confirm retest plans for the %d project%s still showing only a first round; their totals are likely understated.',$M->{nproj}-$M->{nR2},($M->{nproj}-$M->{nR2}==1?'':'s'))
                            : 'Revisit next month once additional rounds are logged to keep the trend based on complete cycles.'),
   );
+  # Quarter-over-quarter (shown once Q3 has data — July onward)
+  my $qoq = undef;
+  if (defined $M->{q3} && $M->{q3}{nproj} > 0) {
+    my $q2=$M->{q2}; my $q3=$M->{q3};
+    my $ppd = $q3->{r1r2}-$q2->{r1r2}; # reduction: more negative = better
+    my $ppdir = abs($ppd)<0.5?'flat':($ppd<0?'down':'up');
+    my @qr = (
+      { metric=>'Avg Total Duration / Project', q2=>d1($q2->{avgTotal}).'d', q3=>d1($q3->{avgTotal}).'d', %{ qoqPctDelta($q3->{avgTotal},$q2->{avgTotal}) } },
+      { metric=>'Avg R1 Duration', q2=>d1($q2->{avgR1}).'d', q3=>d1($q3->{avgR1}).'d', %{ qoqPctDelta($q3->{avgR1},$q2->{avgR1}) } },
+      { metric=>'Avg R2 Duration', q2=>d1($q2->{avgR2}).'d', q3=>d1($q3->{avgR2}).'d', %{ qoqPctDelta($q3->{avgR2},$q2->{avgR2}) } },
+      { metric=>'R2 Duration vs R1 (% shorter)', q2=>sprintf('%.1f%%',$q2->{r1r2}), q3=>sprintf('%.1f%%',$q3->{r1r2}),
+        delta=>sprintf('%s %.1f pp',($ppd<0?'▼':'▲'),abs($ppd)), dir=>$ppdir },
+      { metric=>'Projects Tested', q2=>$q2->{nproj}+0, q3=>$q3->{nproj}+0, delta=>sprintf('%+d',$q3->{nproj}-$q2->{nproj}), dir=>'flat' },
+    );
+    my $note = ($q3->{nR2}<=1)
+      ? sprintf("Q3\x{2019}s Avg R2 and \x{201c}R2 vs R1\x{201d} rest on %s so far \x{2014} low confidence. Projects spanning both quarters are regrouped independently in each.",
+          ($q3->{nR2}==0?'no completed R2 rounds':'a single completed R2 round'))
+      : 'Projects spanning both quarters are regrouped independently in each quarter.';
+    $qoq = { label=>"Quarter over Quarter \x{2014} Q3 2026 (Jul\x{2013}Sep) vs Q2 2026 (Apr\x{2013}Jun)", rows=>\@qr, note=>$note };
+  }
   my %D=(
-    month=>$m, year=>'2026', rangeLabel=>"Apr 8 – $mend, 2026",
+    month=>$m, year=>'2026', rangeLabel=>"Apr 8 – $mend, 2026", qoq=>$qoq,
     foot=>"Generated from Smartsheet \x{201c}Cathy Parmley Task Report\x{201d} \x{b7} current period = testing started on/after Apr 8, 2026 \x{b7} baseline Nov 2025 \x{2013} Mar 2026",
     cover=>{ projects=>$M->{nproj}+0, tasks=>$M->{ntasks}+0, rangeShort=>$short },
     metrics=>{ avgTotal=>$M->{avgTotal}+0, avgR1=>$M->{avgR1}+0, avgR2=>$M->{avgR2}+0,

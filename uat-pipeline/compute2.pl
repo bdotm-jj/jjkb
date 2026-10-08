@@ -27,7 +27,16 @@ sub period {
 }
 my $base = period('2025-11-01','2026-03-31');
 my @MONTHS=(['April','2026-04-30'],['May','2026-05-31'],['June','2026-06-30'],['July','2026-07-31'],['August','2026-08-31'],['September','2026-09-30']);
-my %series; for my $m (@MONTHS){ $series{$m->[0]} = period('2026-04-08',$m->[1]); }
+my %series; for my $m (@MONTHS){
+  my $mend=$m->[1];
+  my $s = period('2026-04-08',$mend);
+  # Quarter-over-quarter within the current period: rounds grouped by the quarter
+  # their START date falls in (a project spanning both quarters is regrouped
+  # independently in each). Q2 = Apr 8 - Jun 30, Q3 = Jul 1 - month-end.
+  $s->{q2} = period('2026-04-08', ($mend lt '2026-06-30' ? $mend : '2026-06-30'));
+  $s->{q3} = ($mend ge '2026-07-01') ? period('2026-07-01', $mend) : undef;
+  $series{$m->[0]} = $s;
+}
 my %OUT=(baseline=>$base, months=>\%series, order=>[map {$_->[0]} @MONTHS]);
 open my $o,">","cathy_series.json"; print $o JSON::PP->new->canonical->pretty->encode(\%OUT); close $o;
 # print table
