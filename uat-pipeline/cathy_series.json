@@ -1,0 +1,635 @@
+{
+   "baseline" : {
+      "avgR1" : 5.25,
+      "avgR2" : 3,
+      "avgR3" : 1.75,
+      "avgTotal" : 8.75,
+      "longest" : {
+         "name" : "RenRe",
+         "total" : 16
+      },
+      "nR1" : 8,
+      "nR2" : 5,
+      "nR3" : 4,
+      "nproj" : 8,
+      "ntasks" : 21,
+      "projects" : [
+         {
+            "firstsd" : "2025-11-25",
+            "name" : "GLISE Lifecycle API",
+            "rounds" : [
+               2,
+               3,
+               2,
+               2,
+               1
+            ],
+            "total" : 10
+         },
+         {
+            "firstsd" : "2025-12-05",
+            "name" : "MARS Online Issuance",
+            "rounds" : [
+               5,
+               3,
+               2
+            ],
+            "total" : 10
+         },
+         {
+            "firstsd" : "2025-12-10",
+            "name" : "ArielRe Contract Addition",
+            "rounds" : [
+               8,
+               1,
+               1,
+               1
+            ],
+            "total" : 11
+         },
+         {
+            "firstsd" : "2025-12-19",
+            "name" : "GLISE SW Rating in Lloyds Style",
+            "rounds" : [
+               3,
+               3,
+               2,
+               2
+            ],
+            "total" : 10
+         },
+         {
+            "firstsd" : "2026-02-26",
+            "name" : "RenRe",
+            "rounds" : [
+               11,
+               5
+            ],
+            "total" : 16
+         },
+         {
+            "firstsd" : "2026-03-02",
+            "name" : "CPAC - External Facing Rater",
+            "rounds" : [
+               5
+            ],
+            "total" : 5
+         },
+         {
+            "firstsd" : "2026-03-09",
+            "name" : "Atrium",
+            "rounds" : [
+               5
+            ],
+            "total" : 5
+         },
+         {
+            "firstsd" : "2026-03-27",
+            "name" : "Atrium - PL",
+            "rounds" : [
+               3
+            ],
+            "total" : 3
+         }
+      ],
+      "r1r2" : -42.8571428571429
+   },
+   "months" : {
+      "April" : {
+         "avgR1" : 4.33333333333333,
+         "avgR2" : 1,
+         "avgR3" : 0,
+         "avgTotal" : 4.66666666666667,
+         "longest" : {
+            "name" : "Scottsdale API",
+            "total" : 10
+         },
+         "nR1" : 3,
+         "nR2" : 1,
+         "nR3" : 0,
+         "nproj" : 3,
+         "ntasks" : 4,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10
+               ],
+               "total" : 10
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1
+               ],
+               "total" : 2
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            }
+         ],
+         "r1r2" : -76.9230769230769
+      },
+      "August" : {
+         "avgR1" : 6.5,
+         "avgR2" : 2.33333333333333,
+         "avgR3" : 4,
+         "avgTotal" : 8.7,
+         "longest" : {
+            "name" : "Scottsdale API",
+            "total" : 21
+         },
+         "nR1" : 10,
+         "nR2" : 6,
+         "nR3" : 2,
+         "nproj" : 10,
+         "ntasks" : 18,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10,
+                  5,
+                  6
+               ],
+               "total" : 21
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1,
+                  2
+               ],
+               "total" : 4
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            },
+            {
+               "firstsd" : "2026-05-04",
+               "name" : "Munich RE",
+               "rounds" : [
+                  4,
+                  2
+               ],
+               "total" : 6
+            },
+            {
+               "firstsd" : "2026-05-19",
+               "name" : "Workflow Dashboard",
+               "rounds" : [
+                  20,
+                  1
+               ],
+               "total" : 21
+            },
+            {
+               "firstsd" : "2026-05-21",
+               "name" : "RenRe Personal Lines",
+               "rounds" : [
+                  2,
+                  3
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Chubb Local Rating",
+               "rounds" : [
+                  5,
+                  2
+               ],
+               "total" : 7
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Markel Capacity Program",
+               "rounds" : [
+                  5
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-15",
+               "name" : "Auto Renewals - PL",
+               "rounds" : [
+                  13
+               ],
+               "total" : 13
+            },
+            {
+               "firstsd" : "2026-08-10",
+               "name" : "Agency Fees Management",
+               "rounds" : [
+                  3
+               ],
+               "total" : 3
+            }
+         ],
+         "r1r2" : -64.1025641025641
+      },
+      "July" : {
+         "avgR1" : 6.88888888888889,
+         "avgR2" : 2.6,
+         "avgR3" : 4,
+         "avgTotal" : 9.22222222222222,
+         "longest" : {
+            "name" : "Scottsdale API",
+            "total" : 21
+         },
+         "nR1" : 9,
+         "nR2" : 5,
+         "nR3" : 2,
+         "nproj" : 9,
+         "ntasks" : 16,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10,
+                  5,
+                  6
+               ],
+               "total" : 21
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1,
+                  2
+               ],
+               "total" : 4
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            },
+            {
+               "firstsd" : "2026-05-04",
+               "name" : "Munich RE",
+               "rounds" : [
+                  4,
+                  2
+               ],
+               "total" : 6
+            },
+            {
+               "firstsd" : "2026-05-19",
+               "name" : "Workflow Dashboard",
+               "rounds" : [
+                  20
+               ],
+               "total" : 20
+            },
+            {
+               "firstsd" : "2026-05-21",
+               "name" : "RenRe Personal Lines",
+               "rounds" : [
+                  2,
+                  3
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Chubb Local Rating",
+               "rounds" : [
+                  5,
+                  2
+               ],
+               "total" : 7
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Markel Capacity Program",
+               "rounds" : [
+                  5
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-15",
+               "name" : "Auto Renewals - PL",
+               "rounds" : [
+                  13
+               ],
+               "total" : 13
+            }
+         ],
+         "r1r2" : -62.258064516129
+      },
+      "June" : {
+         "avgR1" : 6.88888888888889,
+         "avgR2" : 2.6,
+         "avgR3" : 2,
+         "avgTotal" : 8.55555555555556,
+         "longest" : {
+            "name" : "Workflow Dashboard",
+            "total" : 20
+         },
+         "nR1" : 9,
+         "nR2" : 5,
+         "nR3" : 1,
+         "nproj" : 9,
+         "ntasks" : 15,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10,
+                  5
+               ],
+               "total" : 15
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1,
+                  2
+               ],
+               "total" : 4
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            },
+            {
+               "firstsd" : "2026-05-04",
+               "name" : "Munich RE",
+               "rounds" : [
+                  4,
+                  2
+               ],
+               "total" : 6
+            },
+            {
+               "firstsd" : "2026-05-19",
+               "name" : "Workflow Dashboard",
+               "rounds" : [
+                  20
+               ],
+               "total" : 20
+            },
+            {
+               "firstsd" : "2026-05-21",
+               "name" : "RenRe Personal Lines",
+               "rounds" : [
+                  2,
+                  3
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Chubb Local Rating",
+               "rounds" : [
+                  5,
+                  2
+               ],
+               "total" : 7
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Markel Capacity Program",
+               "rounds" : [
+                  5
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-15",
+               "name" : "Auto Renewals - PL",
+               "rounds" : [
+                  13
+               ],
+               "total" : 13
+            }
+         ],
+         "r1r2" : -62.258064516129
+      },
+      "May" : {
+         "avgR1" : 6.5,
+         "avgR2" : 1.5,
+         "avgR3" : 2,
+         "avgTotal" : 7.33333333333333,
+         "longest" : {
+            "name" : "Workflow Dashboard",
+            "total" : 20
+         },
+         "nR1" : 6,
+         "nR2" : 2,
+         "nR3" : 1,
+         "nproj" : 6,
+         "ntasks" : 9,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10
+               ],
+               "total" : 10
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1,
+                  2
+               ],
+               "total" : 4
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            },
+            {
+               "firstsd" : "2026-05-04",
+               "name" : "Munich RE",
+               "rounds" : [
+                  4,
+                  2
+               ],
+               "total" : 6
+            },
+            {
+               "firstsd" : "2026-05-19",
+               "name" : "Workflow Dashboard",
+               "rounds" : [
+                  20
+               ],
+               "total" : 20
+            },
+            {
+               "firstsd" : "2026-05-21",
+               "name" : "RenRe Personal Lines",
+               "rounds" : [
+                  2
+               ],
+               "total" : 2
+            }
+         ],
+         "r1r2" : -76.9230769230769
+      },
+      "September" : {
+         "avgR1" : 6.18181818181818,
+         "avgR2" : 2.5,
+         "avgR3" : 6,
+         "avgTotal" : 9.63636363636364,
+         "longest" : {
+            "name" : "Auto Renewals - PL",
+            "total" : 26
+         },
+         "nR1" : 11,
+         "nR2" : 8,
+         "nR3" : 3,
+         "nproj" : 11,
+         "ntasks" : 22,
+         "projects" : [
+            {
+               "firstsd" : "2026-04-08",
+               "name" : "Scottsdale API",
+               "rounds" : [
+                  10,
+                  5,
+                  6
+               ],
+               "total" : 21
+            },
+            {
+               "firstsd" : "2026-04-20",
+               "name" : "Atrium - PL",
+               "rounds" : [
+                  1,
+                  1,
+                  2
+               ],
+               "total" : 4
+            },
+            {
+               "firstsd" : "2026-04-27",
+               "name" : "GLISE Forms API",
+               "rounds" : [
+                  2,
+                  3
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-05-04",
+               "name" : "Munich RE",
+               "rounds" : [
+                  4,
+                  2
+               ],
+               "total" : 6
+            },
+            {
+               "firstsd" : "2026-05-19",
+               "name" : "Workflow Dashboard",
+               "rounds" : [
+                  20,
+                  1
+               ],
+               "total" : 21
+            },
+            {
+               "firstsd" : "2026-05-21",
+               "name" : "RenRe Personal Lines",
+               "rounds" : [
+                  2,
+                  3
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Chubb Local Rating",
+               "rounds" : [
+                  5,
+                  2
+               ],
+               "total" : 7
+            },
+            {
+               "firstsd" : "2026-06-02",
+               "name" : "Markel Capacity Program",
+               "rounds" : [
+                  5
+               ],
+               "total" : 5
+            },
+            {
+               "firstsd" : "2026-06-15",
+               "name" : "Auto Renewals - PL",
+               "rounds" : [
+                  13,
+                  3,
+                  10
+               ],
+               "total" : 26
+            },
+            {
+               "firstsd" : "2026-08-10",
+               "name" : "Agency Fees Management",
+               "rounds" : [
+                  3
+               ],
+               "total" : 3
+            },
+            {
+               "firstsd" : "2026-09-02",
+               "name" : "Transportation Rater Update",
+               "rounds" : [
+                  3
+               ],
+               "total" : 3
+            }
+         ],
+         "r1r2" : -59.5588235294118
+      }
+   },
+   "order" : [
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September"
+   ]
+}
