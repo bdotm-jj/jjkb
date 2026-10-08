@@ -1,0 +1,801 @@
+{
+   "data" : {
+      "Acceptance Testing (UAT/Pre-Prod)" : {
+         "Q1" : {
+            "max" : 183,
+            "median" : 66,
+            "min" : 19,
+            "n" : 7,
+            "projects" : [
+               {
+                  "days" : 183,
+                  "name" : "GLISE SW Rating in Lloyds Style"
+               },
+               {
+                  "days" : 99,
+                  "name" : "MARS Online Issuance"
+               },
+               {
+                  "days" : 81,
+                  "name" : "ArielRe Contract Addition"
+               },
+               {
+                  "days" : 66,
+                  "name" : "Casper Cyber Program"
+               },
+               {
+                  "days" : 51,
+                  "name" : "GLISE Lifecycle API"
+               },
+               {
+                  "days" : 27,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 19,
+                  "name" : "Atrium"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 386,
+            "median" : 48,
+            "min" : 21,
+            "n" : 8,
+            "projects" : [
+               {
+                  "days" : 386,
+                  "name" : "Chubb Local Rating"
+               },
+               {
+                  "days" : 50,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 50,
+                  "name" : "CPAC - External Facing Rater"
+               },
+               {
+                  "days" : 49,
+                  "name" : "RenRe Personal Lines"
+               },
+               {
+                  "days" : 46,
+                  "name" : "Atrium - PL"
+               },
+               {
+                  "days" : 42,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 30,
+                  "name" : "Munich RE"
+               },
+               {
+                  "days" : 21,
+                  "name" : "HVH GLISE Contract Phase 1"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 141,
+            "median" : 10,
+            "min" : 1,
+            "n" : 6,
+            "projects" : [
+               {
+                  "days" : 141,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 52,
+                  "name" : "Markel Capacity Program"
+               },
+               {
+                  "days" : 12,
+                  "name" : "Agency Fees Management"
+               },
+               {
+                  "days" : 8,
+                  "name" : "QBE New Company Setup"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Mailing Suppression"
+               }
+            ]
+         }
+      },
+      "Alpha Testing (Dev Testing)" : {
+         "Q1" : {
+            "max" : 54,
+            "median" : 21,
+            "min" : 1,
+            "n" : 5,
+            "projects" : [
+               {
+                  "days" : 54,
+                  "name" : "Vave In Torrent"
+               },
+               {
+                  "days" : 54,
+                  "name" : "CPAC - External Facing Rater"
+               },
+               {
+                  "days" : 21,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 5,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE Forms API"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 159,
+            "median" : 44,
+            "min" : 9,
+            "n" : 8,
+            "projects" : [
+               {
+                  "days" : 159,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 78,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 54,
+                  "name" : "RenRe Personal Lines"
+               },
+               {
+                  "days" : 51,
+                  "name" : "Atrium - PL"
+               },
+               {
+                  "days" : 38,
+                  "name" : "VAVE New Company Set Up"
+               },
+               {
+                  "days" : 15,
+                  "name" : "Mailing Suppression"
+               },
+               {
+                  "days" : 13,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 9,
+                  "name" : "Markel Capacity Program"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 72,
+            "median" : 24,
+            "min" : 1,
+            "n" : 7,
+            "projects" : [
+               {
+                  "days" : 72,
+                  "name" : "Transportation Rater Update"
+               },
+               {
+                  "days" : 65,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 60,
+                  "name" : "Agency Fees Management"
+               },
+               {
+                  "days" : 24,
+                  "name" : "JJPF INTEREST INCOME OPTIMIZATION"
+               },
+               {
+                  "days" : 23,
+                  "name" : "Chubb API"
+               },
+               {
+                  "days" : 9,
+                  "name" : "Scottsdale Phase 3 and 4 - Reinstatements, Renewals and Expansion"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Quote Funnel Dashboard"
+               }
+            ]
+         }
+      },
+      "Development" : {
+         "Q1" : {
+            "max" : 49,
+            "median" : 22,
+            "min" : 1,
+            "n" : 10,
+            "projects" : [
+               {
+                  "days" : 49,
+                  "name" : "Flood API: v2"
+               },
+               {
+                  "days" : 49,
+                  "name" : "V2 Motion Api"
+               },
+               {
+                  "days" : 30,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 29,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 22,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 21,
+                  "name" : "Bookroll"
+               },
+               {
+                  "days" : 2,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Markel Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Atrium - PL"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 107,
+            "median" : 69,
+            "min" : 25,
+            "n" : 4,
+            "projects" : [
+               {
+                  "days" : 107,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 85,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 53,
+                  "name" : "VAVE New Company Set Up"
+               },
+               {
+                  "days" : 25,
+                  "name" : "Mailing Suppression"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 162,
+            "median" : 64,
+            "min" : 29,
+            "n" : 3,
+            "projects" : [
+               {
+                  "days" : 162,
+                  "name" : "Chubb API"
+               },
+               {
+                  "days" : 64,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 29,
+                  "name" : "Agency Fees Management"
+               }
+            ]
+         }
+      },
+      "Intake & Planning" : {
+         "Q1" : {
+            "max" : 98,
+            "median" : 26,
+            "min" : 1,
+            "n" : 13,
+            "projects" : [
+               {
+                  "days" : 98,
+                  "name" : "Munich RE"
+               },
+               {
+                  "days" : 64,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 37,
+                  "name" : "HVH: Indication API"
+               },
+               {
+                  "days" : 30,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 28,
+                  "name" : "Bookroll"
+               },
+               {
+                  "days" : 28,
+                  "name" : "Condo Rater – New UI"
+               },
+               {
+                  "days" : 26,
+                  "name" : "Markel Capacity Program"
+               },
+               {
+                  "days" : 26,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 2,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Markel Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "API Service Phase 1"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Atrium - PL"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 29,
+            "median" : 28,
+            "min" : 1,
+            "n" : 5,
+            "projects" : [
+               {
+                  "days" : 29,
+                  "name" : "Westchester Bind Api"
+               },
+               {
+                  "days" : 28,
+                  "name" : "Markel Artisan Rater"
+               },
+               {
+                  "days" : 28,
+                  "name" : "Scottsdale Artisan Rater"
+               },
+               {
+                  "days" : 26,
+                  "name" : "Scottsdale Bind API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "VAVE New Company Set Up"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 174,
+            "median" : 33,
+            "min" : 31,
+            "n" : 3,
+            "projects" : [
+               {
+                  "days" : 174,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 33,
+                  "name" : "Markel X-Wind transition to MARS"
+               },
+               {
+                  "days" : 31,
+                  "name" : "Westchester Artisan Rater"
+               }
+            ]
+         }
+      },
+      "Release" : {
+         "Q1" : {
+            "max" : 34,
+            "median" : 1,
+            "min" : 1,
+            "n" : 9,
+            "projects" : [
+               {
+                  "days" : 34,
+                  "name" : "V2 Motion Api"
+               },
+               {
+                  "days" : 20,
+                  "name" : "ArielRe Contract Addition"
+               },
+               {
+                  "days" : 5,
+                  "name" : "Casper Cyber Program"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Bookroll"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE Lifecycle API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "MARS Online Issuance"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE SW Rating in Lloyds Style"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 22,
+            "median" : 4,
+            "min" : 1,
+            "n" : 9,
+            "projects" : [
+               {
+                  "days" : 22,
+                  "name" : "CPAC - External Facing Rater"
+               },
+               {
+                  "days" : 14,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 8,
+                  "name" : "API Service Phase 1"
+               },
+               {
+                  "days" : 6,
+                  "name" : "Vave In Torrent"
+               },
+               {
+                  "days" : 4,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 2,
+                  "name" : "Munich RE"
+               },
+               {
+                  "days" : 1,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Atrium - PL"
+               },
+               {
+                  "days" : 1,
+                  "name" : "RenRe Personal Lines"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 36,
+            "median" : 2,
+            "min" : 1,
+            "n" : 7,
+            "projects" : [
+               {
+                  "days" : 36,
+                  "name" : "Markel Capacity Program"
+               },
+               {
+                  "days" : 22,
+                  "name" : "OATS Insured Portal – EPD Registry & Policy Continuity"
+               },
+               {
+                  "days" : 5,
+                  "name" : "Mailing Suppression"
+               },
+               {
+                  "days" : 2,
+                  "name" : "Agency Fees Management"
+               },
+               {
+                  "days" : 1,
+                  "name" : "QBE New Company Setup"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Chubb Local Rating"
+               }
+            ]
+         }
+      },
+      "Requirements & Design" : {
+         "Q1" : {
+            "max" : 46,
+            "median" : 16,
+            "min" : 1,
+            "n" : 10,
+            "projects" : [
+               {
+                  "days" : 46,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 29,
+                  "name" : "2026 Wholesaler Onboarding"
+               },
+               {
+                  "days" : 29,
+                  "name" : "Flood Moratoriums"
+               },
+               {
+                  "days" : 22,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 17,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 14,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 1,
+                  "name" : "GLISE Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Markel Forms API"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Bookroll"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Atrium - PL"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 43,
+            "median" : 33,
+            "min" : 1,
+            "n" : 3,
+            "projects" : [
+               {
+                  "days" : 43,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 33,
+                  "name" : "P3: Quote and Printing Improvement"
+               },
+               {
+                  "days" : 1,
+                  "name" : "VAVE New Company Set Up"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : null,
+            "median" : null,
+            "min" : null,
+            "n" : 0,
+            "projects" : []
+         }
+      },
+      "Retrospective and Closeout" : {
+         "Q1" : {
+            "max" : 3,
+            "median" : 3,
+            "min" : 3,
+            "n" : 1,
+            "projects" : [
+               {
+                  "days" : 3,
+                  "name" : "GLISE SW Rating in Lloyds Style"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 7,
+            "median" : 3,
+            "min" : 1,
+            "n" : 5,
+            "projects" : [
+               {
+                  "days" : 7,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 5,
+                  "name" : "Atrium - PL"
+               },
+               {
+                  "days" : 3,
+                  "name" : "GLISE Lifecycle API"
+               },
+               {
+                  "days" : 3,
+                  "name" : "MARS Online Issuance"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Flood Moratoriums"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 22,
+            "median" : 7,
+            "min" : 5,
+            "n" : 5,
+            "projects" : [
+               {
+                  "days" : 22,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 20,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 7,
+                  "name" : "Agency Fees Management"
+               },
+               {
+                  "days" : 7,
+                  "name" : "RenRe Personal Lines"
+               },
+               {
+                  "days" : 5,
+                  "name" : "Chubb Local Rating"
+               }
+            ]
+         }
+      },
+      "Stabilization (Hypercare)" : {
+         "Q1" : {
+            "max" : 47,
+            "median" : 30,
+            "min" : 14,
+            "n" : 2,
+            "projects" : [
+               {
+                  "days" : 47,
+                  "name" : "V2 Motion Api"
+               },
+               {
+                  "days" : 14,
+                  "name" : "GLISE SW Rating in Lloyds Style"
+               }
+            ]
+         },
+         "Q2" : {
+            "max" : 80,
+            "median" : 17,
+            "min" : 14,
+            "n" : 11,
+            "projects" : [
+               {
+                  "days" : 80,
+                  "name" : "GLISE Lifecycle API"
+               },
+               {
+                  "days" : 34,
+                  "name" : "RenRe"
+               },
+               {
+                  "days" : 21,
+                  "name" : "HVH GLISE Contract Phase 1"
+               },
+               {
+                  "days" : 19,
+                  "name" : "API Service Phase 1"
+               },
+               {
+                  "days" : 17,
+                  "name" : "Vave In Torrent"
+               },
+               {
+                  "days" : 17,
+                  "name" : "MARS Online Issuance"
+               },
+               {
+                  "days" : 17,
+                  "name" : "Casper Cyber Program"
+               },
+               {
+                  "days" : 15,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 15,
+                  "name" : "Atrium - PL"
+               },
+               {
+                  "days" : 14,
+                  "name" : "Launch of Course of Construction (COC)"
+               },
+               {
+                  "days" : 14,
+                  "name" : "Flood Moratoriums"
+               }
+            ]
+         },
+         "Q3" : {
+            "max" : 15,
+            "median" : 14,
+            "min" : 14,
+            "n" : 4,
+            "projects" : [
+               {
+                  "days" : 15,
+                  "name" : "Markel Capacity Program"
+               },
+               {
+                  "days" : 15,
+                  "name" : "RenRe Personal Lines"
+               },
+               {
+                  "days" : 14,
+                  "name" : "Scottsdale API"
+               },
+               {
+                  "days" : 14,
+                  "name" : "Chubb Local Rating"
+               }
+            ]
+         }
+      }
+   },
+   "phases" : [
+      "Intake & Planning",
+      "Requirements & Design",
+      "Development",
+      "Alpha Testing (Dev Testing)",
+      "Acceptance Testing (UAT/Pre-Prod)",
+      "Release",
+      "Stabilization (Hypercare)",
+      "Retrospective and Closeout"
+   ]
+}

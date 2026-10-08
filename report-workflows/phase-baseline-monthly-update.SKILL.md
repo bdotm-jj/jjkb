@@ -1,129 +1,58 @@
 ---
 name: phase-baseline-monthly-update
-description: Monthly Phase Duration Baseline update — pulls completed phases from Smartsheet and updates the HTML baseline file
+description: Monthly Phase Duration Baseline update — recomputes phase durations (median active-span) from Smartsheet project plans and rebuilds the KB report
 ---
 
 ## Monthly Phase Duration Baseline Update
 
-**Objective:** Update the Phase Duration Baseline HTML file with newly completed phase data from Smartsheet for the current month/quarter, including a Project Classification breakdown sourced from the Projects Intake Sheet.
+**Objective:** Rebuild the Phase Duration Baseline report from the current Smartsheet project plans, measuring each completed phase by the **active span of its child tasks** and summarizing each phase/quarter by the **median** (robust to long-idle outliers).
 
 ---
 
-### Step 1 — Determine the current quarter and date range
+## Conventions (standardized Oct 2026 — these are fixed)
 
-Based on today's date, determine which quarter is active and the date range to use:
-
-| Quarter | Months | Date range |
-|---------|--------|------------|
-| Q2 | May, Jun, Jul updates | Apr 1 – Jun 30, 2026 |
-| Q3 | Aug, Sep, Oct updates | Jul 1 – Sep 30, 2026 |
-| Q4 | Nov, Dec, Jan updates | Oct 1 – Dec 31, 2026 |
-
-Use today's date as the END DATE (e.g., if today is August 2, use August 2, 2026 — not the end of the quarter).
+- **Duration = active span of child tasks** = (first child Start → last child End) + 1 calendar day. **NOT** the phase-header's own Start→End span, which balloons whenever a phase sits open/idle (e.g. a UAT header that spanned Jun 2025 → Jun 2026 = 386d while actual testing was days). Where a phase header has no dated children, fall back to the header's own dates.
+- **A phase counts** when its Level-2 header `Status = Complete`. Rows with no start/end date are excluded.
+- **Quarter = the quarter the phase COMPLETED in** (by its active end date): Q1 = Jan–Mar, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Oct–Dec (2026).
+- **Headline per phase/quarter = MEDIAN**, shown with **n** and the **min–max range**. Cells with **n < 3** are flagged *provisional*. Phases with an active span **≥ 90 days** are listed as **long-running outliers** (they sit in the range but do not pull the median).
+- **The whole series is recomputed from current data every run** — no frozen prior quarters, so corrected Smartsheet edits flow into all quarters consistently.
+- The 8 standard phases: Intake & Planning · Requirements & Design · Development · Alpha Testing (Dev Testing) · Acceptance Testing (UAT/Pre-Prod) · Release · Stabilization (Hypercare) · Retrospective and Closeout.
 
 ---
 
-### Step 2 — Search Smartsheet for completed phases
+## Monthly Process
 
-Search Smartsheet for all sheets whose name contains "Project Plan" across all workspaces.
+The build lives in the KB repo (`bdotm-jj/jjkb`) at **`phase-pipeline/`**.
 
-For each project plan sheet found, pull all rows where:
-- **Level = 2** (phase header rows only)
-- **Status = Complete**
-- **End Date falls within the quarter's date range** (start of quarter through today)
-- **Task/Phase name exactly matches one of these 8 phases:**
-  1. Intake & Planning
-  2. Requirements & Design
-  3. Development
-  4. Alpha Testing (Dev Testing)
-  5. Acceptance Testing (UAT/Pre-Prod)
-  6. Release
-  7. Stabilization (Hypercare)
-  8. Retrospective and Closeout
+### Step 1 — Pull phase rows from the project plans
+There is **no aggregating Smartsheet report** for phases, so scan the individual project-plan sheets. Find them with `search` (scope `sheetNames`, query "Project Plan"); skip Future-Projects / Archive / Template sheets. For each, via the Smartsheet connector `get_sheet_summary`:
+```
+columns: ["Task","Level","Status","Start Date","End Date","Phase","Project Name"]
+filters: [{columnName:"Phase", operator:"NOT_IN", columnValue:["Project Information","Summary"]}]
+```
+This returns the 8 phase header rows (Level "2.0") plus their child tasks, tagged by the `Phase` column. For each phase whose header is Complete, take the active span over its dated child rows (fallback to the header). Record `{project, phase, quarter, activeDays, headerDays, activeStart, activeEnd, nChildren}` into `phase_data.json`. *(A sub-agent is handy here — ~70 sheets.)*
 
-**Duration calculation:** End Date − Start Date + 1 (both endpoints inclusive, calendar days). Exclude rows missing a start or end date.
+### Step 2 — Compute & generate
+```bash
+perl phase_gen.pl    # phase_data.json + phase_template.html -> ../site/reports/phase-duration-baseline.html
+```
+It computes the median/n/range per phase/quarter, the quarter roll-ups, the long-running outliers, and the data-quality notes, and injects them into the KB-styled report. (`use utf8` + `qq{}` for any `\x{...}` escapes, or dashes/arrows mojibake.)
 
-Columns to pull: Task, Level, Status, Start Date, End Date, Project Name
+### Step 3 — Register / refresh the KB card
+The report is already in `site/app.jsx` `REPORTS` (`group:"phase"`). Update its `stats`/`summary` if the headline quarter numbers changed; bump the `app.jsx?v=` cache in `index.html` if app.jsx changed.
 
----
-
-### Step 3 — Calculate statistics per phase
-
-For each of the 8 phases, calculate:
-- **Average duration** (in calendar days, rounded to 1 decimal)
-- **Min** and **Max** duration
-- **n** = count of completed phases included
-
-If a phase has zero completions this quarter, note it as n=0 (leave as "—" in the HTML).
+### Step 4 — Deploy
+Commit and push to `main`; GitHub Pages redeploys. Provide the link.
 
 ---
 
-### Step 4 — Pull Project Classification from the Intake Sheet
-
-The Projects Intake Sheet is at Smartsheet sheet ID **4414567862980484**.
-
-For each unique project that had at least one qualifying completed phase in this quarter, look up its row in the intake sheet by matching **Project Name** and retrieve the **Project Classification** column value.
-
-Project Classification options are:
-- New UI / Full New Build
-- Support & Specialty (Broad Scope)
-- Carrier API Integration
-- 3rd Party Integration
-- New Feature — Legacy System
-- Legacy System Change (No New Feature)
-- New Feature — MARS (Existing System)
-- New Company / Zero Contract
-- Enhancement (Minor Change)
-- Other
-
-Group the contributing projects by their classification.
+## Data-quality watch-outs (seen Oct 2026)
+- **Header-span inflation:** several headers span far longer than their active child work (e.g. CPAC Alpha header 274d vs 54d active). The active-span method corrects this; `phase_gen.pl` lists the worst cases.
+- **Indexing Automation** uses a non-standard template (Design/Build/Beta/Production, no Level/Start/End) — excluded.
+- **Casper Cyber Program** has malformed WBS levels (phase headers tagged Level 1, blank Phase cells) — recover its phases by matching the task name to the phase name.
+- A few headers have an end date but no dated children → header fallback; a couple of date-less headers are non-computable and skipped.
 
 ---
 
-### Step 5 — Update the HTML file
-
-The baseline HTML file is the **KB-styled** report in the Knowledge Base repo (`bdotm-jj/jjkb`):
-`reports/phase-duration-baseline.html`
-
-**Preserve the KB template.** This file is already styled in the Knowledge Base design system — bone paper `#F2EDE2`, ink `#0F1B2D`, accent `#2E6DA4`, Instrument Serif headings, Inter body, JetBrains Mono labels, flat surfaces, hairline rules, 2px radii, no gradients, no dark theme. **Change only the data — never restyle.** Do not introduce new fonts, colors, gradients, or layout. If you regenerate any markup, match the existing classes and tokens exactly.
-
-Make the following updates (data only):
-
-**Phase table:**
-- Fill in the current quarter's avg column (Q2, Q3, or Q4) with the new averages
-- Update the Range column if the new data extends the existing min or max
-- Update the n count (cumulative across all quarters)
-- Add the quarter's visual bar segment to each phase row
-
-**Quarter summary card:**
-- Remove the pending overlay
-- Update with: total projects, overall avg days, longest phase name
-
-**Contributing Projects section:**
-- Update the "Q# contributing projects" section with the project names grouped by Project Classification
-
-**Do not change any prior quarter's data.**
-
-Save the updated file back to `reports/phase-duration-baseline.html` in the `bdotm-jj/jjkb` repo, then commit and push. It is already registered in the KB Reports manifest (`app.jsx` → `REPORTS`), so the refreshed data shows on the Knowledge Base automatically — no manifest change needed unless the stats on its index card changed.
-
-Provide a link so the user can open the updated file.
-
----
-
-### Methodology reminders
-
-- Duration = End Date − Start Date + 1 (both endpoints inclusive)
-- Only **completed** phases are included
-- A phase end date **must fall within the quarter** to count
-- Phases with no start or end date are excluded
-- Projects in "Future Projects" folders are unlikely to have Q-period completions but should still be scanned
-
----
-
-### Output
-
-After completing the update, provide:
-1. A summary table of phase averages calculated this month
-2. The project list grouped by classification
-3. A link to the updated HTML file
-4. Any phases with n=0 or notable outliers
+## Output
+After the update, provide: the median-by-phase/quarter table, the quarter roll-ups (projects · completions · overall median), the long-running-outlier list, and a link to the rebuilt report.
