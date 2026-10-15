@@ -11,11 +11,24 @@ compares all LOBs against the goal.
 ## Files
 | File | Role |
 |---|---|
-| `convert_sprint.pl` | unzipped xlsx + LOB name → `lobs/data-<lob>.json` (one entry per `Sprint N` sheet) |
+| `convert_sprint.pl` | unzipped xlsx + LOB name → `lobs/data-<lob>.json` (one entry per `Sprint N` sheet). Used for the spreadsheet LOBs (Maintenance, Commercial Lines) |
+| `build_manual.pl` | `<LOB> <lob>_sprints.tsv` → `lobs/data-<lob>.json`. Used for LOBs sourced by hand (email / Confluence / one-off workbook): Personal Lines, Program, Flood |
 | `sprint_gen.pl` | all `lobs/data-*.json` → per-LOB `../site/reports/sprint-<lob>.html` + landing `../site/reports/sprints.html` |
 | `sprint_lob_template.html` | per-LOB report: completion-% line w/ 80% goal line, tickets-closed bars, sortable sprint table. Placeholders `__LOB__`, `__DATA__` |
 | `sprint_index_template.html` | landing: each-LOB-vs-80%-goal bars + one-line-per-LOB trend + LOB cards. Placeholder `__DATA__` |
 | `lobs/` | archived per-LOB `data-*.json`. **Gitignored** (holds ticket keys/summaries); only the HTML reports ship |
+| `*_sprints.tsv` | transcribed source rows for the manual LOBs (`pl_sprints.tsv`, `program_sprints.tsv`, `flood_sprints.tsv`) — auditable; committed |
+
+### LOB sources (as of Oct 2026)
+| LOB | Source | Builder |
+|---|---|---|
+| Maintenance | `Stabilization Sprint Reports.xlsx` | `convert_sprint.pl … Maintenance …` |
+| Commercial Lines | `CL_Sprint_Reports*.xlsx` | `convert_sprint.pl … "Commercial Lines" … compute` |
+| Personal Lines | Abdoul Balla emails "PL - Sprint NN Final Report" (+ Confluence for Sprint 34) | `build_manual.pl "Personal Lines" pl_sprints.tsv …` |
+| Program | `Program_Sprint_NN_Report.xlsx` (Summary + All Tickets; one sprint) — use **% Complete (excl. blocked)** = in-our-control | `build_manual.pl Program program_sprints.tsv …` |
+| Flood | Confluence "Flood Pod — Sprint Index" child pages (PROVISIONAL until the official report arrives) | `build_manual.pl Flood flood_sprints.tsv …` |
+
+Completion % is **taken as published by each LOB** (teams compute it on an in-our-control basis — completed ÷ (commitment − pending-3rd-party − waiting-on-customer) — but the exact "complete" set differs slightly by team). Per-sprint `note`s carry caveats (mid-sprint displacement, provisional figures). Append a row to the LOB's `*_sprints.tsv` (or drop a new workbook) and re-run its builder + `sprint_gen.pl`.
 
 ## What's measured
 - **Completion %** = the workbook's own stored `Sprint Completion %` per sheet

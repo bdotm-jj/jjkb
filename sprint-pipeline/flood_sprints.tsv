@@ -1,0 +1,14 @@
+#  Flood Pod sprint reports — PROVISIONAL, sourced from Confluence "Flood Pod — Sprint Index" child pages
+#  (DEV space, https://jjconnect.atlassian.net/wiki/spaces/DEV/pages/3708420101) until the official report is sent.
+#  Completion % taken verbatim from each page's "Sprint Commitment & Velocity" table (completed / in-our-control
+#  committed). "completed" = Tickets completed. Sprint 28 is Active (no completion yet) -> omitted until it closes.
+#  n	startDate	endDate	committed	completed	pct	note
+19	2026-06-01	2026-06-12	64	33	0.47	Completion % per Amy's updated calc.
+20	2026-06-15	2026-06-26	48	42	0.48	Published 48% though 42 of 48 committed were completed; figure taken as shown on Confluence (early-sprint calc).
+21	2026-06-29	2026-07-10	47	27	0.6279
+22	2026-07-13	2026-07-24	34	39	0.80	Completed exceeds committed — open-capacity tickets pulled in mid-sprint.
+23	2026-07-27	2026-08-07	27	18	0.7826
+24	2026-08-10	2026-08-21	26	14	0.6364
+25	2026-08-24	2026-09-04	34	23	0.7419
+26	2026-09-07	2026-09-18	22	11	0.50
+27	2026-09-21	2026-10-02	28	19	0.80

@@ -1,0 +1,7 @@
+#  Program sprint reports — sourced from "Program_Sprint_NN_Report.xlsx" (Summary + All Tickets sheets;
+#  sprint # is in the filename/title, not a sheet). This LOB has only one sprint report.
+#  Completion % = the Summary's "% Complete (excl. blocked)" = completed / (total - pending-3rd - waiting),
+#  the in-our-control basis (Program's "blocked" is explicitly Pending 3rd Party / Waiting for customer).
+#  completed/closed = Done + Resolved + Awaiting-Publish-to-Live count.
+#  n	startDate	endDate	committed	completed	pct	note
+44			22	18	0.8571	Sprint 44. In-our-control completion 85.7% (18 of 21 after 1 Pending-3rd-Party); raw % Complete was 81.8% (18/22).
