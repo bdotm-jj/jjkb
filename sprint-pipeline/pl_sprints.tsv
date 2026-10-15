@@ -1,0 +1,9 @@
+#  Personal Lines (PL Pod) sprint reports — sourced from Abdoul Balla's "PL - Sprint NN Final Report" emails
+#  (PL reports inline in the email body, not a spreadsheet). Completion % is taken verbatim as published
+#  (PL basis = tickets completed / tickets committed at sprint start). "completed" = PL's Tickets-completed
+#  count (Done + Awaiting Publish + Acceptance). Append a row per new Final Report email.
+#  n	startDate	endDate	committed	completed	pct	note
+33	2026-07-27	2026-08-10	119	64	0.538
+35	2026-08-24	2026-09-04	152	43	0.283
+36	2026-09-08	2026-09-18	192	67	0.350	43 tickets displaced mid-sprint via an approved MSCR; team's displaced-adjusted completion was 45% (67 of 149 in-play).
+37	2026-09-21	2026-10-02	92	76	0.826

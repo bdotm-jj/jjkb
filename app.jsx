@@ -780,8 +780,8 @@ const REPORTS = [
   // tickets closed. The landing (sprints.html) compares LOBs; see sprint-pipeline/.
   { id: "sprint-completion", group: "sprint", kind: "baseline", title: "Sprint Completion by LOB", date: "2026-10-15",
     period: "Delivery sprints · completion vs 80% goal", file: "reports/sprints.html",
-    summary: "Each line of business's sprint completion % tracked against the 80% goal, with tickets closed per sprint. Completion % uses the same in-our-control basis across LOBs (completed ÷ (commitment − pending-3rd-party − waiting-on-customer)). Commercial Lines (17 sprints, latest 78%) and Maintenance (19 sprints, latest 54%) are live; other LOBs join as their workbooks are added.",
-    stats: [{ value: "80%", label: "Goal" }, { value: "2", label: "LOBs tracked" }, { value: "78%", label: "Latest · CL" }, { value: "54%", label: "Latest · Maint." }] },
+    summary: "Each line of business's sprint completion % tracked against the 80% goal, with tickets closed per sprint. Completion % is taken as published by each LOB. Live: Personal Lines (latest 83%), Commercial Lines (latest 78%), Maintenance (latest 54%). More LOBs join as their reports arrive.",
+    stats: [{ value: "80%", label: "Goal" }, { value: "3", label: "LOBs tracked" }, { value: "83%", label: "Latest · PL" }, { value: "78%", label: "Latest · CL" }] },
 ];
 // NOTE: MARS Weekly reports were removed from the public site (VP directive) —
 // employee-level data. Re-added behind Cloudflare Access on the private host.

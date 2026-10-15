@@ -72,14 +72,14 @@
   <div class="ov-section-title">Progression toward the 80% goal</div>
   <div class="chart-box">
     <div class="ctitle">Sprint completion % by sprint</div>
-    <div class="cnote">Each point is that sprint's completion % (completed &divide; in-our-control commitment). The line at <b>80%</b> is the goal.</div>
+    <div class="cnote">Each point is that sprint's completion % as published by the LOB (completed work &divide; the sprint's commitment). The line at <b>80%</b> is the goal.</div>
     <div class="chart-holder"><canvas id="pctChart"></canvas></div>
   </div>
 
   <div class="ov-section-title">Throughput</div>
   <div class="chart-box">
     <div class="ctitle">Tickets closed by sprint</div>
-    <div class="cnote">Tickets reaching <b>Done</b> each sprint (bars), against tickets committed (line).</div>
+    <div class="cnote">Tickets completed/closed each sprint (bars), against tickets committed (line).</div>
     <div class="chart-holder"><canvas id="closedChart"></canvas></div>
   </div>
 
@@ -97,13 +97,16 @@
       <tbody id="tbody"></tbody>
     </table>
   </div>
-  <p class="hint">Click any column header to sort. Completion % is read straight from each sprint tab; Sprint 7 has no stored % in the workbook (shown as —).</p>
+  <p class="hint">Click any column header to sort. Completion % is taken as published by the LOB; any sprint with no reported % is shown as —.</p>
+
+  <div class="ov-section-title" id="notes-title" style="display:none">Sprint notes</div>
+  <div id="notes"></div>
 
   <div class="method">
-    <b>How completion is measured.</b> Each sprint's <b>Sprint Completion %</b> is taken as published in the workbook:
-    completed work &divide; (sprint commitment &minus; tickets pending a 3rd party &minus; tickets waiting on the customer),
-    so work blocked outside the team doesn't count against the LOB. The goal is <b>80%</b>. "Tickets closed" counts tickets
-    that reached <b>Done</b>; "Committed" is the number of tickets in the sprint.
+    <b>How completion is measured.</b> Each sprint's completion % is taken as <b>published by the LOB</b> and plotted against the
+    <b>80%</b> goal. Teams report it on a consistent in-our-control basis (completed work &divide; the sprint's ticket commitment,
+    with work blocked outside the team &mdash; pending a 3rd party, waiting on the customer, or displaced mid-sprint &mdash; handled
+    per the LOB's own method). "Closed" is the LOB's completed-ticket count for the sprint; "Committed" is the tickets committed at sprint start.
   </div>
 
   <div class="footer">
@@ -141,6 +144,14 @@ document.getElementById('kpis').innerHTML = [
   card((latest?latest.closed:0), 'Tickets closed', latest?latest.label:'')
 ].join('');
 
+// sprint notes (e.g. mid-sprint displacement) — shown above the methodology box
+const noted = S.filter(s=>s.note);
+if(noted.length){
+  document.getElementById('notes-title').style.display='';
+  document.getElementById('notes').innerHTML = noted.map(s=>
+    '<div class="method" style="margin-top:0;margin-bottom:10px"><b>'+s.label+':</b> '+s.note+'</div>').join('');
+}
+
 const labels = S.map(s=>s.label.replace('Sprint ','S'));
 const goalLine = S.map(()=>GOAL*100);
 
@@ -161,7 +172,7 @@ new Chart(document.getElementById('pctChart'),{
 // tickets closed chart
 new Chart(document.getElementById('closedChart'),{
   data:{labels,datasets:[
-    {type:'bar',label:'Closed (Done)',data:S.map(s=>s.closed),backgroundColor:C.accent2,borderRadius:2,order:2},
+    {type:'bar',label:'Closed',data:S.map(s=>s.closed),backgroundColor:C.accent2,borderRadius:2,order:2},
     {type:'line',label:'Committed',data:S.map(s=>s.committed),borderColor:C.ink,borderWidth:2,pointRadius:3,fill:false,tension:.2,order:1},
   ]},
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},

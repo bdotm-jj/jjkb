@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Lines — Sprint Completion</title>
+<link href="https://fonts.googleapis.com/css2?family=Cantata+One&family=Nunito:wght@400;500;600;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D; --goal:#8A2D5B;
+    --serif:"Cantata One","Times New Roman",Times,serif;
+    --grotesk:"Nunito","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --mono:"Cousine","Courier New",ui-monospace,Menlo,monospace;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px;}
+  .back{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3);text-decoration:none;}
+  .back:hover{color:var(--accent);}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:12px;margin-top:14px;}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5vw,50px);line-height:1.03;margin:8px 0 6px;letter-spacing:-0.01em;}
+  .byline{font-size:14px;color:var(--ink-3);margin-bottom:4px;}
+  .byline b{color:var(--ink-2);font-weight:600;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:22px 0 6px;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px;text-align:center;}
+  .stat-card .num{font-family:var(--serif);font-size:34px;font-weight:400;color:var(--accent);line-height:1;}
+  .stat-card .num.warn{color:var(--hot);} .stat-card .num.good{color:var(--ok);}
+  .stat-card .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;}
+  .stat-card .sub{font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:5px;}
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:34px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .chart-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:18px 18px 14px;}
+  .chart-box .ctitle{font-family:var(--serif);font-size:18px;margin:0 0 2px;}
+  .chart-box .cnote{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:0 0 14px;letter-spacing:.03em;}
+  .chart-holder{position:relative;height:340px;}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{background:var(--bg-sunken);color:var(--ink-3);font-family:var(--mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none;}
+  thead th:hover{color:var(--accent);}
+  thead th .arr{opacity:.45;margin-left:4px;font-size:9px;}
+  thead th.sorted{color:var(--ink);} thead th.sorted .arr{opacity:1;color:var(--accent);}
+  thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);vertical-align:middle;}
+  tbody tr:nth-child(even){background:var(--bg-raised);}
+  td.sp{font-family:var(--serif);font-size:16px;color:var(--ink);}
+  .pctbar{display:inline-block;height:7px;border-radius:20px;background:var(--accent);vertical-align:middle;margin-left:8px;}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+  .chip.below{background:rgba(194,75,30,.14);color:var(--hot);}
+  .chip.met{background:rgba(61,107,61,.15);color:var(--ok);}
+  .chip.na{background:rgba(151,160,178,.18);color:var(--ink-4);}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:10px 0 0;}
+  .method{background:var(--bg-sunken);border-left:3px solid var(--accent-2);border-radius:var(--radius);padding:14px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:18px 0 0;}
+  .method b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="sprints.html">&larr; All LOB sprint reports</a>
+  <div class="subtitle">Delivery sprints &middot; Completion vs goal</div>
+  <h1 id="h1"></h1>
+  <div class="byline" id="byline"></div>
+
+  <div class="ov-section-title">Where this LOB stands</div>
+  <div class="stat-grid" id="kpis"></div>
+
+  <div class="ov-section-title">Progression toward the 80% goal</div>
+  <div class="chart-box">
+    <div class="ctitle">Sprint completion % by sprint</div>
+    <div class="cnote">Each point is that sprint's completion % as published by the LOB (completed work &divide; the sprint's commitment). The line at <b>80%</b> is the goal.</div>
+    <div class="chart-holder"><canvas id="pctChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title">Throughput</div>
+  <div class="chart-box">
+    <div class="ctitle">Tickets closed by sprint</div>
+    <div class="cnote">Tickets completed/closed each sprint (bars), against tickets committed (line).</div>
+    <div class="chart-holder"><canvas id="closedChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title">All sprints</div>
+  <div class="tbl-scroll">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="n" data-t="n" class="sorted">Sprint <span class="arr">▼</span></th>
+        <th data-k="pct" data-t="n" class="num">Completion % <span class="arr"></span></th>
+        <th data-k="gap" data-t="n" class="num">Gap to 80% <span class="arr"></span></th>
+        <th data-k="committed" data-t="n" class="num">Committed <span class="arr"></span></th>
+        <th data-k="closed" data-t="n" class="num">Closed <span class="arr"></span></th>
+        <th data-k="goalmet" data-t="n">Goal <span class="arr"></span></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="hint">Click any column header to sort. Completion % is taken as published by the LOB; any sprint with no reported % is shown as —.</p>
+
+  <div class="ov-section-title" id="notes-title" style="display:none">Sprint notes</div>
+  <div id="notes"></div>
+
+  <div class="method">
+    <b>How completion is measured.</b> Each sprint's completion % is taken as <b>published by the LOB</b> and plotted against the
+    <b>80%</b> goal. Teams report it on a consistent in-our-control basis (completed work &divide; the sprint's ticket commitment,
+    with work blocked outside the team &mdash; pending a 3rd party, waiting on the customer, or displaced mid-sprint &mdash; handled
+    per the LOB's own method). "Closed" is the LOB's completed-ticket count for the sprint; "Committed" is the tickets committed at sprint start.
+  </div>
+
+  <div class="footer">
+    <span id="foot"></span>
+    <span id="genstamp"></span>
+  </div>
+</div>
+
+<script>
+const DATA = {"generated":"2026-10-15","goal":0.8,"lob":"Personal Lines","sprints":[{"closed":64,"committed":119,"endDate":"2026-08-10","label":"Sprint 33","n":33,"pct":0.538,"pctSource":"stored","startDate":"2026-07-27"},{"closed":43,"committed":152,"endDate":"2026-09-04","label":"Sprint 35","n":35,"pct":0.283,"pctSource":"stored","startDate":"2026-08-24"},{"closed":67,"committed":192,"endDate":"2026-09-18","label":"Sprint 36","n":36,"note":"43 tickets displaced mid-sprint via an approved MSCR; team's displaced-adjusted completion was 45% (67 of 149 in-play).","pct":0.35,"pctSource":"stored","startDate":"2026-09-08"},{"closed":76,"committed":92,"endDate":"2026-10-02","label":"Sprint 37","n":37,"pct":0.826,"pctSource":"stored","startDate":"2026-09-21"}]};
+const GOAL = DATA.goal || 0.80;
+const S = DATA.sprints.slice().sort((a,b)=>a.n-b.n);
+const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
+const C = {ink:'#0F1B2D',ink3:'#5C6A80',accent:'#2E6DA4',accent2:'#4A8BC2',goal:'#8A2D5B',soft:'rgba(15,27,45,0.10)',ok:'#3D6B3D',hot:'#C24B1E'};
+
+document.getElementById('h1').textContent = DATA.lob + ' LOB';
+const withPct = S.filter(s=>s.pct!=null);
+const latest = S[S.length-1];
+const avg = withPct.length? withPct.reduce((a,s)=>a+s.pct,0)/withPct.length : null;
+const best = withPct.length? withPct.reduce((a,s)=>s.pct>a.pct?s:a) : null;
+const belowCnt = withPct.filter(s=>s.pct<GOAL).length;
+document.getElementById('byline').innerHTML =
+  '<b>'+S.length+'</b> sprints &middot; goal <b>'+(GOAL*100).toFixed(0)+'%</b> completion'+
+  (latest? ' &middot; latest <b>'+latest.label+'</b>':'');
+document.getElementById('genstamp').textContent = 'Generated '+(DATA.generated||'');
+document.getElementById('foot').textContent = DATA.lob+' LOB · '+S.length+' sprints on file';
+
+// KPIs
+function card(num,lbl,sub,cls){ return '<div class="stat-card"><div class="num '+(cls||'')+'">'+num+'</div><div class="lbl">'+lbl+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'; }
+document.getElementById('kpis').innerHTML = [
+  card(pf(latest&&latest.pct), 'Latest completion', latest?latest.label:'', (latest&&latest.pct!=null)?(latest.pct>=GOAL?'good':'warn'):''),
+  card(pf(avg), 'Average completion', 'across '+withPct.length+' sprints'),
+  card(pf(best&&best.pct), 'Best sprint', best?best.label:'', 'good'),
+  card(belowCnt, 'Sprints below goal', 'of '+withPct.length+' measured', belowCnt?'warn':'good'),
+  card((latest?latest.closed:0), 'Tickets closed', latest?latest.label:'')
+].join('');
+
+// sprint notes (e.g. mid-sprint displacement) — shown above the methodology box
+const noted = S.filter(s=>s.note);
+if(noted.length){
+  document.getElementById('notes-title').style.display='';
+  document.getElementById('notes').innerHTML = noted.map(s=>
+    '<div class="method" style="margin-top:0;margin-bottom:10px"><b>'+s.label+':</b> '+s.note+'</div>').join('');
+}
+
+const labels = S.map(s=>s.label.replace('Sprint ','S'));
+const goalLine = S.map(()=>GOAL*100);
+
+// completion % chart
+new Chart(document.getElementById('pctChart'),{
+  type:'line',
+  data:{labels,datasets:[
+    {label:'Goal (80%)',data:goalLine,borderColor:C.goal,borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false,tension:0},
+    {label:'Completion %',data:S.map(s=>s.pct==null?null:+(s.pct*100).toFixed(1)),borderColor:C.accent,backgroundColor:'rgba(46,109,164,0.10)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:S.map(s=>s.pct==null?C.ink3:(s.pct>=GOAL?C.ok:C.accent)),fill:true,tension:.25,spanGaps:true},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:C.soft}},
+            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%')}}}}
+});
+
+// tickets closed chart
+new Chart(document.getElementById('closedChart'),{
+  data:{labels,datasets:[
+    {type:'bar',label:'Closed',data:S.map(s=>s.closed),backgroundColor:C.accent2,borderRadius:2,order:2},
+    {type:'line',label:'Committed',data:S.map(s=>s.committed),borderColor:C.ink,borderWidth:2,pointRadius:3,fill:false,tension:.2,order:1},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{y:{beginAtZero:true,ticks:{font:{family:'Cousine'}},grid:{color:C.soft}},
+            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}}}}
+});
+
+// table
+const tbody=document.getElementById('tbody');
+const maxPct = Math.max.apply(null, withPct.map(s=>s.pct)) || 1;
+function goalCell(s){ if(s.pct==null) return '<span class="chip na">n/a</span>'; return s.pct>=GOAL?'<span class="chip met">met</span>':'<span class="chip below">'+((GOAL-s.pct)*100).toFixed(0)+' pts short</span>'; }
+function render(rows){
+  tbody.innerHTML = rows.map(s=>{
+    const barW = s.pct==null?0:Math.round((s.pct/maxPct)*46);
+    const gap = s.pct==null?null:(GOAL-s.pct);
+    return '<tr>'+
+      '<td class="sp">'+s.label+'</td>'+
+      '<td class="num">'+pf(s.pct)+(s.pct==null?'':'<span class="pctbar" style="width:'+barW+'px"></span>')+'</td>'+
+      '<td class="num">'+(gap==null?'—':(gap>0?'+':'')+(gap*100).toFixed(0)+' pts')+'</td>'+
+      '<td class="num">'+s.committed+'</td>'+
+      '<td class="num">'+s.closed+'</td>'+
+      '<td>'+goalCell(s)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+let sortK='n',sortDir=-1;
+function val(s,k){ if(k==='gap'){ return s.pct==null?-999:(GOAL-s.pct); } if(k==='goalmet'){ return s.pct==null?-1:(s.pct>=GOAL?1:0); } return s.pct==null&&k==='pct'?-1:s[k]; }
+function sortNow(){
+  const rows=S.slice().sort((a,b)=>((+val(a,sortK))-(+val(b,sortK)))*sortDir);
+  render(rows);
+  document.querySelectorAll('#tbl thead th').forEach(th=>{const k=th.dataset.k,a=th.querySelector('.arr');
+    if(k===sortK){th.classList.add('sorted');a.textContent=sortDir<0?'▼':'▲';}else{th.classList.remove('sorted');a.textContent='';}});
+}
+document.querySelectorAll('#tbl thead th').forEach(th=>{th.addEventListener('click',()=>{const k=th.dataset.k;if(k===sortK){sortDir*=-1;}else{sortK=k;sortDir=-1;}sortNow();});});
+sortNow();
+</script>
+</body>
+</html>
