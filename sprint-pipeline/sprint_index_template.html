@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Completion — by LOB</title>
+<link href="https://fonts.googleapis.com/css2?family=Cantata+One&family=Nunito:wght@400;500;600;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D; --goal:#8A2D5B;
+    --serif:"Cantata One","Times New Roman",Times,serif;
+    --grotesk:"Nunito","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --mono:"Cousine","Courier New",ui-monospace,Menlo,monospace;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px;}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:12px;}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,5vw,52px);line-height:1.03;margin:10px 0 6px;letter-spacing:-0.01em;}
+  .byline{font-size:14px;color:var(--ink-3);margin-bottom:6px;}
+  .byline b{color:var(--ink-2);font-weight:600;}
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:34px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .chart-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:18px 18px 14px;}
+  .chart-box .ctitle{font-family:var(--serif);font-size:18px;margin:0 0 2px;}
+  .chart-box .cnote{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:0 0 14px;letter-spacing:.03em;}
+  .chart-holder{position:relative;height:360px;}
+  .lob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
+  .lob-card{display:block;text-decoration:none;background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--accent-2);border-radius:var(--radius);padding:16px 18px;transition:border-color .12s;}
+  .lob-card:hover{border-color:var(--accent);}
+  .lob-card .nm{font-family:var(--serif);font-size:22px;color:var(--ink);line-height:1;}
+  .lob-card .big{font-family:var(--serif);font-size:30px;margin-top:10px;line-height:1;}
+  .lob-card .big.good{color:var(--ok);} .lob-card .big.warn{color:var(--hot);}
+  .lob-card .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-top:4px;}
+  .lob-card .sub{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.45;}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .empty{font-size:13px;color:var(--ink-3);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="subtitle">Delivery sprints &middot; Completion vs goal</div>
+  <h1>Sprint Completion by LOB</h1>
+  <div class="byline" id="byline"></div>
+
+  <div class="ov-section-title">Latest sprint completion vs 80% goal</div>
+  <div class="chart-box">
+    <div class="ctitle">Each LOB against the goal</div>
+    <div class="cnote">Most recent sprint's completion % per line of business. The marker at <b>80%</b> is the goal.</div>
+    <div class="chart-holder"><canvas id="goalChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title" id="trend-title">Completion % over sprints</div>
+  <div class="chart-box">
+    <div class="ctitle">Progression by LOB</div>
+    <div class="cnote">Completion % per sprint, one line per LOB, with the <b>80%</b> goal drawn across.</div>
+    <div class="chart-holder"><canvas id="trendChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title">Lines of business</div>
+  <div class="lob-grid" id="lobs"></div>
+
+  <div class="footer">
+    <span>Stabilization · Sprint completion index</span>
+    <span id="genstamp"></span>
+  </div>
+</div>
+
+<script>
+const LOBS = __DATA__;   // [{lob,file,goal,sprints:[{n,label,pct,committed,closed}]}]
+const GOAL = (LOBS[0] && LOBS[0].goal) || 0.80;
+const PALETTE = ['#2E6DA4','#C24B1E','#3D6B3D','#B5860D','#6B4E9E','#2A7E7E','#8A2D5B','#4A5568'];
+const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
+const latestPct = L => { const w=L.sprints.filter(s=>s.pct!=null); return w.length?w[w.length-1].pct:null; };
+const latestLabel = L => { const w=L.sprints.filter(s=>s.pct!=null); return w.length?w[w.length-1].label:'—'; };
+
+document.getElementById('byline').innerHTML =
+  '<b>'+LOBS.length+'</b> line'+(LOBS.length===1?'':'s')+' of business &middot; goal <b>'+(GOAL*100).toFixed(0)+'%</b> sprint completion';
+document.getElementById('genstamp').textContent = LOBS.length+' LOB'+(LOBS.length===1?'':'s')+' on file';
+
+// ---- goal comparison (horizontal bars, latest sprint per LOB) ----
+new Chart(document.getElementById('goalChart'),{
+  type:'bar',
+  data:{labels:LOBS.map(L=>L.lob),datasets:[{
+    label:'Latest completion %',
+    data:LOBS.map(L=>{const p=latestPct(L);return p==null?null:+(p*100).toFixed(1);}),
+    backgroundColor:LOBS.map(L=>{const p=latestPct(L);return p!=null&&p>=GOAL?'#3D6B3D':'#2E6DA4';}),
+    borderRadius:2,
+  }]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
+            y:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>(ctx.parsed.x==null?'n/a':ctx.parsed.x+'%')+'  ('+latestLabel(LOBS[ctx.dataIndex])+')'}},
+      annotation:false},
+  },
+  plugins:[{id:'goalMark',afterDraw(c){const x=c.scales.x.getPixelForValue(GOAL*100),a=c.chartArea,ctx=c.ctx;
+    ctx.save();ctx.strokeStyle='#8A2D5B';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(x,a.top+2);ctx.lineTo(x,a.bottom);ctx.stroke();
+    ctx.setLineDash([]);ctx.fillStyle='#8A2D5B';ctx.font='bold 11px Cousine';ctx.textAlign='center';
+    ctx.fillText('80% goal',x,a.top+12);ctx.restore();}}]
+});
+
+// ---- trend (one line per LOB) ----
+const maxN = Math.max.apply(null, LOBS.flatMap(L=>L.sprints.map(s=>s.n)).concat([1]));
+const labels=[];for(let i=1;i<=maxN;i++)labels.push('S'+i);
+const ds = LOBS.map((L,i)=>{
+  const by={};L.sprints.forEach(s=>by[s.n]=s.pct);
+  return {label:L.lob,data:labels.map((_,idx)=>{const v=by[idx+1];return v==null?null:+(v*100).toFixed(1);}),
+    borderColor:PALETTE[i%PALETTE.length],backgroundColor:PALETTE[i%PALETTE.length],borderWidth:2.5,pointRadius:3,fill:false,tension:.25,spanGaps:true};
+});
+ds.unshift({label:'Goal (80%)',data:labels.map(()=>GOAL*100),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false});
+new Chart(document.getElementById('trendChart'),{
+  type:'line',data:{labels,datasets:ds},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
+            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%')}}}}
+});
+
+// ---- LOB cards ----
+document.getElementById('lobs').innerHTML = LOBS.map(L=>{
+  const p=latestPct(L), cls=p==null?'':(p>=GOAL?'good':'warn');
+  const w=L.sprints.filter(s=>s.pct!=null);
+  const avg=w.length?w.reduce((a,s)=>a+s.pct,0)/w.length:null;
+  return '<a class="lob-card" href="'+L.file+'">'+
+    '<div class="nm">'+L.lob+'</div>'+
+    '<div class="big '+cls+'">'+pf(p)+'</div>'+
+    '<div class="k">Latest &middot; '+latestLabel(L)+'</div>'+
+    '<div class="sub">'+L.sprints.length+' sprints &middot; avg '+pf(avg)+' &middot; '+w.filter(s=>s.pct<GOAL).length+' below goal</div>'+
+    '</a>';
+}).join('');
+</script>
+</body>
+</html>

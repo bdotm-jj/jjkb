@@ -147,6 +147,9 @@ function Sidebar({ screen, setScreen, bookmarks }) {
         <div className={cx("nav-item", screen.startsWith("reports:phase") && "active")} onClick={() => setScreen("reports:phase")}>
           <span className="dot"/> Phase Report
         </div>
+        <div className={cx("nav-item", screen.startsWith("reports:sprint") && "active")} onClick={() => setScreen("reports:sprint")}>
+          <span className="dot"/> Sprint Reports
+        </div>
       </div>
 
     </aside>
@@ -272,7 +275,7 @@ function HomeScreen({ bookmarks, setScreen, weirdness }) {
 
       <div className="section-head">
         <h2 className="section-title">Monthly reports</h2>
-        <div className="meta"><a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:uat"); }}>UAT reports →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:phase"); }}>Phase report →</a></div>
+        <div className="meta"><a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:uat"); }}>UAT reports →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:phase"); }}>Phase report →</a> · <a href="#" onClick={(e) => { e.preventDefault(); setScreen("reports:sprint"); }}>Sprint reports →</a></div>
       </div>
       <div className="grid-3" style={{ marginBottom: 56 }}>
         {reportsSorted().slice(0, 3).map(r => (
@@ -772,12 +775,20 @@ const REPORTS = [
     period: "Q1–Q3 2026 · median active span · refreshed Oct 8, 2026", file: "reports/phase-duration-baseline.html",
     summary: "Median phase duration across the 8 delivery phases, recomputed from Smartsheet project plans. Each phase is measured by the active span of its child tasks (not the idle phase-header span) and summarized by the median, with n, range, and long-running outliers called out.",
     stats: [{ value: "Q1–Q3", label: "2026" }, { value: "15d", label: "Q3 median" }, { value: "17", label: "Q3 projects" }] },
+  // Sprint Completion: one "<LOB> Sprint Reports" workbook per line of business; each sprint's
+  // completion % (the workbook's stored hours-based figure) charted against the 80% goal, plus
+  // tickets closed. The landing (sprints.html) compares LOBs; see sprint-pipeline/.
+  { id: "sprint-completion", group: "sprint", kind: "baseline", title: "Sprint Completion by LOB", date: "2026-10-15",
+    period: "Delivery sprints · completion vs 80% goal", file: "reports/sprints.html",
+    summary: "Each line of business's sprint completion % tracked against the 80% goal, with tickets closed per sprint. Completion % is taken as published in each LOB's sprint workbook (completed ÷ in-our-control commitment). Maintenance is live (19 sprints); other LOBs join as their workbooks are added.",
+    stats: [{ value: "80%", label: "Goal" }, { value: "1", label: "LOB tracked" }, { value: "19", label: "Sprints (Maint.)" }, { value: "54%", label: "Latest (Maint.)" }] },
 ];
 // NOTE: MARS Weekly reports were removed from the public site (VP directive) —
 // employee-level data. Re-added behind Cloudflare Access on the private host.
 const REPORT_GROUPS = {
   uat:   { label: "UAT Reports",   eyebrow: ["Quality Operations", "UAT · Cathy Parmley"], titleA: "Testing", titleEm: "reports" },
   phase: { label: "Phase Reports", eyebrow: ["PMO", "Phase Duration"],                       titleA: "Phase", titleEm: "duration" },
+  sprint:{ label: "Sprint Reports", eyebrow: ["PMO", "Sprint Completion"],                    titleA: "Sprint", titleEm: "completion" },
 };
 const REPORTS_BY_ID = Object.fromEntries(REPORTS.map(r => [r.id, r]));
 const reportsInGroup = (g) => REPORTS.filter(r => r.group === g).sort((a, b) => b.date.localeCompare(a.date));
