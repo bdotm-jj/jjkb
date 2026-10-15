@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commercial Lines — Sprint Completion</title>
+<link href="https://fonts.googleapis.com/css2?family=Cantata+One&family=Nunito:wght@400;500;600;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D; --goal:#8A2D5B;
+    --serif:"Cantata One","Times New Roman",Times,serif;
+    --grotesk:"Nunito","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --mono:"Cousine","Courier New",ui-monospace,Menlo,monospace;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 20px 60px;}
+  .back{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3);text-decoration:none;}
+  .back:hover{color:var(--accent);}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:12px;margin-top:14px;}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5vw,50px);line-height:1.03;margin:8px 0 6px;letter-spacing:-0.01em;}
+  .byline{font-size:14px;color:var(--ink-3);margin-bottom:4px;}
+  .byline b{color:var(--ink-2);font-weight:600;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:22px 0 6px;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px;text-align:center;}
+  .stat-card .num{font-family:var(--serif);font-size:34px;font-weight:400;color:var(--accent);line-height:1;}
+  .stat-card .num.warn{color:var(--hot);} .stat-card .num.good{color:var(--ok);}
+  .stat-card .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;}
+  .stat-card .sub{font-family:var(--mono);font-size:10.5px;color:var(--ink-4);margin-top:5px;}
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:34px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .chart-box{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:18px 18px 14px;}
+  .chart-box .ctitle{font-family:var(--serif);font-size:18px;margin:0 0 2px;}
+  .chart-box .cnote{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:0 0 14px;letter-spacing:.03em;}
+  .chart-holder{position:relative;height:340px;}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{background:var(--bg-sunken);color:var(--ink-3);font-family:var(--mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none;}
+  thead th:hover{color:var(--accent);}
+  thead th .arr{opacity:.45;margin-left:4px;font-size:9px;}
+  thead th.sorted{color:var(--ink);} thead th.sorted .arr{opacity:1;color:var(--accent);}
+  thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);vertical-align:middle;}
+  tbody tr:nth-child(even){background:var(--bg-raised);}
+  td.sp{font-family:var(--serif);font-size:16px;color:var(--ink);}
+  .pctbar{display:inline-block;height:7px;border-radius:20px;background:var(--accent);vertical-align:middle;margin-left:8px;}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+  .chip.below{background:rgba(194,75,30,.14);color:var(--hot);}
+  .chip.met{background:rgba(61,107,61,.15);color:var(--ok);}
+  .chip.na{background:rgba(151,160,178,.18);color:var(--ink-4);}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:10px 0 0;}
+  .method{background:var(--bg-sunken);border-left:3px solid var(--accent-2);border-radius:var(--radius);padding:14px 16px;font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:18px 0 0;}
+  .method b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="sprints.html">&larr; All LOB sprint reports</a>
+  <div class="subtitle">Delivery sprints &middot; Completion vs goal</div>
+  <h1 id="h1"></h1>
+  <div class="byline" id="byline"></div>
+
+  <div class="ov-section-title">Where this LOB stands</div>
+  <div class="stat-grid" id="kpis"></div>
+
+  <div class="ov-section-title">Progression toward the 80% goal</div>
+  <div class="chart-box">
+    <div class="ctitle">Sprint completion % by sprint</div>
+    <div class="cnote">Each point is that sprint's completion % (completed &divide; in-our-control commitment). The line at <b>80%</b> is the goal.</div>
+    <div class="chart-holder"><canvas id="pctChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title">Throughput</div>
+  <div class="chart-box">
+    <div class="ctitle">Tickets closed by sprint</div>
+    <div class="cnote">Tickets reaching <b>Done</b> each sprint (bars), against tickets committed (line).</div>
+    <div class="chart-holder"><canvas id="closedChart"></canvas></div>
+  </div>
+
+  <div class="ov-section-title">All sprints</div>
+  <div class="tbl-scroll">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="n" data-t="n" class="sorted">Sprint <span class="arr">▼</span></th>
+        <th data-k="pct" data-t="n" class="num">Completion % <span class="arr"></span></th>
+        <th data-k="gap" data-t="n" class="num">Gap to 80% <span class="arr"></span></th>
+        <th data-k="committed" data-t="n" class="num">Committed <span class="arr"></span></th>
+        <th data-k="closed" data-t="n" class="num">Closed <span class="arr"></span></th>
+        <th data-k="goalmet" data-t="n">Goal <span class="arr"></span></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="hint">Click any column header to sort. Completion % is read straight from each sprint tab; Sprint 7 has no stored % in the workbook (shown as —).</p>
+
+  <div class="method">
+    <b>How completion is measured.</b> Each sprint's <b>Sprint Completion %</b> is taken as published in the workbook:
+    completed work &divide; (sprint commitment &minus; tickets pending a 3rd party &minus; tickets waiting on the customer),
+    so work blocked outside the team doesn't count against the LOB. The goal is <b>80%</b>. "Tickets closed" counts tickets
+    that reached <b>Done</b>; "Committed" is the number of tickets in the sprint.
+  </div>
+
+  <div class="footer">
+    <span id="foot"></span>
+    <span id="genstamp"></span>
+  </div>
+</div>
+
+<script>
+const DATA = {"generated":"2026-10-15","goal":0.8,"lob":"Commercial Lines","sprints":[{"closed":54,"committed":81,"committedRaw":null,"label":"Sprint 31","n":31,"pct":0.7973,"pctSource":"computed","statuses":{"Alpha Testing":1,"Awaiting Publish to Live":4,"Awaiting Publish to Test":1,"Awaiting to Publish to Live":1,"Blocked":4,"Closed":3,"Done":51,"In Progress":4,"Pending 3rd Party":5,"Pending Handoff":1,"Review":2,"Selected for Development":1,"To Do":1,"Waiting for customer":2}},{"closed":36,"committed":74,"committedRaw":null,"label":"Sprint 32","n":32,"pct":0.5588,"pctSource":"computed","statuses":{"Acceptance Testing":1,"Alpha Testing":1,"Alpha Testing (Dev)":2,"Alpha Testing (Test)":3,"Awaiting Publish to Live":2,"Awaiting Publish to Test":2,"Closed":5,"Code Review":1,"Done":31,"In Progress":13,"Pending 3rd Party":6,"Review":1,"To Do":6}},{"closed":32,"committed":57,"committedRaw":null,"label":"Sprint 33","n":33,"pct":0.6604,"pctSource":"computed","statuses":{"Acceptance Testing":3,"Awaiting Publish to Live":3,"Closed":3,"Done":29,"In Progress":5,"Pending 3rd Party":4,"Review":1,"Selected for Development":1,"To Do":8}},{"closed":39,"committed":58,"committedRaw":null,"label":"Sprint 34","n":34,"pct":0.7818,"pctSource":"computed","statuses":{"Alpha Testing":2,"Awaiting Publish to Live":4,"Done":39,"In Progress":4,"Pending 3rd Party":3,"Ready":2,"Review":1,"To Do":3}},{"closed":18,"committed":34,"committedRaw":null,"label":"Sprint 35","n":35,"pct":0.7241,"pctSource":"computed","statuses":{"Awaiting Publish to Live":1,"Awaiting to Publish to Live":2,"Closed":1,"Done":17,"In Progress":7,"Pending 3rd Party":5,"To Do":1}},{"closed":5,"committed":30,"committedRaw":null,"label":"Sprint 36","n":36,"pct":0.7308,"pctSource":"computed","statuses":{"Alpha Testing":1,"Alpha Testing (Dev)":1,"Awaiting Publish to Live":3,"Awaiting to Publish to Live":11,"Done":5,"In Progress":5,"Pending 3rd Party":3,"Waiting for customer":1}},{"closed":16,"committed":39,"committedRaw":null,"label":"Sprint 37","n":37,"pct":0.7333,"pctSource":"computed","statuses":{"% maintenance (by ticket)":1,"Alpha Testing":1,"Awaiting Publish to Live":2,"Awaiting to Publish to Live":4,"Code Review":1,"Completed hours":1,"Done":16,"In Progress":3,"Pending 3rd Party":6,"To Do":3,"Waiting for customer":3}},{"closed":18,"committed":43,"committedRaw":null,"label":"Sprint 38","n":38,"pct":0.6053,"pctSource":"computed","statuses":{"0.51":1,"0.6":1,"163.95":1,"Acceptance Testing":2,"Alpha Testing":2,"Awaiting Publish to Live":4,"Awaiting to Publish to Live":1,"Closed":1,"Code Review":1,"Done":17,"In Progress":4,"Pending 3rd Party":3,"Ready":1,"Review":1,"To Do":4,"Waiting for customer":2,"feat":1,"maint":1}},{"closed":28,"committed":51,"committedRaw":null,"label":"Sprint 39","n":39,"pct":0.766,"pctSource":"computed","statuses":{"Acceptance Testing":1,"Alpha Testing (Dev)":1,"Awaiting Publish to Live":3,"Awaiting to Publish to Live":5,"Closed":1,"Done":27,"In Progress":4,"Pending 3rd Party":2,"Review":1,"To Do":4,"Waiting for customer":2,"feat":1,"maint":1}},{"closed":46,"committed":99,"committedRaw":null,"label":"Sprint 40","n":40,"pct":0.5161,"pctSource":"computed","statuses":{"Alpha Testing":2,"Alpha Testing (Dev)":1,"Awaiting Publish To Dev":1,"Awaiting Publish to Live":2,"Awaiting Publish to Test":1,"Backlog":15,"Closed":2,"Done":44,"In Progress":9,"Pending 3rd Party":4,"Ready":5,"Status":1,"To Do":11,"Waiting for customer":2}},{"closed":36,"committed":85,"committedRaw":85,"label":"Sprint 41","n":41,"pct":0.4235,"pctSource":"computed","statuses":{"Done":36,"In Progress":24,"No Category":2,"Status Category":1,"To Do":23}},{"closed":65,"committed":110,"committedRaw":110,"label":"Sprint 42","n":42,"pct":0.613207547169811,"pctSource":"stored","statuses":{"Done":65,"In Progress":26,"No Category":1,"Status Category":1,"To Do":18}},{"closed":51,"committed":97,"committedRaw":97,"label":"Sprint 43","n":43,"pct":0.6,"pctSource":"stored","statuses":{"Done":51,"In Progress":25,"No Category":1,"Status Category":1,"To Do":20}},{"closed":59,"committed":105,"committedRaw":105,"label":"Sprint 44","n":44,"pct":0.730337078651685,"pctSource":"stored","statuses":{"0":1,"13":1,"141.34999999999997":1,"18.920000000000002":1,"226.17999999999995":1,"50.350000000000051":1,"547.96999999999991":1,"98.169999999999987":1,"Done":59,"In Progress":25,"Logged Hours":1,"No Category":1,"Status Category":1,"To Do":20}},{"closed":62,"committed":90,"committedRaw":90,"label":"Sprint 45","n":45,"pct":0.755813953488372,"pctSource":"stored","statuses":{"0":4,"1.83":2,"11.55":1,"136.5":1,"146.5":1,"16.11":1,"18":1,"238.75":1,"247.89000000000007":1,"26.270000000000003":1,"26.85":1,"28.33":1,"291.3":1,"363.26":2,"363.2600000000001":1,"37.159999999999997":1,"38.979999999999997":1,"39.299999999999997":1,"42.75":1,"51.5":1,"58.41":1,"6":1,"60.269999999999996":1,"64.63":1,"65.42":1,"69.320000000000007":1,"7":1,"7.33":1,"7.91":1,"82.84":1,"9.75":1,"AI Triage - In Progress":1,"Acceptance Testing":1,"Awaiting Publish to Live":3,"Backlog":6,"Closed":2,"Code Review":2,"Done":60,"Est. Hours":1,"In Progress":5,"Logged Hours":4,"Pending 3rd Party":1,"Ready":1,"Status":1,"To Do":5,"Waiting for customer":3}},{"closed":40,"committed":79,"committedRaw":79,"label":"Sprint 46","n":46,"pct":0.633802816901408,"pctSource":"stored","statuses":{"0":1,"1.33":1,"150.96":1,"38.5":1,"398.35":1,"48.83":1,"64.320000000000022":1,"94.41":1,"Done":40,"In Progress":17,"Logged Hours":1,"No Category":3,"Status Category":1,"To Do":19}},{"closed":43,"committed":69,"committedRaw":69,"label":"Sprint 47","n":47,"pct":0.777777777777778,"pctSource":"stored","statuses":{"0":1,"15":1,"196.10000000000002":1,"25.159999999999997":1,"380.40000000000003":1,"4.92":1,"63.249999999999972":1,"75.97":1,"Done":43,"In Progress":16,"Logged Hours":1,"No Category":1,"Status Category":1,"To Do":9}}]};
+const GOAL = DATA.goal || 0.80;
+const S = DATA.sprints.slice().sort((a,b)=>a.n-b.n);
+const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
+const C = {ink:'#0F1B2D',ink3:'#5C6A80',accent:'#2E6DA4',accent2:'#4A8BC2',goal:'#8A2D5B',soft:'rgba(15,27,45,0.10)',ok:'#3D6B3D',hot:'#C24B1E'};
+
+document.getElementById('h1').textContent = DATA.lob + ' LOB';
+const withPct = S.filter(s=>s.pct!=null);
+const latest = S[S.length-1];
+const avg = withPct.length? withPct.reduce((a,s)=>a+s.pct,0)/withPct.length : null;
+const best = withPct.length? withPct.reduce((a,s)=>s.pct>a.pct?s:a) : null;
+const belowCnt = withPct.filter(s=>s.pct<GOAL).length;
+document.getElementById('byline').innerHTML =
+  '<b>'+S.length+'</b> sprints &middot; goal <b>'+(GOAL*100).toFixed(0)+'%</b> completion'+
+  (latest? ' &middot; latest <b>'+latest.label+'</b>':'');
+document.getElementById('genstamp').textContent = 'Generated '+(DATA.generated||'');
+document.getElementById('foot').textContent = DATA.lob+' LOB · '+S.length+' sprints on file';
+
+// KPIs
+function card(num,lbl,sub,cls){ return '<div class="stat-card"><div class="num '+(cls||'')+'">'+num+'</div><div class="lbl">'+lbl+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'; }
+document.getElementById('kpis').innerHTML = [
+  card(pf(latest&&latest.pct), 'Latest completion', latest?latest.label:'', (latest&&latest.pct!=null)?(latest.pct>=GOAL?'good':'warn'):''),
+  card(pf(avg), 'Average completion', 'across '+withPct.length+' sprints'),
+  card(pf(best&&best.pct), 'Best sprint', best?best.label:'', 'good'),
+  card(belowCnt, 'Sprints below goal', 'of '+withPct.length+' measured', belowCnt?'warn':'good'),
+  card((latest?latest.closed:0), 'Tickets closed', latest?latest.label:'')
+].join('');
+
+const labels = S.map(s=>s.label.replace('Sprint ','S'));
+const goalLine = S.map(()=>GOAL*100);
+
+// completion % chart
+new Chart(document.getElementById('pctChart'),{
+  type:'line',
+  data:{labels,datasets:[
+    {label:'Goal (80%)',data:goalLine,borderColor:C.goal,borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false,tension:0},
+    {label:'Completion %',data:S.map(s=>s.pct==null?null:+(s.pct*100).toFixed(1)),borderColor:C.accent,backgroundColor:'rgba(46,109,164,0.10)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:S.map(s=>s.pct==null?C.ink3:(s.pct>=GOAL?C.ok:C.accent)),fill:true,tension:.25,spanGaps:true},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:C.soft}},
+            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%')}}}}
+});
+
+// tickets closed chart
+new Chart(document.getElementById('closedChart'),{
+  data:{labels,datasets:[
+    {type:'bar',label:'Closed (Done)',data:S.map(s=>s.closed),backgroundColor:C.accent2,borderRadius:2,order:2},
+    {type:'line',label:'Committed',data:S.map(s=>s.committed),borderColor:C.ink,borderWidth:2,pointRadius:3,fill:false,tension:.2,order:1},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{y:{beginAtZero:true,ticks:{font:{family:'Cousine'}},grid:{color:C.soft}},
+            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}}}}
+});
+
+// table
+const tbody=document.getElementById('tbody');
+const maxPct = Math.max.apply(null, withPct.map(s=>s.pct)) || 1;
+function goalCell(s){ if(s.pct==null) return '<span class="chip na">n/a</span>'; return s.pct>=GOAL?'<span class="chip met">met</span>':'<span class="chip below">'+((GOAL-s.pct)*100).toFixed(0)+' pts short</span>'; }
+function render(rows){
+  tbody.innerHTML = rows.map(s=>{
+    const barW = s.pct==null?0:Math.round((s.pct/maxPct)*46);
+    const gap = s.pct==null?null:(GOAL-s.pct);
+    return '<tr>'+
+      '<td class="sp">'+s.label+'</td>'+
+      '<td class="num">'+pf(s.pct)+(s.pct==null?'':'<span class="pctbar" style="width:'+barW+'px"></span>')+'</td>'+
+      '<td class="num">'+(gap==null?'—':(gap>0?'+':'')+(gap*100).toFixed(0)+' pts')+'</td>'+
+      '<td class="num">'+s.committed+'</td>'+
+      '<td class="num">'+s.closed+'</td>'+
+      '<td>'+goalCell(s)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+let sortK='n',sortDir=-1;
+function val(s,k){ if(k==='gap'){ return s.pct==null?-999:(GOAL-s.pct); } if(k==='goalmet'){ return s.pct==null?-1:(s.pct>=GOAL?1:0); } return s.pct==null&&k==='pct'?-1:s[k]; }
+function sortNow(){
+  const rows=S.slice().sort((a,b)=>((+val(a,sortK))-(+val(b,sortK)))*sortDir);
+  render(rows);
+  document.querySelectorAll('#tbl thead th').forEach(th=>{const k=th.dataset.k,a=th.querySelector('.arr');
+    if(k===sortK){th.classList.add('sorted');a.textContent=sortDir<0?'▼':'▲';}else{th.classList.remove('sorted');a.textContent='';}});
+}
+document.querySelectorAll('#tbl thead th').forEach(th=>{th.addEventListener('click',()=>{const k=th.dataset.k;if(k===sortK){sortDir*=-1;}else{sortK=k;sortDir=-1;}sortNow();});});
+sortNow();
+</script>
+</body>
+</html>

@@ -55,10 +55,10 @@
     <div class="chart-holder"><canvas id="goalChart"></canvas></div>
   </div>
 
-  <div class="ov-section-title" id="trend-title">Completion % over sprints</div>
+  <div class="ov-section-title" id="trend-title">Recent completion % by LOB</div>
   <div class="chart-box">
-    <div class="ctitle">Progression by LOB</div>
-    <div class="cnote">Completion % per sprint, one line per LOB, with the <b>80%</b> goal drawn across.</div>
+    <div class="ctitle">Progression toward the goal</div>
+    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with the <b>80%</b> goal drawn across.</div>
     <div class="chart-holder"><canvas id="trendChart"></canvas></div>
   </div>
 
@@ -106,22 +106,27 @@ new Chart(document.getElementById('goalChart'),{
     ctx.fillText('80% goal',x,a.top+12);ctx.restore();}}]
 });
 
-// ---- trend (one line per LOB) ----
-const maxN = Math.max.apply(null, LOBS.flatMap(L=>L.sprints.map(s=>s.n)).concat([1]));
-const labels=[];for(let i=1;i<=maxN;i++)labels.push('S'+i);
+// ---- trend: last K sprints per LOB, right-aligned to each LOB's latest ----
+// Sprint numbering is per-LOB (e.g. Maintenance 1-19, Commercial Lines 31-47), so align by recency.
+const K = Math.min(12, Math.max.apply(null, LOBS.map(L=>L.sprints.length).concat([1])));
+const labels=[];for(let i=K-1;i>=0;i--)labels.push(i===0?'Latest':('−'+i));
+const perLobRecent = LOBS.map(L=>L.sprints.slice().sort((a,b)=>a.n-b.n).slice(-K));
 const ds = LOBS.map((L,i)=>{
-  const by={};L.sprints.forEach(s=>by[s.n]=s.pct);
-  return {label:L.lob,data:labels.map((_,idx)=>{const v=by[idx+1];return v==null?null:+(v*100).toFixed(1);}),
-    borderColor:PALETTE[i%PALETTE.length],backgroundColor:PALETTE[i%PALETTE.length],borderWidth:2.5,pointRadius:3,fill:false,tension:.25,spanGaps:true};
+  const recent=perLobRecent[i]; const pad=K-recent.length;
+  const data=labels.map(()=>null), tips=labels.map(()=>null);
+  recent.forEach((s,j)=>{ const idx=pad+j; data[idx]=s.pct==null?null:+(s.pct*100).toFixed(1); tips[idx]=s.label; });
+  return {label:L.lob,data,_tips:tips,borderColor:PALETTE[i%PALETTE.length],backgroundColor:PALETTE[i%PALETTE.length],
+    borderWidth:2.5,pointRadius:3,fill:false,tension:.25,spanGaps:true};
 });
-ds.unshift({label:'Goal (80%)',data:labels.map(()=>GOAL*100),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false});
+ds.unshift({label:'Goal (80%)',data:labels.map(()=>GOAL*100),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false});
 new Chart(document.getElementById('trendChart'),{
   type:'line',data:{labels,datasets:ds},
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
-            x:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
+            x:{title:{display:true,text:'sprints before latest',font:{family:'Cousine',size:10},color:'#97A0B2'},ticks:{font:{family:'Cousine'}},grid:{display:false}}},
     plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}},
-      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%')}}}}
+      tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset._tips&&ctx.dataset._tips[ctx.dataIndex];
+        return ctx.dataset.label+(t?' '+t:'')+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%');}}}}}
 });
 
 // ---- LOB cards ----

@@ -4,8 +4,13 @@ use JSON::PP;
 # Turns ONE unzipped sprint workbook (one LOB) into a per-LOB JSON of sprint summaries.
 # Each "Sprint N" sheet is a ticket list + a stored "Total Tickets Committed" / "Sprint Completion %".
 # Robust to column drift: status column + committed/pct are found by content/label, not fixed position.
-my ($dir,$lob,$out)=@ARGV;
-die "usage: convert_sprint.pl <unzip_dir> <LOB> <out.json>\n" unless $dir && $lob && $out;
+my ($dir,$lob,$out,$mode)=@ARGV;
+die "usage: convert_sprint.pl <unzip_dir> <LOB> <out.json> [compute]\n" unless $dir && $lob && $out;
+# $mode eq "compute": where a sprint has no STORED completion %, compute it from statuses using the
+# documented methodology  (Done + Awaiting-Publish-to-Live) / (total - Pending-3rd - Waiting-for-customer).
+# This reproduces Commercial Lines' own stored "% Complete" exactly. Leave off for Maintenance (its stored
+# numerator is hand-keyed and not reconstructable from statuses) so its missing sprint stays a gap.
+my $COMPUTE = ($mode||"") =~ /compute/i;
 
 # shared strings
 my @ss; { local $/; open my $f,"<:encoding(UTF-8)","$dir/xl/sharedStrings.xml" or die "sharedStrings: $!";
@@ -19,6 +24,10 @@ sub colnum { my $c=shift; my $n=0; $n=$n*26+(ord($_)-64) for split //,$c; $n }
 # statuses that mean "closed / shipped"
 my @CLOSED=("Done","Closed","Resolved");
 my %isClosed=map{lc($_)=>1}@CLOSED;
+# for the computed-% fallback: "Awaiting Publish to Live" counts as complete (per CL's note); the
+# denominator drops work blocked outside the team (pending 3rd party / waiting on the customer).
+sub isCompleteExtra { my $s=lc shift; $s=~/awaiting.*publish.*to.*live/ }   # beyond Done/Closed/Resolved
+sub isExcluded      { my $s=lc shift; $s=~/pending\s*3rd\s*party/ || $s=~/waiting\s*for\s*customer/ }
 my @KNOWN=("Done","In Progress","Ready","Backlog","Acceptance Testing","Alpha Testing",
   "Pending 3rd Party","Waiting for customer","Awaiting Publish to Test","Awaiting Publish To Dev",
   "Awaiting Publish to Live","Code Review","To Do","Closed","Resolved");
@@ -26,7 +35,7 @@ my %known=map{lc($_)=>1}@KNOWN;
 
 my @sprints;
 for my $sname (@order){
-  next unless $sname=~/^Sprint\s+(\d+)$/i; my $num=$1;
+  next unless $sname=~/(?:^|\s)Sprint\s+(\d+)\s*$/i; my $num=$1;  # matches "Sprint 19" and "CL Sprint 47"
   my $tgt=$sheet{$sname}; local $/; open my $f,"<:encoding(UTF-8)","$dir/xl/$tgt" or next; my $x=<$f>;
   my %cell;
   while($x=~/<c r="([A-Z]+)(\d+)"([^>]*)>(.*?)<\/c>/gs){
@@ -43,21 +52,32 @@ for my $sname (@order){
   my $statusCol; for my $c (keys %{$cell{1}||{}}){ $statusCol=$c if ($cell{1}{$c}//"")=~/^status$/i; }
   unless($statusCol){ my %v; for my $r (keys %cell){ next if $r==1; for my $c (keys %{$cell{$r}}){ $v{$c}++ if $known{lc($cell{$r}{$c}//"")}; } }
     ($statusCol)=sort {($v{$b}||0)<=>($v{$a}||0)} keys %v; }
-  my %statuses; my $closed=0;
+  my %statuses; my ($closed,$completeExtra,$excluded)=(0,0,0);
   if($statusCol){ for my $r (sort {$a<=>$b} keys %cell){ next if $r==1; my $st=$cell{$r}{$statusCol}//"";
-    next if $st eq "" || $st=~/Total Tickets|Sprint Completion/i; $statuses{$st}++; $closed++ if $isClosed{lc $st}; } }
-  # committed + pct via label; value = rightmost numeric cell in the label's row
+    next if $st eq "" || $st=~/Total Tickets|Sprint Completion|% Complete/i; $statuses{$st}++;
+    $closed++ if $isClosed{lc $st}; $completeExtra++ if isCompleteExtra($st); $excluded++ if isExcluded($st); } }
+  # committed + pct via label; value = rightmost numeric cell in the label's row.
+  # Two workbook formats are supported:
+  #   Maintenance: bottom block "Total Tickets Committed" / "Sprint Completion %"
+  #   Commercial Lines: top block "Total tickets:" / "% Complete:" (B6 = completed / (total - pending3rd - waiting),
+  #     the SAME in-our-control basis as Maintenance's %). NOT "% Complete (excl. blocked)", which also strips Jira flags.
   my ($committedRaw,$pct);
+  sub rowval { my($cellref,$r,$c)=@_; my @n=grep {defined&&/^-?[\d.]+$/} map {$cellref->{$r}{$_}}
+    sort {colnum($b)<=>colnum($a)} grep {$_ ne $c} keys %{$cellref->{$r}}; @n?$n[0]+0:undef; }
   for my $r (keys %cell){ for my $c (keys %{$cell{$r}}){ my $lab=$cell{$r}{$c}//"";
-    if($lab=~/Total Tickets Committed/i){ my @n=grep {defined&&/^-?[\d.]+$/} map {$cell{$r}{$_}}
-      sort {colnum($b)<=>colnum($a)} grep {$_ ne $c} keys %{$cell{$r}}; $committedRaw=$n[0]+0 if @n; }
-    if($lab=~/Sprint Completion/i){ my @n=grep {defined&&/^-?[\d.]+$/} map {$cell{$r}{$_}}
-      sort {colnum($b)<=>colnum($a)} grep {$_ ne $c} keys %{$cell{$r}}; $pct=$n[0]+0 if @n; }
+    if($lab=~/Total Tickets Committed/i || $lab=~/^\s*Total tickets:?\s*$/i){ my $v=rowval(\%cell,$r,$c); $committedRaw=$v if defined $v; }
+    if($lab=~/Sprint Completion/i || ($lab=~/^\s*%\s*Complete\s*:?\s*$/i && $lab!~/excl/i)){ my $v=rowval(\%cell,$r,$c); $pct=$v if defined $v; }
   }}
+  # computed-% fallback (only when enabled and no stored %): documented in-our-control methodology
+  my $pctComputed;
+  if(!defined $pct && $COMPUTE){ my $denom=$committedTickets-$excluded;
+    $pctComputed = $denom>0 ? sprintf('%.4f',($closed+$completeExtra)/$denom)+0 : undef; }
+  my $pctFinal = defined $pct ? $pct : $pctComputed;
   push @sprints, {
     n            => $num+0,
     label        => "Sprint $num",
-    pct          => defined $pct ? $pct+0 : undef,      # stored Sprint Completion % (0..1), their hours formula
+    pct          => defined $pctFinal ? $pctFinal+0 : undef,  # completion % (stored, else computed when enabled)
+    pctSource    => defined $pct ? "stored" : (defined $pctComputed ? "computed" : "none"),
     committedRaw => defined $committedRaw ? $committedRaw+0 : undef, # as stored (hours in early sprints, tickets later)
     committed    => $committedTickets+0,                # ticket-row count (apples-to-apples)
     closed       => $closed+0,                           # Done/Closed/Resolved count
