@@ -19,6 +19,20 @@ for my $p (@PHASES){ for my $q (@Q){
 my %quarters;
 for my $q (@Q){ my %pj; my @all; for my $r (@$D){ next unless $r->{quarter} eq $q; $pj{$r->{project}}=1; push @all,$r->{activeDays}; }
   $quarters{$q}={ projects=>scalar(keys %pj)+0, completions=>scalar(@all)+0, median=>0+sprintf('%.0f',median(@all)//0) }; }
+# ---- project classification (from the Projects Intake Sheet; see project_classifications.json) ----
+open my $cf,"<:encoding(UTF-8)","$base/project_classifications.json" or die "classifications: $!";
+my $CLS=JSON::PP->new->decode(<$cf>); delete $CLS->{_source};
+for my $r (@$D){ $r->{classification} = $CLS->{$r->{project}} // "Unclassified"; }
+my %bc;
+for my $r (@$D){ my $c=$r->{classification};
+  push @{$bc{$c}{all}}, $r->{activeDays}; $bc{$c}{proj}{$r->{project}}=1; push @{$bc{$c}{ph}{$r->{phase}}}, $r->{activeDays}; }
+my @byClass;
+for my $c (sort { scalar(keys %{$bc{$b}{proj}}) <=> scalar(keys %{$bc{$a}{proj}}) || $a cmp $b } keys %bc){
+  my $o=$bc{$c}; my %phmed;
+  for my $p (@PHASES){ my $arr=$o->{ph}{$p}; $phmed{$p}= ($arr&&@$arr) ? {median=>0+sprintf('%.0f',median(@$arr)), n=>scalar(@$arr)+0} : undef; }
+  push @byClass, { classification=>$c, projects=>scalar(keys %{$o->{proj}})+0,
+    completions=>scalar(@{$o->{all}})+0, median=>0+sprintf('%.0f',median(@{$o->{all}})), byPhase=>\%phmed };
+}
 # outliers (active >= 90d)
 my @outliers;
 for my $r (sort { $b->{activeDays} <=> $a->{activeDays} } @$D){ next unless $r->{activeDays}>=90;
@@ -36,7 +50,7 @@ push @dq, qq{A handful of phase headers carry an end date but no dated child tas
 sub phaseShort { my $p=shift; my %s=("Intake & Planning","Intake & Planning","Requirements & Design","Requirements & Design","Development","Development","Alpha Testing (Dev Testing)","Alpha Testing","Acceptance Testing (UAT/Pre-Prod)","Acceptance Testing (UAT)","Release","Release","Stabilization (Hypercare)","Stabilization","Retrospective and Closeout","Retrospective"); return $s{$p}//$p; }
 
 my $gen=`date +%Y-%m-%d`; chomp $gen; $gen ||= '2026-10-08';
-my %OUT=( phases=>\@PHASES, table=>\%table, quarters=>\%quarters, outliers=>\@outliers, dq=>\@dq, generated=>$gen );
+my %OUT=( phases=>\@PHASES, table=>\%table, quarters=>\%quarters, byClass=>\@byClass, outliers=>\@outliers, dq=>\@dq, generated=>$gen );
 open my $tp,"<:encoding(UTF-8)","$base/phase_template.html" or die $!; my $tpl=<$tp>;
 my $dj=JSON::PP->new->canonical->encode(\%OUT); # chars; template file written/read as UTF-8
 $dj=~s/</\\u003c/g;

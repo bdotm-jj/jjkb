@@ -32,11 +32,14 @@ filters: [{columnName:"Phase", operator:"NOT_IN", columnValue:["Project Informat
 ```
 This returns the 8 phase header rows (Level "2.0") plus their child tasks, tagged by the `Phase` column. For each phase whose header is Complete, take the active span over its dated child rows (fallback to the header). Record `{project, phase, quarter, activeDays, headerDays, activeStart, activeEnd, nChildren}` into `phase_data.json`. *(A sub-agent is handy here — ~70 sheets.)*
 
+### Step 1b — Refresh project classifications
+The report breaks phase duration out **by project classification**. The classification lives on the **Projects Intake Sheet** (`search` scope `sheetNames`, query "Projects Intake"; id 4414567862980484), single-select column **"Project Classification"**. Pull `get_sheet_summary` columns `["Project Name","Project Classification"]`, then map each project that appears in `phase_data.json` into `project_classifications.json` (`{ "<Project Name>": "<classification>" }`). Projects with a blank classification → `"Unclassified"`. Project names in the plan sheets may differ slightly from the intake sheet — match by closest name. `phase_gen.pl` attaches the classification at generate time and defaults anything missing to `Unclassified`.
+
 ### Step 2 — Compute & generate
 ```bash
-perl phase_gen.pl    # phase_data.json + phase_template.html -> ../site/reports/phase-duration-baseline.html
+perl phase_gen.pl    # phase_data.json + project_classifications.json + phase_template.html -> ../site/reports/phase-duration-baseline.html
 ```
-It computes the median/n/range per phase/quarter, the quarter roll-ups, the long-running outliers, and the data-quality notes, and injects them into the KB-styled report. (`use utf8` + `qq{}` for any `\x{...}` escapes, or dashes/arrows mojibake.)
+It computes the median/n/range per phase/quarter, the quarter roll-ups, the **median-by-classification breakdown** (overall + Development/Alpha/UAT per type), the long-running outliers, and the data-quality notes, and injects them into the KB-styled report. (`use utf8` + `qq{}` for any `\x{...}` escapes, or dashes/arrows mojibake.)
 
 ### Step 3 — Register / refresh the KB card
 The report is already in `site/app.jsx` `REPORTS` (`group:"phase"`). Update its `stats`/`summary` if the headline quarter numbers changed; bump the `app.jsx?v=` cache in `index.html` if app.jsx changed.
