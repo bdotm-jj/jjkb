@@ -77,11 +77,11 @@
   <div class="chart-card"><div class="chart-box"><canvas id="chart"></canvas></div></div>
 
   <div class="sec">Median phase duration by project classification</div>
-  <div class="fine" style="margin:-4px 0 12px">Projects grouped by the <b>Project Classification</b> from the Projects Intake Sheet (live). Overall median = median active span across all of that type's completed phases, Q1–Q3; Development / Alpha / UAT columns show the per-phase median where that type has completions.</div>
+  <div class="fine" style="margin:-4px 0 12px">Projects grouped by the <b>Project Classification</b> from the Projects Intake Sheet (live). <b>Project duration</b> = median, across that type's projects, of each project's span from its first completed phase's start to its last phase's end (elapsed days, idle gaps included; the median absorbs outliers). Development / Alpha / UAT columns show the per-phase median active span where that type has completions.</div>
   <div style="overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius)">
     <table id="ctable"><thead><tr>
       <th>Classification</th><th class="num">Projects</th><th class="num">Phases</th>
-      <th class="num">Overall median</th><th class="num">Development</th><th class="num">Alpha test</th><th class="num">UAT</th>
+      <th class="num">Project duration</th><th class="num">Development</th><th class="num">Alpha test</th><th class="num">UAT</th>
     </tr></thead><tbody id="cbody"></tbody></table>
   </div>
   <div class="chart-card" style="margin-top:14px"><div class="chart-box" style="height:300px"><canvas id="cchart"></canvas></div></div>
@@ -129,14 +129,14 @@ function pcell(bp,key){const c=bp[PHK[key]]; return c?`<td class="cell"><span cl
 document.getElementById('cbody').innerHTML=DATA.byClass.map(r=>
   `<tr><td class="ph">${r.classification}</td>`+
   `<td class="cell">${r.projects}</td><td class="cell">${r.completions}</td>`+
-  `<td class="cell"><span class="med">${r.median}d</span></td>`+
+  `<td class="cell">${r.projMedian==null?'<span class="none">—</span>':`<span class="med">${r.projMedian}d</span>`}</td>`+
   pcell(r.byPhase,'dev')+pcell(r.byPhase,'alpha')+pcell(r.byPhase,'uat')+`</tr>`).join('');
-// classification chart — overall median active span by project type
+// classification chart — median project duration by project type
 new Chart(document.getElementById('cchart'),{type:'bar',
-  data:{labels:DATA.byClass.map(r=>r.classification),datasets:[{label:'Overall median active days',data:DATA.byClass.map(r=>r.median),backgroundColor:'#2E6DA4',borderRadius:2}]},
+  data:{labels:DATA.byClass.map(r=>r.classification),datasets:[{label:'Median project duration (days)',data:DATA.byClass.map(r=>r.projMedian),backgroundColor:'#2E6DA4',borderRadius:2}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+'d median · '+DATA.byClass[c.dataIndex].projects+' projects · '+DATA.byClass[c.dataIndex].completions+' phases'}}},
-    scales:{x:{beginAtZero:true,title:{display:true,text:'Median active days',color:'#5C6A80'},ticks:{color:'#5C6A80'},grid:{color:'rgba(15,27,45,.08)'}},y:{ticks:{color:'#5C6A80',font:{size:10}},grid:{display:false}}}}});
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+'d median project span · '+DATA.byClass[c.dataIndex].projects+' projects · '+DATA.byClass[c.dataIndex].completions+' phases'}}},
+    scales:{x:{beginAtZero:true,title:{display:true,text:'Median project duration (days)',color:'#5C6A80'},ticks:{color:'#5C6A80'},grid:{color:'rgba(15,27,45,.08)'}},y:{ticks:{color:'#5C6A80',font:{size:10}},grid:{display:false}}}}});
 document.getElementById('outliers').innerHTML=DATA.outliers.map(o=>`<li>${o}</li>`).join('');
 document.getElementById('dq').innerHTML=DATA.dq.map(o=>`<li>${o}</li>`).join('');
 </script>

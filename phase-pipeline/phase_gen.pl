@@ -26,12 +26,25 @@ for my $r (@$D){ $r->{classification} = $CLS->{$r->{project}} // "Unclassified";
 my %bc;
 for my $r (@$D){ my $c=$r->{classification};
   push @{$bc{$c}{all}}, $r->{activeDays}; $bc{$c}{proj}{$r->{project}}=1; push @{$bc{$c}{ph}{$r->{phase}}}, $r->{activeDays}; }
+# per-PROJECT duration = first phase start -> last phase end (of its completed phases), inclusive days.
+# Answers "how long does a project of this type run", vs a pooled-phase median. Median across projects
+# absorbs idle-gap outliers. Needs a civil-date -> day-number helper.
+sub ymd2n { my $s=shift//''; return undef unless $s=~/^(\d{4})-(\d{2})-(\d{2})$/;
+  my($y,$m,$d)=($1+0,$2+0,$3+0); $y-=($m<=2?1:0); my $era=int(($y>=0?$y:$y-399)/400); my $yoe=$y-$era*400;
+  my $doy=int((153*($m+($m>2?-3:9))+2)/5)+$d-1; my $doe=$yoe*365+int($yoe/4)-int($yoe/100)+$doy; return $era*146097+$doe-719468; }
+my %pinfo;
+for my $r (@$D){ my $s=ymd2n($r->{activeStart}); my $e=ymd2n($r->{activeEnd}); next unless defined $s && defined $e;
+  my $p=$r->{project}; $pinfo{$p}{class}=$r->{classification};
+  $pinfo{$p}{min}=$s if !defined $pinfo{$p}{min} || $s<$pinfo{$p}{min};
+  $pinfo{$p}{max}=$e if !defined $pinfo{$p}{max} || $e>$pinfo{$p}{max}; }
+my %classSpans; for my $p (keys %pinfo){ push @{$classSpans{$pinfo{$p}{class}}}, $pinfo{$p}{max}-$pinfo{$p}{min}+1; }
 my @byClass;
 for my $c (sort { scalar(keys %{$bc{$b}{proj}}) <=> scalar(keys %{$bc{$a}{proj}}) || $a cmp $b } keys %bc){
   my $o=$bc{$c}; my %phmed;
   for my $p (@PHASES){ my $arr=$o->{ph}{$p}; $phmed{$p}= ($arr&&@$arr) ? {median=>0+sprintf('%.0f',median(@$arr)), n=>scalar(@$arr)+0} : undef; }
-  push @byClass, { classification=>$c, projects=>scalar(keys %{$o->{proj}})+0,
-    completions=>scalar(@{$o->{all}})+0, median=>0+sprintf('%.0f',median(@{$o->{all}})), byPhase=>\%phmed };
+  my $sp=$classSpans{$c}||[];
+  push @byClass, { classification=>$c, projects=>scalar(keys %{$o->{proj}})+0, completions=>scalar(@{$o->{all}})+0,
+    projMedian=>(@$sp? 0+sprintf('%.0f',median(@$sp)) : undef), byPhase=>\%phmed };
 }
 # outliers (active >= 90d)
 my @outliers;
