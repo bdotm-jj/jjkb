@@ -51,17 +51,17 @@
   <div class="ov-section-title">Lines of business</div>
   <div class="lob-grid" id="lobs"></div>
 
-  <div class="ov-section-title">Average completion vs 80% goal</div>
+  <div class="ov-section-title">Average completion vs goal</div>
   <div class="chart-box">
-    <div class="ctitle">Each LOB against the goal</div>
-    <div class="cnote">Year-to-date average completion % per line of business (mean across its measured sprints). The marker at <b>80%</b> is the goal.</div>
+    <div class="ctitle">Each LOB against its goal</div>
+    <div class="cnote">Year-to-date average completion % per line of business (mean across its measured sprints). The dashed marker on each bar is <b>that LOB's goal</b> (most are 80%; Maintenance is 60%).</div>
     <div class="chart-holder"><canvas id="goalChart"></canvas></div>
   </div>
 
   <div class="ov-section-title" id="trend-title">Recent completion % by LOB</div>
   <div class="chart-box">
     <div class="ctitle">Progression toward the goal</div>
-    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with the <b>80%</b> goal drawn across.</div>
+    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with each <b>goal</b> drawn across (80%, and 60% for Maintenance).</div>
     <div class="chart-holder"><canvas id="trendChart"></canvas></div>
   </div>
 
@@ -73,14 +73,18 @@
 
 <script>
 const LOBS = __DATA__;   // [{lob,file,goal,sprints:[{n,label,pct,committed,closed}]}]
-const GOAL = (LOBS[0] && LOBS[0].goal) || 0.80;
+const goalOf = L => L.goal || 0.80;   // goal is per-LOB (Maintenance 60%, others 80%)
 const PALETTE = ['#2E6DA4','#C24B1E','#3D6B3D','#B5860D','#6B4E9E','#2A7E7E','#8A2D5B','#4A5568'];
 const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
 const latestPct = L => { const w=L.sprints.filter(s=>s.pct!=null); return w.length?w[w.length-1].pct:null; };
 const latestLabel = L => { const w=L.sprints.filter(s=>s.pct!=null); return w.length?w[w.length-1].label:'—'; };
 
+// byline: headline goal + any per-LOB exceptions
+const gGroups={}; LOBS.forEach(L=>{const g=Math.round(goalOf(L)*100);(gGroups[g]=gGroups[g]||[]).push(L.lob);});
+const gKeys=Object.keys(gGroups).map(Number).sort((a,b)=>gGroups[b].length-gGroups[a].length);
+const exc=gKeys.slice(1).map(g=>gGroups[g].join(', ')+' '+g+'%').join('; ');
 document.getElementById('byline').innerHTML =
-  '<b>'+LOBS.length+'</b> line'+(LOBS.length===1?'':'s')+' of business &middot; goal <b>'+(GOAL*100).toFixed(0)+'%</b> sprint completion';
+  '<b>'+LOBS.length+'</b> line'+(LOBS.length===1?'':'s')+' of business &middot; goal <b>'+(gKeys[0]||80)+'%</b> completion'+(exc?' ('+exc+')':'');
 document.getElementById('genstamp').textContent = LOBS.length+' LOB'+(LOBS.length===1?'':'s')+' on file';
 
 // ---- goal comparison (horizontal bars, YTD AVERAGE completion per LOB, sorted high→low) ----
@@ -92,22 +96,23 @@ new Chart(document.getElementById('goalChart'),{
   data:{labels:byAvg.map(x=>x.L.lob),datasets:[{
     label:'YTD average completion %',
     data:byAvg.map(x=>x.avg==null?null:+(x.avg*100).toFixed(1)),
-    backgroundColor:byAvg.map(x=>x.avg!=null&&x.avg>=GOAL?'#3D6B3D':'#2E6DA4'),
+    backgroundColor:byAvg.map(x=>x.avg!=null&&x.avg>=goalOf(x.L)?'#3D6B3D':'#2E6DA4'),
     borderRadius:2,
   }]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-    layout:{padding:{top:22}},
     scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
             y:{ticks:{font:{family:'Cousine'}},grid:{display:false}}},
     plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:ctx=>(ctx.parsed.x==null?'n/a':ctx.parsed.x+'% avg')+'  ('+nMeasured(byAvg[ctx.dataIndex].L)+' sprints)'}},
+      tooltip:{callbacks:{label:ctx=>{const L=byAvg[ctx.dataIndex].L;
+        return (ctx.parsed.x==null?'n/a':ctx.parsed.x+'% avg')+' · goal '+Math.round(goalOf(L)*100)+'% · '+nMeasured(L)+' sprints';}}},
       annotation:false},
   },
-  plugins:[{id:'goalMark',afterDraw(c){const x=c.scales.x.getPixelForValue(GOAL*100),a=c.chartArea,ctx=c.ctx;
-    ctx.save();ctx.strokeStyle='#8A2D5B';ctx.lineWidth=2;ctx.setLineDash([6,4]);
-    ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();
-    ctx.setLineDash([]);ctx.fillStyle='#8A2D5B';ctx.font='bold 11px Cousine';ctx.textAlign='center';
-    ctx.fillText('80% goal',x,a.top-8);ctx.restore();}}]
+  // per-bar goal marker: dashed vertical tick at each LOB's own goal
+  plugins:[{id:'goalMark',afterDatasetsDraw(c){const ctx=c.ctx,meta=c.getDatasetMeta(0);
+    ctx.save();ctx.strokeStyle='#8A2D5B';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+    byAvg.forEach((x,i)=>{const el=meta.data[i]; if(!el)return; const gx=c.scales.x.getPixelForValue(goalOf(x.L)*100);
+      const h=((el.height||18)/2)+3; ctx.beginPath();ctx.moveTo(gx,el.y-h);ctx.lineTo(gx,el.y+h);ctx.stroke();});
+    ctx.setLineDash([]);ctx.restore();}}]
 });
 
 // ---- trend: last K sprints per LOB, right-aligned to each LOB's latest ----
@@ -122,7 +127,9 @@ const ds = LOBS.map((L,i)=>{
   return {label:L.lob,data,_tips:tips,borderColor:PALETTE[i%PALETTE.length],backgroundColor:PALETTE[i%PALETTE.length],
     borderWidth:2.5,pointRadius:3,fill:false,tension:.25,spanGaps:true};
 });
-ds.unshift({label:'Goal (80%)',data:labels.map(()=>GOAL*100),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false});
+// one dashed goal line per distinct goal value (e.g. 80% and Maintenance's 60%)
+const distinctGoals=[...new Set(LOBS.map(L=>Math.round(goalOf(L)*100)))].sort((a,b)=>a-b);
+distinctGoals.forEach(g=>ds.unshift({label:'Goal '+g+'%',data:labels.map(()=>g),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}));
 new Chart(document.getElementById('trendChart'),{
   type:'line',data:{labels,datasets:ds},
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
@@ -135,14 +142,14 @@ new Chart(document.getElementById('trendChart'),{
 
 // ---- LOB cards ----
 document.getElementById('lobs').innerHTML = LOBS.map(L=>{
-  const p=latestPct(L), cls=p==null?'':(p>=GOAL?'good':'warn');
+  const g=goalOf(L); const p=latestPct(L), cls=p==null?'':(p>=g?'good':'warn');
   const w=L.sprints.filter(s=>s.pct!=null);
   const avg=w.length?w.reduce((a,s)=>a+s.pct,0)/w.length:null;
   return '<a class="lob-card" href="'+L.file+'">'+
     '<div class="nm">'+L.lob+'</div>'+
     '<div class="big '+cls+'">'+pf(p)+'</div>'+
-    '<div class="k">Latest &middot; '+latestLabel(L)+'</div>'+
-    '<div class="sub">'+L.sprints.length+' sprints &middot; avg '+pf(avg)+' &middot; '+w.filter(s=>s.pct<GOAL).length+' below goal</div>'+
+    '<div class="k">Latest &middot; '+latestLabel(L)+' &middot; goal '+Math.round(g*100)+'%</div>'+
+    '<div class="sub">'+L.sprints.length+' sprints &middot; avg '+pf(avg)+' &middot; '+w.filter(s=>s.pct<g).length+' below goal</div>'+
     '</a>';
 }).join('');
 </script>

@@ -1,0 +1,5 @@
+{
+  "_comment": "Per-LOB sprint completion goal (0..1). sprint_gen.pl applies this at generate time, overriding whatever goal is baked into each LOB's data json. Add a line to set a different target for an LOB.",
+  "_default": 0.80,
+  "Maintenance": 0.60
+}

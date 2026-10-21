@@ -11,15 +11,21 @@ sub inject { my($tplf,$out,%rep)=@_; local $/; open my $t,"<:encoding(UTF-8)",$t
 my @files = sort glob("$base/lobs/data-*.json");
 die "no lobs/data-*.json found\n" unless @files;
 
+# per-LOB goal overrides (Maintenance = 60%, others default 80%); see lob_goals.json
+my $GOALS = -e "$base/lob_goals.json" ? readjson("$base/lob_goals.json") : {};
+my $GDEF = $GOALS->{_default} // 0.80;
+sub goalFor { my $lob=shift; exists $GOALS->{$lob} ? $GOALS->{$lob}+0 : $GDEF+0 }
+
 my @index;  # trimmed per-LOB summaries for the landing page
 for my $fp (@files){
   my $D = readjson($fp);
   my $lob = $D->{lob}; my $file = "sprint-".slug($lob).".html";
+  $D->{goal} = goalFor($lob);   # central override wins over the data json's baked goal
   # per-LOB report
   my $dj = JSON::PP->new->canonical->encode($D); $dj=~s/</\\u003c/g;
   inject("$base/sprint_lob_template.html", "$REPORTS/$file", '__LOB__'=>$lob, '__DATA__'=>$dj);
   my @sp = map { { n=>$_->{n}+0, label=>$_->{label}, pct=>$_->{pct}, committed=>$_->{committed}+0, closed=>$_->{closed}+0 } } @{$D->{sprints}};
-  push @index, { lob=>$lob, file=>$file, goal=>($D->{goal}||0.8)+0, sprints=>\@sp };
+  push @index, { lob=>$lob, file=>$file, goal=>goalFor($lob), sprints=>\@sp };
   print "wrote $file (".scalar(@sp)." sprints)\n";
 }
 # order LOBs by latest completion % desc for a tidy landing

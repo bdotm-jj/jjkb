@@ -69,10 +69,10 @@
   <div class="ov-section-title">Where this LOB stands</div>
   <div class="stat-grid" id="kpis"></div>
 
-  <div class="ov-section-title">Progression toward the 80% goal</div>
+  <div class="ov-section-title" id="prog-title">Progression toward the goal</div>
   <div class="chart-box">
     <div class="ctitle">Sprint completion % by sprint</div>
-    <div class="cnote">Each point is that sprint's completion % as published by the LOB (completed work &divide; the sprint's commitment). The line at <b>80%</b> is the goal.</div>
+    <div class="cnote" id="pct-note">Each point is that sprint's completion % as published by the LOB (completed work &divide; the sprint's commitment). The dashed line is the goal.</div>
     <div class="chart-holder"><canvas id="pctChart"></canvas></div>
   </div>
 
@@ -89,7 +89,7 @@
       <thead><tr>
         <th data-k="n" data-t="n" class="sorted">Sprint <span class="arr">▼</span></th>
         <th data-k="pct" data-t="n" class="num">Completion % <span class="arr"></span></th>
-        <th data-k="gap" data-t="n" class="num">Gap to 80% <span class="arr"></span></th>
+        <th data-k="gap" data-t="n" class="num" id="gap-th">Gap to goal <span class="arr"></span></th>
         <th data-k="committed" data-t="n" class="num">Committed <span class="arr"></span></th>
         <th data-k="closed" data-t="n" class="num">Closed <span class="arr"></span></th>
         <th data-k="goalmet" data-t="n">Goal <span class="arr"></span></th>
@@ -104,7 +104,7 @@
 
   <div class="method">
     <b>How completion is measured.</b> Each sprint's completion % is taken as <b>published by the LOB</b> and plotted against the
-    <b>80%</b> goal. Teams report it on a consistent in-our-control basis (completed work &divide; the sprint's ticket commitment,
+    <b id="goal-txt">goal</b>. Teams report it on a consistent in-our-control basis (completed work &divide; the sprint's ticket commitment,
     with work blocked outside the team &mdash; pending a 3rd party, waiting on the customer, or displaced mid-sprint &mdash; handled
     per the LOB's own method). "Closed" is the LOB's completed-ticket count for the sprint; "Committed" is the tickets committed at sprint start.
   </div>
@@ -133,6 +133,11 @@ document.getElementById('byline').innerHTML =
   (latest? ' &middot; latest <b>'+latest.label+'</b>':'');
 document.getElementById('genstamp').textContent = 'Generated '+(DATA.generated||'');
 document.getElementById('foot').textContent = DATA.lob+' LOB · '+S.length+' sprints on file';
+// goal is per-LOB (e.g. Maintenance 60%, others 80%) — fill the goal text from DATA.goal
+const GP = (GOAL*100).toFixed(0);
+document.getElementById('prog-title').textContent = 'Progression toward the '+GP+'% goal';
+document.getElementById('goal-txt').textContent = GP+'% goal';
+document.getElementById('gap-th').innerHTML = 'Gap to '+GP+'% <span class="arr"></span>';
 
 // KPIs
 function card(num,lbl,sub,cls){ return '<div class="stat-card"><div class="num '+(cls||'')+'">'+num+'</div><div class="lbl">'+lbl+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>'; }
@@ -159,7 +164,7 @@ const goalLine = S.map(()=>GOAL*100);
 new Chart(document.getElementById('pctChart'),{
   type:'line',
   data:{labels,datasets:[
-    {label:'Goal (80%)',data:goalLine,borderColor:C.goal,borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false,tension:0},
+    {label:'Goal ('+(GOAL*100).toFixed(0)+'%)',data:goalLine,borderColor:C.goal,borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false,tension:0},
     {label:'Completion %',data:S.map(s=>s.pct==null?null:+(s.pct*100).toFixed(1)),borderColor:C.accent,backgroundColor:'rgba(46,109,164,0.10)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:S.map(s=>s.pct==null?C.ink3:(s.pct>=GOAL?C.ok:C.accent)),fill:true,tension:.25,spanGaps:true},
   ]},
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
