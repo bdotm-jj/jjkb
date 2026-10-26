@@ -11,7 +11,7 @@ sub inject { my($tplf,$out,%rep)=@_; local $/; open my $t,"<:encoding(UTF-8)",$t
 my @files = sort glob("$base/lobs/data-*.json");
 die "no lobs/data-*.json found\n" unless @files;
 
-# per-LOB goal overrides (Maintenance = 60%, others default 80%); see lob_goals.json
+# per-LOB goal overrides (Stabilization = 60%, others default 80%); see lob_goals.json
 my $GOALS = -e "$base/lob_goals.json" ? readjson("$base/lob_goals.json") : {};
 my $GDEF = $GOALS->{_default} // 0.80;
 sub goalFor { my $lob=shift; exists $GOALS->{$lob} ? $GOALS->{$lob}+0 : $GDEF+0 }

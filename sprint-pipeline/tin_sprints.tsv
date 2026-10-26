@@ -1,0 +1,5 @@
+#  TIN sprint reports — sourced from "TIN_Sprint_NN_*_Report.xlsx" (Summary + All Tickets sheets, like Program;
+#  sprint # is in the filename/title, not a sheet). Completion % = the Summary's "% Complete (excl. blocked)" =
+#  completed / (total - pending-3rd - waiting), the in-our-control basis. completed/closed = Done/Resolved/Awaiting-Publish count.
+#  n	startDate	endDate	committed	completed	pct	note
+11			41	38	0.9268	Sprint 11. In-our-control completion 92.7% (38 of 41; 0 blocked, so same as raw % Complete). 38 Done, 1 Acceptance Testing, 2 In Progress.

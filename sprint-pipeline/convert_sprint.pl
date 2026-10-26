@@ -8,7 +8,7 @@ my ($dir,$lob,$out,$mode)=@ARGV;
 die "usage: convert_sprint.pl <unzip_dir> <LOB> <out.json> [compute]\n" unless $dir && $lob && $out;
 # $mode eq "compute": where a sprint has no STORED completion %, compute it from statuses using the
 # documented methodology  (Done + Awaiting-Publish-to-Live) / (total - Pending-3rd - Waiting-for-customer).
-# This reproduces Commercial Lines' own stored "% Complete" exactly. Leave off for Maintenance (its stored
+# This reproduces Commercial Lines' own stored "% Complete" exactly. Leave off for Stabilization (its stored
 # numerator is hand-keyed and not reconstructable from statuses) so its missing sprint stays a gap.
 my $COMPUTE = ($mode||"") =~ /compute/i;
 
@@ -58,9 +58,9 @@ for my $sname (@order){
     $closed++ if $isClosed{lc $st}; $completeExtra++ if isCompleteExtra($st); $excluded++ if isExcluded($st); } }
   # committed + pct via label; value = rightmost numeric cell in the label's row.
   # Two workbook formats are supported:
-  #   Maintenance: bottom block "Total Tickets Committed" / "Sprint Completion %"
+  #   Stabilization: bottom block "Total Tickets Committed" / "Sprint Completion %"
   #   Commercial Lines: top block "Total tickets:" / "% Complete:" (B6 = completed / (total - pending3rd - waiting),
-  #     the SAME in-our-control basis as Maintenance's %). NOT "% Complete (excl. blocked)", which also strips Jira flags.
+  #     the SAME in-our-control basis as Stabilization's %). NOT "% Complete (excl. blocked)", which also strips Jira flags.
   my ($committedRaw,$pct);
   sub rowval { my($cellref,$r,$c)=@_; my @n=grep {defined&&/^-?[\d.]+$/} map {$cellref->{$r}{$_}}
     sort {colnum($b)<=>colnum($a)} grep {$_ ne $c} keys %{$cellref->{$r}}; @n?$n[0]+0:undef; }

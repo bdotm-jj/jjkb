@@ -1,17 +1,17 @@
 # Sprint Completion report — build pipeline
 
 Turns each LOB's **Sprint Reports** workbook (e.g. `Stabilization Sprint Reports.xlsx`,
-which is the **Maintenance** LOB) into a KB-styled report that charts every sprint's
+which is the **Stabilization** LOB) into a KB-styled report that charts every sprint's
 **completion %** against the **80% goal**, plus tickets closed — and a landing page that
 compares all LOBs against the goal.
 
 **One workbook = one LOB.** The LOB name comes from the file, not the sheet
-(Stabilization → "Maintenance"; other LOB files carry their real name).
+(Stabilization → "Stabilization"; other LOB files carry their real name).
 
 ## Files
 | File | Role |
 |---|---|
-| `convert_sprint.pl` | unzipped xlsx + LOB name → `lobs/data-<lob>.json` (one entry per `Sprint N` sheet). Used for the spreadsheet LOBs (Maintenance, Commercial Lines) |
+| `convert_sprint.pl` | unzipped xlsx + LOB name → `lobs/data-<lob>.json` (one entry per `Sprint N` sheet). Used for the spreadsheet LOBs (Stabilization, Commercial Lines) |
 | `build_manual.pl` | `<LOB> <lob>_sprints.tsv` → `lobs/data-<lob>.json`. Used for LOBs sourced by hand (email / Confluence / one-off workbook): Personal Lines, Program, Flood |
 | `sprint_gen.pl` | all `lobs/data-*.json` → per-LOB `../site/reports/sprint-<lob>.html` + landing `../site/reports/sprints.html` |
 | `sprint_lob_template.html` | per-LOB report: completion-% line w/ 80% goal line, tickets-closed bars, sortable sprint table. Placeholders `__LOB__`, `__DATA__` |
@@ -22,7 +22,7 @@ compares all LOBs against the goal.
 ### LOB sources (as of Oct 2026)
 | LOB | Source | Builder |
 |---|---|---|
-| Maintenance | `Stabilization Sprint Reports.xlsx` | `convert_sprint.pl … Maintenance …` |
+| Stabilization | `Stabilization Sprint Reports.xlsx` | `convert_sprint.pl … Stabilization …` |
 | Commercial Lines | `CL_Sprint_Reports*.xlsx` | `convert_sprint.pl … "Commercial Lines" … compute` |
 | Personal Lines | Abdoul Balla emails "PL - Sprint NN Final Report" (+ Confluence for Sprint 34) | `build_manual.pl "Personal Lines" pl_sprints.tsv …` |
 | Program | `Program_Sprint_NN_Report.xlsx` (Summary + All Tickets; one sprint) — use **% Complete (excl. blocked)** = in-our-control | `build_manual.pl Program program_sprints.tsv …` |
@@ -33,7 +33,7 @@ Completion % is **taken as published by each LOB** (teams compute it on an in-ou
 ## What's measured
 - **Completion %** = the workbook's own stored `Sprint Completion %` per sheet
   (their hours-based formula: completed ÷ (commitment − pending-3rd-party − waiting-on-customer)).
-  Read verbatim — not recomputed. A sprint with no stored % (e.g. Maintenance Sprint 7) renders as a gap.
+  Read verbatim — not recomputed. A sprint with no stored % (e.g. Stabilization Sprint 7) renders as a gap.
 - **Tickets closed** = count of tickets in a `Done`/`Closed`/`Resolved` status that sprint.
 - **Committed** = number of ticket rows in the sprint (apples-to-apples; early sprints store
   "Total Tickets Committed" as *hours*, so the row count is the ticket figure used).
@@ -49,8 +49,8 @@ From this folder:
 # 1. unzip the LOB's workbook
 rm -rf lob_x && unzip -q "/path/to/<LOB> Sprint Reports.xlsx" -d lob_x
 
-# 2. convert -> archive under lobs/  (LOB name is explicit; Stabilization = Maintenance)
-perl convert_sprint.pl lob_x "Maintenance" lobs/data-maintenance.json
+# 2. convert -> archive under lobs/  (LOB name is explicit; Stabilization = Stabilization)
+perl convert_sprint.pl lob_x "Stabilization" lobs/data-maintenance.json
 
 # 3. regenerate every LOB report + the landing page
 perl sprint_gen.pl

@@ -54,26 +54,26 @@
   <div class="ov-section-title">Average completion vs goal</div>
   <div class="chart-box">
     <div class="ctitle">Each LOB against its goal</div>
-    <div class="cnote">Year-to-date average completion % per line of business (mean across its measured sprints). The dashed marker on each bar is <b>that LOB's goal</b> (most are 80%; Maintenance is 60%).</div>
+    <div class="cnote">Year-to-date average completion % per line of business (mean across its measured sprints). The dashed marker on each bar is <b>that LOB's goal</b> (most are 80%; Stabilization is 60%).</div>
     <div class="chart-holder"><canvas id="goalChart"></canvas></div>
   </div>
 
   <div class="ov-section-title" id="trend-title">Recent completion % by LOB</div>
   <div class="chart-box">
     <div class="ctitle">Progression toward the goal</div>
-    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with each <b>goal</b> drawn across (80%, and 60% for Maintenance).</div>
+    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with each <b>goal</b> drawn across (80%, and 60% for Stabilization).</div>
     <div class="chart-holder"><canvas id="trendChart"></canvas></div>
   </div>
 
   <div class="footer">
-    <span>Stabilization · Sprint completion index</span>
+    <span>Sprint completion · all LOBs</span>
     <span id="genstamp"></span>
   </div>
 </div>
 
 <script>
 const LOBS = __DATA__;   // [{lob,file,goal,sprints:[{n,label,pct,committed,closed}]}]
-const goalOf = L => L.goal || 0.80;   // goal is per-LOB (Maintenance 60%, others 80%)
+const goalOf = L => L.goal || 0.80;   // goal is per-LOB (Stabilization 60%, others 80%)
 const PALETTE = ['#2E6DA4','#C24B1E','#3D6B3D','#B5860D','#6B4E9E','#2A7E7E','#8A2D5B','#4A5568'];
 const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
 const latestPct = L => { const w=L.sprints.filter(s=>s.pct!=null); return w.length?w[w.length-1].pct:null; };
@@ -116,7 +116,7 @@ new Chart(document.getElementById('goalChart'),{
 });
 
 // ---- trend: last K sprints per LOB, right-aligned to each LOB's latest ----
-// Sprint numbering is per-LOB (e.g. Maintenance 1-19, Commercial Lines 31-47), so align by recency.
+// Sprint numbering is per-LOB (e.g. Stabilization 1-19, Commercial Lines 31-47), so align by recency.
 const K = Math.min(12, Math.max.apply(null, LOBS.map(L=>L.sprints.length).concat([1])));
 const labels=[];for(let i=K-1;i>=0;i--)labels.push(i===0?'Latest':('−'+i));
 const perLobRecent = LOBS.map(L=>L.sprints.slice().sort((a,b)=>a.n-b.n).slice(-K));
@@ -127,7 +127,7 @@ const ds = LOBS.map((L,i)=>{
   return {label:L.lob,data,_tips:tips,borderColor:PALETTE[i%PALETTE.length],backgroundColor:PALETTE[i%PALETTE.length],
     borderWidth:2.5,pointRadius:3,fill:false,tension:.25,spanGaps:true};
 });
-// one dashed goal line per distinct goal value (e.g. 80% and Maintenance's 60%)
+// one dashed goal line per distinct goal value (e.g. 80% and Stabilization 60%)
 const distinctGoals=[...new Set(LOBS.map(L=>Math.round(goalOf(L)*100)))].sort((a,b)=>a-b);
 distinctGoals.forEach(g=>ds.unshift({label:'Goal '+g+'%',data:labels.map(()=>g),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}));
 new Chart(document.getElementById('trendChart'),{

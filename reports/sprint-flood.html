@@ -133,7 +133,7 @@ document.getElementById('byline').innerHTML =
   (latest? ' &middot; latest <b>'+latest.label+'</b>':'');
 document.getElementById('genstamp').textContent = 'Generated '+(DATA.generated||'');
 document.getElementById('foot').textContent = DATA.lob+' LOB · '+S.length+' sprints on file';
-// goal is per-LOB (e.g. Maintenance 60%, others 80%) — fill the goal text from DATA.goal
+// goal is per-LOB (e.g. Stabilization 60%, others 80%) — fill the goal text from DATA.goal
 const GP = (GOAL*100).toFixed(0);
 document.getElementById('prog-title').textContent = 'Progression toward the '+GP+'% goal';
 document.getElementById('goal-txt').textContent = GP+'% goal';
