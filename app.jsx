@@ -780,8 +780,8 @@ const REPORTS = [
   // tickets closed. The landing (sprints.html) compares LOBs; see sprint-pipeline/.
   { id: "sprint-completion", group: "sprint", kind: "baseline", title: "Sprint Completion by LOB", date: "2026-10-15",
     period: "Delivery sprints · completion vs goal", file: "reports/sprints.html",
-    summary: "Each line of business's sprint completion % tracked against its goal (80%, or 60% for Stabilization), with tickets closed per sprint. Completion % is taken as published by each LOB. Live across six LOBs — TIN (93%), Personal Lines (86%), Program (86%) and Flood (80%) are at or above goal; Commercial Lines (70%) and Stabilization (54%) are below. Sources span spreadsheets, Confluence and emailed reports.",
-    stats: [{ value: "80 / 60%", label: "Goal (Stab 60%)" }, { value: "6", label: "LOBs tracked" }, { value: "4 / 6", label: "At or above goal" }, { value: "93%", label: "Top · TIN" }] },
+    summary: "Each line of business's sprint completion % tracked against its goal (80%, or 60% for Stabilization), with tickets closed per sprint. Completion % is taken as published by each LOB. Live across six LOBs — Tech Initiatives (93%), Personal Lines (86%), Program (86%) and Flood (80%) are at or above goal; Commercial Lines (70%) and Stabilization (54%) are below. Sources span spreadsheets, Confluence and emailed reports.",
+    stats: [{ value: "80 / 60%", label: "Goal (Stab 60%)" }, { value: "6", label: "LOBs tracked" }, { value: "4 / 6", label: "At or above goal" }, { value: "93%", label: "Top · Tech Init." }] },
 ];
 // NOTE: MARS Weekly reports were removed from the public site (VP directive) —
 // employee-level data. Re-added behind Cloudflare Access on the private host.

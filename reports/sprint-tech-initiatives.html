@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TIN — Sprint Completion</title>
+<title>Tech Initiatives — Sprint Completion</title>
 <link href="https://fonts.googleapis.com/css2?family=Cantata+One&family=Nunito:wght@400;500;600;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -116,7 +116,7 @@
 </div>
 
 <script>
-const DATA = {"generated":"2026-10-26","goal":0.8,"lob":"TIN","sprints":[{"closed":38,"committed":41,"label":"Sprint 11","n":11,"note":"Sprint 11. In-our-control completion 92.7% (38 of 41; 0 blocked, so same as raw % Complete). 38 Done, 1 Acceptance Testing, 2 In Progress.","pct":0.9268,"pctSource":"stored"}]};
+const DATA = {"generated":"2026-10-26","goal":0.8,"lob":"Tech Initiatives","sprints":[{"closed":38,"committed":41,"label":"Sprint 11","n":11,"note":"Sprint 11. In-our-control completion 92.7% (38 of 41; 0 blocked, so same as raw % Complete). 38 Done, 1 Acceptance Testing, 2 In Progress.","pct":0.9268,"pctSource":"stored"}]};
 const GOAL = DATA.goal || 0.80;
 const S = DATA.sprints.slice().sort((a,b)=>a.n-b.n);
 const pf = v => (v==null?'—':(v*100).toFixed(0)+'%');
