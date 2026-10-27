@@ -40,6 +40,18 @@
   .lob-card .sub{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.45;}
   .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
   .empty{font-size:13px;color:var(--ink-3);font-style:italic;}
+  .lob-toggles{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center;}
+  .lob-toggles .hint{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);margin-right:2px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--grotesk);font-size:12.5px;line-height:1;
+    padding:6px 11px;border:1px solid var(--rule-soft);border-radius:999px;background:var(--bg-raised);
+    color:var(--ink-2);cursor:pointer;user-select:none;transition:opacity .12s,border-color .12s,background .12s;}
+  .chip .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .chip:hover{border-color:var(--accent);}
+  .chip.off{opacity:.42;background:transparent;}
+  .chip.off .dot{background:transparent!important;box-shadow:inset 0 0 0 1.5px currentColor;}
+  .chip-act{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);
+    padding:6px 10px;border:1px solid var(--rule-soft);border-radius:999px;background:transparent;cursor:pointer;transition:border-color .12s,color .12s;}
+  .chip-act:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -61,7 +73,8 @@
   <div class="ov-section-title" id="trend-title">Recent completion % by LOB</div>
   <div class="chart-box">
     <div class="ctitle">Progression toward the goal</div>
-    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with each <b>goal</b> drawn across (80%, and 60% for Stabilization).</div>
+    <div class="cnote">Each LOB's last sprints, aligned to its <b>latest</b> on the right (sprint numbering differs by LOB), with each <b>goal</b> drawn across (80%, and 60% for Stabilization). <b>Click a line of business below to isolate it</b>; click more to compare, or use All / None.</div>
+    <div class="lob-toggles" id="trendToggles"></div>
     <div class="chart-holder"><canvas id="trendChart"></canvas></div>
   </div>
 
@@ -130,15 +143,54 @@ const ds = LOBS.map((L,i)=>{
 // one dashed goal line per distinct goal value (e.g. 80% and Stabilization 60%)
 const distinctGoals=[...new Set(LOBS.map(L=>Math.round(goalOf(L)*100)))].sort((a,b)=>a-b);
 distinctGoals.forEach(g=>ds.unshift({label:'Goal '+g+'%',data:labels.map(()=>g),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}));
-new Chart(document.getElementById('trendChart'),{
+// ---- load animation: lines race left -> right, once, then normal updates ----
+const RACE_MS = 1500, RACE_STEP = RACE_MS / Math.max(labels.length,1);
+const prevY = ctx => { if(ctx.index===0) return ctx.chart.scales.y.getPixelForValue(0);
+  const m=ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index-1]; const y=m&&m.getProps(['y'],true).y;
+  return (y==null||isNaN(y)) ? ctx.chart.scales.y.getPixelForValue(0) : y; };
+let raced=false;
+const trendRace={
+  x:{type:'number',easing:'easeOutQuad',duration:RACE_STEP,from:NaN,
+     delay(ctx){ if(ctx.type!=='data'||ctx.xStarted) return 0; ctx.xStarted=true; return ctx.index*RACE_STEP; }},
+  y:{type:'number',easing:'easeOutQuad',duration:RACE_STEP,from:prevY,
+     delay(ctx){ if(ctx.type!=='data'||ctx.yStarted) return 0; ctx.yStarted=true; return ctx.index*RACE_STEP; }},
+  onComplete(){ if(!raced){ raced=true; trendChart.options.animation={duration:250}; } }
+};
+const trendChart = new Chart(document.getElementById('trendChart'),{
   type:'line',data:{labels,datasets:ds},
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    animation:trendRace,
     scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
             x:{title:{display:true,text:'sprints before latest',font:{family:'Cousine',size:10},color:'#97A0B2'},ticks:{font:{family:'Cousine'}},grid:{display:false}}},
-    plugins:{legend:{labels:{font:{family:'Cousine'},usePointStyle:true}},
-      tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset._tips&&ctx.dataset._tips[ctx.dataIndex];
+    plugins:{legend:{display:false},
+      tooltip:{filter:ctx=>ctx.parsed.y!=null,callbacks:{label:ctx=>{const t=ctx.dataset._tips&&ctx.dataset._tips[ctx.dataIndex];
         return ctx.dataset.label+(t?' '+t:'')+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%');}}}}}
 });
+
+// ---- interactive LOB isolation for the trend chart ----
+// Goal line datasets were unshifted to the front, so LOB i is dataset (goalOffset + i).
+const goalOffset = distinctGoals.length;
+const togEl = document.getElementById('trendToggles');
+const lobVisible = k => trendChart.isDatasetVisible(goalOffset+k);
+const setLob = (k,v) => trendChart.setDatasetVisibility(goalOffset+k, v);
+function syncChips(){ togEl.querySelectorAll('.chip').forEach(ch=>ch.classList.toggle('off', !lobVisible(+ch.dataset.i))); }
+togEl.innerHTML = '<span class="hint">Isolate</span>' +
+  LOBS.map((L,i)=>'<span class="chip" data-i="'+i+'"><span class="dot" style="background:'+PALETTE[i%PALETTE.length]+'"></span>'+L.lob+'</span>').join('') +
+  '<span class="chip-act" data-act="all">All</span><span class="chip-act" data-act="none">None</span>';
+togEl.addEventListener('click', e=>{
+  const act=e.target.closest('.chip-act'), chip=e.target.closest('.chip');
+  if(act){ LOBS.forEach((_,k)=>setLob(k, act.dataset.act==='all')); trendChart.update(); syncChips(); return; }
+  if(!chip) return;
+  const i=+chip.dataset.i;
+  const allOn = LOBS.every((_,k)=>lobVisible(k));
+  if(allOn){ LOBS.forEach((_,k)=>setLob(k, k===i)); }           // from full view, a click solos that LOB
+  else {
+    setLob(i, !lobVisible(i));                                   // otherwise add/remove this LOB
+    if(!LOBS.some((_,k)=>lobVisible(k))) LOBS.forEach((_,k)=>setLob(k,true)); // never leave it empty
+  }
+  trendChart.update(); syncChips();
+});
+syncChips();
 
 // ---- LOB cards ----
 document.getElementById('lobs').innerHTML = LOBS.map(L=>{
