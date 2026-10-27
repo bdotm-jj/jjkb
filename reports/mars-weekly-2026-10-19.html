@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARS Dev Team — Weekly Report · Oct 19 – Oct 23, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cantata+One&family=Nunito:wght@400;500;600;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F2EDE2; --bg-raised:#FBF7EC; --bg-sunken:#E7E1D2;
+    --ink:#0F1B2D; --ink-2:#2A3A52; --ink-3:#5C6A80; --ink-4:#97A0B2;
+    --rule:#0F1B2D; --rule-soft:rgba(15,27,45,0.14);
+    --accent:#2E6DA4; --accent-2:#4A8BC2; --accent-soft:#A9C4DD;
+    --hot:#C24B1E; --ok:#3D6B3D; --amber:#B5860D;
+    --serif: "Cantata One", "Times New Roman", Times, serif;
+    --grotesk: "Nunito", "Neue Haas Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: "Cousine", "Courier New", ui-monospace, Menlo, monospace;
+    --radius:2px; --radius-lg:4px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--grotesk);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px 20px 60px;}
+  .subtitle{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:12px;}
+  h1{font-family:var(--serif);font-weight:400;color:var(--ink);font-size:clamp(34px,5vw,52px);line-height:1.03;margin:10px 0 6px;letter-spacing:-0.01em;}
+  .byline{font-size:14px;color:var(--ink-3);margin-bottom:22px;}
+  .byline b{color:var(--ink-2);font-weight:600;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:22px 0 6px;}
+  .stat-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px;text-align:center;}
+  .stat-card .num{font-family:var(--serif);font-size:34px;font-weight:400;color:var(--accent);line-height:1;}
+  .stat-card .lbl{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:30px 0 0;border-bottom:1px solid var(--rule);}
+  .tabs button{
+    background:transparent;color:var(--ink-3);border:1px solid transparent;border-bottom:none;
+    padding:10px 16px;border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;
+    font-family:var(--mono);font-size:11.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;
+    position:relative;top:1px;
+  }
+  .tabs button:hover{color:var(--accent);}
+  .tabs button.active{color:var(--ink);background:var(--bg-raised);border-color:var(--rule-soft);border-bottom:1px solid var(--bg-raised);}
+  .panel{display:none;padding-top:22px;}
+  .panel.active{display:block;}
+  .panel-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+  .panel-head h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:0;line-height:1.1;}
+  .panel-head .desc{font-size:13px;color:var(--ink-3);max-width:640px;line-height:1.5;margin-top:4px;}
+  .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 4px;}
+  .toolbar input{
+    font-family:var(--grotesk);font-size:13px;padding:8px 12px;min-width:240px;
+    background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);color:var(--ink);
+  }
+  .toolbar input:focus{outline:none;border-color:var(--accent);}
+  .toolbar .count{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.06em;}
+  .tbl-scroll{overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius);margin-top:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    position:sticky;top:0;z-index:2;background:var(--bg-sunken);
+    color:var(--ink-3);font-family:var(--mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
+    text-align:left;padding:10px 12px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none;
+  }
+  thead th:hover{color:var(--accent);}
+  thead th .arr{opacity:.45;margin-left:4px;font-size:9px;}
+  thead th.sorted{color:var(--ink);}
+  thead th.sorted .arr{opacity:1;color:var(--accent);}
+  thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  tbody td{padding:8px 12px;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--bg-raised);}
+  tbody tr:hover{background:var(--accent-soft);}
+  td.keys{font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.5;max-width:520px;word-break:break-word;}
+  td.name{font-weight:600;color:var(--ink);white-space:nowrap;}
+  .flag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
+  .flag.red{background:rgba(194,75,30,.15);color:var(--hot);}
+  .flag.high{background:rgba(194,75,30,.15);color:var(--hot);}
+  .flag.orange{background:rgba(181,134,13,.16);color:var(--amber);}
+  .flag.watch{background:rgba(181,134,13,.16);color:var(--amber);}
+  .flag.ok{background:rgba(61,107,61,.15);color:var(--ok);}
+  .flag.na{background:rgba(15,27,45,.06);color:var(--ink-4);}
+  .flag.pto{background:rgba(46,109,164,.13);color:var(--accent);}
+  .notes h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:22px 0 8px;}
+  .notes p{font-size:14px;line-height:1.6;color:var(--ink-2);margin:8px 0;max-width:900px;}
+  .notes p.lead{font-size:15px;color:var(--ink);}
+  .notes p.bullet{padding-left:18px;position:relative;}
+  .notes p.bullet::before{content:"—";position:absolute;left:0;color:var(--accent);}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule-soft);font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:.05em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .legend-key{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:10px;align-items:center;}
+  .tbl-notes{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:12px;line-height:1.55;}
+  .tbl-notes div{margin-top:4px;}
+  .tbl-notes b{color:var(--ink-2);}
+  /* overview / dashboard */
+  .ov-section-title{font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-size:11px;font-weight:500;margin:30px 0 12px;border-bottom:1px solid var(--rule-soft);padding-bottom:6px;}
+  .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+  .alert{background:var(--bg-raised);border:1px solid var(--rule-soft);border-left:3px solid var(--ink-4);border-radius:var(--radius);padding:13px 15px;}
+  .alert.crit{border-left-color:var(--hot);}
+  .alert.warn{border-left-color:var(--amber);}
+  .alert.good{border-left-color:var(--ok);}
+  .alert .lbl{display:flex;align-items:center;gap:7px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:600;color:var(--ink-3);margin-bottom:6px;}
+  .alert .ico{font-size:12px;}
+  .alert.crit .ico{color:var(--hot);} .alert.warn .ico{color:var(--amber);} .alert.good .ico{color:var(--ok);} .alert.info .ico{color:var(--accent);}
+  .alert .big{font-family:var(--serif);font-size:24px;line-height:1;color:var(--ink);margin-bottom:5px;}
+  .alert .txt{font-size:12.5px;line-height:1.5;color:var(--ink-2);}
+  .chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .chart-card{background:var(--bg-raised);border:1px solid var(--rule-soft);border-radius:var(--radius);padding:16px 18px 12px;}
+  .chart-card.wide{grid-column:1 / -1;}
+  .chart-card h3{font-family:var(--serif);font-weight:400;font-size:19px;margin:0 0 2px;color:var(--ink);}
+  .chart-card .sub{font-size:12px;color:var(--ink-3);margin-bottom:12px;line-height:1.45;}
+  .chart-box{position:relative;height:300px;}
+  .chart-box.tall{height:420px;}
+  @media(max-width:760px){ .chart-grid{grid-template-columns:1fr;} }
+  .backlink{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);text-decoration:none;padding:5px 0;margin-bottom:4px;}
+  .backlink:hover{color:var(--accent);}
+  .backlink .arw{font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="backlink" href="mars-weekly.html"><span class="arw">&larr;</span> All weekly reports</a>
+  <div class="subtitle">MARS Dev Team · Dev Time &amp; Ticket Reporting</div>
+  <h1>Weekly Report</h1>
+  <div class="byline">Report window <b>Mon Oct 19 – Fri Oct 23, 2026</b> (weekdays only) · Produced by <b>Amy Perez</b></div>
+
+  <div class="stat-grid" id="kpis"></div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+
+  <div class="footer">
+    <span>MARS Dev Team Weekly Report · Week of 2026.10.19</span>
+    <span>Click any column header to sort · type to filter</span>
+  </div>
+</div>
+
+<script>
+const DATA = {"devCloses":{"headers":["Developer","Role","Closed Count","Ticket Keys (week of 10/19-10/25)"],"notes":["Month-to-date across the 3 reporting weeks of Oct 2026 (unique tickets reaching Done)."],"rows":[["Aleisha DeYoung","Senior Dev",47,"MAIN-10015, MAIN-10182, MAIN-10188, MAIN-10194, MAIN-10225, MAIN-10238, MAIN-10287, MAIN-10303, MAIN-10308, MAIN-10326, MAIN-10384, MAIN-10401, MAIN-10436, MAIN-10437, MAIN-10460, MAIN-10480, MAIN-10574, MAIN-10587, MAIN-10608, MAIN-10610, MAIN-10611, MAIN-7293, MAIN-7373, MAIN-9916, TIN-250, TIN-251, TIN-254, TIN-257, TIN-408, TIN-409, TIN-410, TIN-411, TIN-463, TIN-464, TIN-465, TIN-48, TIN-49, TIN-50, TIN-511, TIN-516, TIN-522, TIN-523, TIN-524, TIN-525, TIN-527, TIN-528, TIN-532"],["Erin Terre","Staff Engineer",33,"MAIN-10044, MAIN-10069, MAIN-10074, MAIN-10088, MAIN-10123, MAIN-10174, MAIN-10199, MAIN-10213, MAIN-10223, MAIN-10255, MAIN-10294, MAIN-10390, MAIN-10445, MAIN-10449, MAIN-10466, MAIN-10479, MAIN-10499, MAIN-10538, MAIN-10561, MAIN-10591, MAIN-10620, MAIN-10622, MAIN-10636, MAIN-8813, MAIN-9166, MAIN-9356, MAIN-9382, MAIN-9565, MAIN-9586, MAIN-9889, MAIN-9959, MAIN-9972, TIN-536"],["Britt Heyward","QA",28,"MAIN-10008, MAIN-10191, MAIN-10192, MAIN-10203, MAIN-10205, MAIN-10234, MAIN-10264, MAIN-10289, MAIN-10327, MAIN-10365, MAIN-10368, MAIN-10386, MAIN-10394, MAIN-10405, MAIN-10418, MAIN-10425, MAIN-10470, MAIN-10483, MAIN-10500, MAIN-10508, MAIN-10573, MAIN-10578, MAIN-10581, MAIN-10593, MAIN-10650, PNP-4832, PNP-4833, PNP-4834"],["Katherine Theos","QA",22,"CL-1247, CL-1252, CL-1254, CL-1418, CL-1451, MAIN-10040, MAIN-10041, MAIN-10104, MAIN-10275, MAIN-10277, MAIN-10283, MAIN-10284, MAIN-10320, MAIN-10330, MAIN-10331, MAIN-10333, MAIN-10420, MAIN-10526, MAIN-10603, MAIN-8358, MAIN-9509, MAIN-9824"],["Nherissa Dagal","QA",19,"MAIN-10250, MAIN-10300, MAIN-10301, MAIN-10316, MAIN-10356, MAIN-10373, MAIN-10457, MAIN-10490, MAIN-10491, MAIN-10492, MAIN-10518, MAIN-10537, MAIN-10565, MAIN-8177, MAIN-8198, MAIN-8304, MAIN-9265, MAIN-9297, MAIN-9711"],["Allen McAfee","Developer",14,"MAIN-10503, MAIN-8486, REP-174, REP-266, REP-271, TIN-497, TIN-505, TIN-506, TIN-514, TIN-515, TIN-520, TIN-521, TIN-534, TIN-558"],["Avery May","QA",13,"CL-1448, MAIN-10032, MAIN-10033, MAIN-10034, MAIN-10036, MAIN-10272, MAIN-10274, MAIN-10321, MAIN-10334, MAIN-10397, MAIN-9616, MAIN-9834, MAIN-9835"],["Halina Bobrykava","Senior Dev",13,"MM-170, MM-237, MM-363, MM-367, MM-369, MM-386, MM-395, MM-399, MM-74, MS-1061, MS-1799, MS-2281, MS-2287"],["Lavona Williams","Other",12,"MAIN-10226, MAIN-10235, MAIN-10381, MAIN-7213, MAIN-7222, MAIN-7252, MAIN-9076, MAIN-9354, MAIN-9788, MAIN-9882, MAIN-9950, MM-281"],["Quinn James","Developer",12,"MAIN-10079, MAIN-10118, MAIN-10262, MAIN-10398, MAIN-10415, MAIN-10493, MAIN-7846, MAIN-8247, MAIN-9112, MAIN-9607, MAIN-9923, MAIN-9947"],["Alex Secor","Jr Dev",11,"FL-755, FL-756, FL-757, FL-758, FL-759, FL-760, FL-762, FL-769, FL-772, MAIN-10161, MAIN-10506"],["Frank Hrach IV","Developer",11,"MAIN-10023, MAIN-10091, MAIN-10270, MAIN-10302, MAIN-10313, MAIN-10517, MAIN-7146, MAIN-8201, MAIN-8316, MAIN-8829, MAIN-9685"],["Nick Haile","Jr Dev",11,"PROG-262, PROG-265, PROG-266, PROG-277, PROG-278, PROG-286, PROG-287, PROG-293, PROG-344, PROG-357, PROG-358"],["Rachel Fein","Data Engineer",11,"REP-225, REP-260, REP-263, REP-267, REP-270, REP-279, REP-281, REP-283, REP-284, REP-286, REP-287"],["Brooke Caro","Data Engineer",10,"MAIN-10292, REP-1, REP-264, REP-268, REP-269, REP-273, REP-274, REP-275, REP-277, REP-282"],["Jared Rosenthal","QA",9,"MM-262, MM-302, MM-303, MM-318, MM-335, MM-339, MM-342, MM-362, MM-366"],["John Cauthen","Developer",9,"MAIN-10410, MAIN-7220, MAIN-7250, MAIN-7958, MAIN-8296, MAIN-9006, MAIN-9660, MAIN-9667, MAIN-9831"],["Rimon Berhe","Developer",9,"CL-1316, MAIN-10019, MAIN-10020, MAIN-10089, MAIN-10219, MAIN-10392, MAIN-9349, MAIN-9601, MAIN-9914"],["Sarah Criswell","Jr Dev",9,"MAIN-10173, MAIN-10453, MAIN-9389, MAIN-9597, MAIN-9630, MAIN-9782, MAIN-9855, MAIN-9857, MAIN-9860"],["Connor Yates","Developer",8,"MAIN-10009, MAIN-10125, MAIN-10295, MAIN-8824, MAIN-9117, MAIN-9581, MAIN-9587, MAIN-9873"],["Jeremy Lakatos","Developer",7,"MAIN-10241, MAIN-10249, MAIN-10261, MAIN-10363, MAIN-10367, MAIN-10497, MAIN-9865"],["JC Collins","Jr Dev",6,"MAIN-10231, MAIN-10467, MAIN-10469, MAIN-10498, MAIN-9943, MAIN-9982"],["Adam Koehler","Developer",5,"FL-735, MAIN-10177, MAIN-10383, MAIN-10426, MAIN-7908"],["Christian Cox","Developer",5,"MAIN-10576, MAIN-8381, MAIN-9349, MAIN-9895, MAIN-9926"],["David Swanson","Developer",5,"MM-314, MM-373, MS-2292, MS-2304, MS-2335"],["Michael Byers","Jr Dev",5,"MAIN-10003, MAIN-10069, MAIN-10148, MAIN-8167, MAIN-9221"],["Michael Paserba Tessari","Developer",5,"MAIN-8914, MAIN-9712, MAIN-9739, MAIN-9907, MAIN-9997"],["Amanda Esposito","Developer",4,"MAIN-10337, MAIN-8255, MAIN-8555, PNP-4855"],["Jenny Welk","QA",4,"MAIN-10520, MAIN-10523, MM-328, PNP-4829"],["Philippe Baraka","Jr Dev",4,"MAIN-10092, MAIN-10496, MAIN-9945, MAIN-9955"],["Alec Patterson","Developer",3,"MM-240, MM-311, MM-344"],["Anastasia Holt","Jr Dev",3,"MAIN-10149, MAIN-7085, MAIN-9116"],["Eddie Benedetti","Developer",3,"MAIN-10025, MAIN-6224, MAIN-8019"],["Eman Zindani","Developer",3,"MAIN-10001, MAIN-10007, MAIN-7384"],["Holland Cooper","Jr Dev",3,"MAIN-10567, MAIN-9794, MAIN-9978"],["Jawad Shakil","Jr Dev",3,"MM-346, MM-365, MM-370"],["Seth Burleson","Developer",3,"MAIN-9461, MAIN-9473, MAIN-9841"],["Amish Shah","Developer",2,"MM-364, MM-397"],["Brittany Grizzard","QA",2,"FL-741, FL-751"],["Colin Knecht","Developer",2,"MAIN-10012, MAIN-9430"],["Dustin White","Jr Dev",2,"MAIN-10210, MAIN-9682"],["Eric Stempert","Developer",2,"MAIN-10395, MAIN-6246"],["Kevin Nichols","Developer",2,"MAIN-10195, MAIN-9066"],["Lee Ann Robinson","QA",2,"MAIN-10222, MAIN-10372"],["Mike Thompson","Developer",2,"MAIN-10198, MAIN-9622"],["Scott Gallimore","Jr Dev",2,"MAIN-10452, PNP-4825"],["Jason LeZotte","QA",1,"MM-329"],["Noah LoCascio","QA",1,"MAIN-10103"],["Sarah Carlough","QA",1,"MAIN-10271"],["Zane Sorensen","Developer",1,"MS-2167"]]},"legend":["MARS Dev Team - Weekly Report, week of Mon 10/19/2026 - Fri 10/23/2026 (methodology per MARS Reporting Spec v7)","This run","Inputs: worklog (worklogs_19_10_2026_25_10_2026.xlsx, Data sheet), Issue History export (Issue_History_week_of_2026_10_19.xlsx), timecard PTO (PTO_Week_of_2026_10_19.xlsx), roster and Bounce Exclusion List from Project Knowledge.","Month-to-Date tab: the source workbook defers MTD to the final weekly run of the month, so the KB rolls it up here from this month's weekly reports (3 weeks so far). Weekly Summary, QA Closes and Raw Log reflect the report week only.","Scope caveat on the Issue History export: it holds essentially only events from 10/19-10/23 (plus ticket-creation rows); events from earlier in October are absent. Dev Closes / QA Closes and bounce credit therefore reflect this week only, not month-to-date, and hand-offs that happened before 10/19 are not visible. (KB note: the 'Closes - MTD' tab and the MTD roll-up union each week's export across Oct 2026 to recover month-to-date closes - 3 weeks so far.)","Unattributed closes: 156 of 258 distinct tickets closed in the window (60.5%) were not credited to anyone (no qualifying hand-off/direct-close event visible, resolved to a non-roster person, or to Unassigned). This is higher than the usual 35-45% range, consistent with the week-only export described above.","Bounce events detected in window (testing -> dev status, non-excluded-prefix tickets): 69. Credited to a tracked developer: 21. Not credited: 33 had no established dev-owner / Unassigned / non-roster owner; 13 self-moves; 0 instant reversals (same minute as the forward move); 0 automation; 2 credited to a role not tracked for bounces (QA/Other/etc.).","Bounce Exclusion List: 3 rows on file (PNP-4765 and MAIN-9633 on 9/15, MAIN-9601 on 9/18). None matched a bounce in this run's window; no exclusions applied from the list this week.","Batch-log exclusions (>12h on one ticket, one day): none this week. No person exceeded 12h total in a single day.","Excluded-prefix time (PSC/PS/MSP) removed from hours and ticket counts: Connor Yates 0.08h, Jenny Welk 1.08h, Lavona Williams 0.25h (also noted per row).","Not on roster, ignored: Beez Khumin-Taylor, Bricen Bennett, pam.barwick (worklog). Timecard rows for people not on the roster (e.g. Christin Albrecht, Ashton Anthony, Jameka Blanchard, Tyler Higgins, Sonya Madrigal, Andy Oates, Catherine Sanders) were ignored. The worklog \"Summary\" pseudo-user (aggregate block) was ignored.","Roster people with no worklog rows: John Cauthen (no time logged), Lee Ann Robinson (PTO all week). Both are listed with zeros.","Holidays: none in this week.","Combined-hours PTO rule: 19.5h of logged time was not added to Wk Total because PTO + logged reached 7.5h on a PTO day (Anastasia Holt 10/20 6.5h, Seth Burleson 10/22 6.0h, Brooke Caro 10/20 7.0h); each row's Notes says so.","QA Closes: no \"PARENT-KEY | QA\" sub-tickets were logged this week, so the tab is empty (see limitation on that tab).","Tabs","Weekly Summary (sorted: Bounce Flag HIGH>WATCH>OK/n/a, then Low Hours RED>ORANGE>OK, then hours logged descending); Dev Closes; QA Closes; Raw Log MM-DD (one per weekday, roster-only, post-exclusion); Legend. Helper columns R onward on Weekly Summary are hidden (inputs and formulas that drive the flags).","Hours model","Full workday 7.5h. Daily goal = weekly target / 5. Targets: Developer/Jr Dev/QA/Other 30; Data Engineer 25; Senior Dev 17.5 (shown 15-20); Staff Engineer 12.5 (shown 10-15); ranges use the midpoint. Excluded prefixes: PSC, PS, MSP.","PTO (timecard authoritative; every row counts as time away regardless of Benefit label; no Status column, so all rows treated as approved). Multi-hour requests are spread over consecutive weekdays at 7.5h/day from Request Start. PTO + logged >= 7.5h on a day that has a PTO entry = full PTO day (cell \"PTO\", green, goal 0, logged hours not added). Otherwise a partial PTO day: hours shown with a trailing *, goal = daily goal x (1 - PTO/7.5).","Low-logging shading (daily cells and Wk Total vs prorated goal/target): RED \u003c 50%; ORANGE 50-70%; OK > 70%.","Flags","Bounce Flag (Developer / Jr Dev / Senior Dev only): rate = distinct tickets bounced / (tickets worked UNION bounced), capped at 100%. HIGH > 25%, WATCH 15-25%, OK \u003c 15%. Bounce is credited to the ticket's dev-owner (assignee before the hand-off into testing), not the actor on the reversal row. Excluded: self-moves, Automation for Jira / Jira AI Agent, same-minute reversals, and Bounce Exclusion List matches (Ticket Key + exact timestamp).","Low Volume Flag (Developer / Jr Dev / QA): T = FLOOR(1.5 x full-day-equivalents worked); RED \u003c= T-2, ORANGE T-1..T+1, OK > T+1; T \u003c= 0 = OK. Full week, no time off: T=7 (RED \u003c=5, ORANGE 6-8, OK >8).","Low Hours Flag (all roles): Wk Total vs prorated target; RED \u003c 50%, ORANGE 50-70%, OK > 70%; target 0 = OK.","Attribution","Dev-owner locks in at a real hand-off from a dev-stage status into a testing/publish/staging status (assignee immediately before that row's reassignment; walking back over a tight \u003c=60s assignee-only row when the row's own assignee is static), or, only if no such hand-off exists anywhere in the ticket's history, at a direct dev-status -> Done closure. Once established it persists to the close. Tickets closed more than once in the window count once. Dev-stage statuses include AI Triage, Pending Programming, Pending 3rd Party, Waiting for customer and any other non-testing/publish status. The export abbreviates \"Awaiting Publish\" as \"Awaiting Pub\"; both treated as publish statuses.","Counts for Tickets Worked, Bounced, Bounce events, the union denominator and Dev Closes are computed by script from the changelog (a sequential state machine that cannot reasonably be a spreadsheet formula). Day cells, Wk Total, targets, rates and all three flags are live formulas."],"meta":{"expectedProrated":null,"expectedProratedByRole":null},"mtd":{"headers":["Name","Role","Exp (MTD h)","Logged (MTD h)","Util %","Tickets Worked","Dev Closes","Weeks"],"notes":["Synthesized roll-up: the source workbook has no MTD sheet, so these totals sum the 3 reporting weeks of Oct 2026 through 10-19 (weeks beginning 10-05, 10-12, 10-19).","Logged / Tickets / Dev Closes are summed across those weeks; Exp (MTD h) sums each week's Exp/wk; Util % = Logged / Exp. Dev Closes counts unique tickets reaching Done."],"rows":[["Tony Young","Jr Dev",90,101,112,10,0,3],["Quinn James","Developer",90,98.5,109,52,12,3],["Nick Haile","Jr Dev",90,98.3,109,23,11,3],["Zane Sorensen","Developer",90,89.5,99,20,1,3],["David Swanson","Developer",90,89,99,21,5,3],["Christian Cox","Developer",90,86,96,18,5,3],["Kevin Nichols","Developer",90,81.8,91,16,2,3],["Brooke Caro","Data Engineer",75,80,107,13,10,3],["Eric Stempert","Developer",90,77.2,86,19,2,3],["Scott Gallimore","Jr Dev",90,76.5,85,22,2,3],["Amanda Esposito","Developer",90,76,84,71,4,3],["Connor Yates","Developer",90,75.7,84,24,8,3],["Michael Paserba Tessari","Developer",90,75.6,84,25,5,3],["Jawad Shakil","Jr Dev",90,74.9,83,54,3,3],["JC Collins","Jr Dev",90,73.3,81,24,6,3],["Alex Secor","Jr Dev",90,72.9,81,41,11,3],["Frank Hrach IV","Developer",90,70.2,78,27,11,3],["Colin Knecht","Developer",75,70.2,94,30,2,3],["Nherissa Dagal","QA",90,69.3,77,60,19,3],["Sarah Criswell","Jr Dev",90,65.5,73,34,9,3],["Rachel Fein","Data Engineer",75,65,87,13,11,3],["Adam Koehler","Developer",90,63.6,71,55,5,3],["Michael Byers","Jr Dev",90,61.8,69,33,5,3],["Anastasia Holt","Jr Dev",90,60.8,68,20,3,3],["Philippe Baraka","Jr Dev",90,60.7,67,25,4,3],["Dustin White","Jr Dev",90,56.1,62,26,2,3],["Amish Shah","Developer",90,55.6,62,36,2,3],["Mike Thompson","Developer",90,55.5,62,19,2,3],["Eddie Benedetti","Developer",90,55.2,61,13,3,3],["Jimmy Harper","QA",90,49.1,55,33,0,3],["Sarah Carlough","QA",90,48.8,54,13,1,3],["Eman Zindani","Developer",90,48.2,54,13,3,3],["Seth Burleson","Developer",90,47.8,53,16,3,3],["Jason LeZotte","QA",90,45.3,50,57,1,3],["Rimon Berhe","Developer",75,45.1,60,18,9,3],["Noah LoCascio","QA",90,45.1,50,40,1,3],["Jenny Welk","QA",90,44.6,50,47,4,3],["Jared Rosenthal","QA",90,42.9,48,68,9,3],["Aleisha DeYoung","Senior Dev",52,42.2,80,53,47,3],["Holland Cooper","Jr Dev",90,40.4,45,12,3,3],["Erin Terre","Staff Engineer",38,39.1,104,78,33,3],["Jeremy Lakatos","Developer",90,36.2,40,28,7,3],["Allen McAfee","Developer",90,35.8,40,11,14,3],["Alec Patterson","Developer",90,34,38,7,3,3],["Britt Heyward","QA",90,32.9,37,28,28,3],["Brittany Grizzard","QA",90,29.9,33,32,2,3],["Katherine Theos","QA",90,25.9,29,33,22,3],["Halina Bobrykava","Senior Dev",52,23.9,46,13,13,3],["John Cauthen","Developer",90,23.4,26,8,9,3],["Lee Ann Robinson","QA",90,21.1,23,19,2,3],["Avery May","QA",90,19.2,21,22,13,3],["Lavona Williams","Other",90,8.3,9,18,12,3]]},"qaCloses":{"headers":["QA","Closed Count","Ticket Keys"],"note":"Limitation: QA closes are only captured when QA logged time on a sub-ticket titled \"PARENT-KEY | QA\" whose parent reached Done in the window. QA testing logged directly on the parent ticket (or on other QA-style tickets, e.g. FL \"| QA |\" tickets) is not captured. Window is the week of 10/19-10/25 only.","rows":[]},"raw":{"headers":["Day","User","Ticket","Hours"],"rows":[["10/19","Adam Koehler","MAIN-10408","0.33329999999999999"],["10/19","Adam Koehler","MAIN-8324","4"],["10/19","Aleisha DeYoung","MAIN-10397","0.75"],["10/19","Alex Secor","FL-737","1.1000000000000001"],["10/19","Alex Secor","FL-740","0.2"],["10/19","Alex Secor","FL-758","0.2"],["10/19","Alex Secor","FL-759","0.4"],["10/19","Alex Secor","FL-760","0.3"],["10/19","Alex Secor","FL-761","0.5"],["10/19","Alex Secor","MAIN-10233","0.7"],["10/19","Alex Secor","MAIN-10417","0.6"],["10/19","Allen McAfee","TIN-534","6"],["10/19","Amanda Esposito","MAIN-10288","1.5"],["10/19","Amanda Esposito","MAIN-10510","0.16669999999999999"],["10/19","Amanda Esposito","MAIN-6853","0.16669999999999999"],["10/19","Amanda Esposito","MAIN-9227","0.58330000000000004"],["10/19","Amanda Esposito","MAIN-9436","0.16669999999999999"],["10/19","Amanda Esposito","MAIN-9915","0.16669999999999999"],["10/19","Amanda Esposito","PNP-2079","0.16669999999999999"],["10/19","Amanda Esposito","PNP-2758","0.16669999999999999"],["10/19","Amanda Esposito","PNP-4618","1.25"],["10/19","Amish Shah","MM-1","0.66669999999999996"],["10/19","Amish Shah","MM-304","0.33329999999999999"],["10/19","Amish Shah","MS-2197","1.5"],["10/19","Amish Shah","MS-918","0.5"],["10/19","Anastasia Holt","MAIN-8211","6.9"],["10/19","Avery May","CL-1274","0.16669999999999999"],["10/19","Avery May","MAIN-10025","0.5"],["10/19","Avery May","MAIN-10397","2.3332999999999999"],["10/19","Britt Heyward","MAIN-10425","0.56669999999999998"],["10/19","Britt Heyward","MAIN-10500","0.26669999999999999"],["10/19","Britt Heyward","MAIN-10508","1.1499999999999999"],["10/19","Brooke Caro","REP-275","7"],["10/19","Christian Cox","MAIN-10076","0.33329999999999999"],["10/19","Christian Cox","MAIN-6538","6"],["10/19","Colin Knecht","CL-1274","0.16669999999999999"],["10/19","Colin Knecht","MAIN-10407","0.58330000000000004"],["10/19","Colin Knecht","MAIN-8540","5.5"],["10/19","Connor Yates","MAIN-10459","3"],["10/19","Connor Yates","MAIN-9657","3"],["10/19","David Swanson","MS-2271","4.5"],["10/19","David Swanson","MS-2326","1.5"],["10/19","Dustin White","MAIN-10153","1.5832999999999999"],["10/19","Dustin White","MAIN-10184","0.41670000000000001"],["10/19","Dustin White","MAIN-10443","2"],["10/19","Dustin White","MAIN-6227","0.25"],["10/19","Dustin White","MAIN-9786","1.0832999999999999"],["10/19","Eddie Benedetti","MAIN-10407","3.25"],["10/19","Eric Stempert","MAIN-10156","3"],["10/19","Eric Stempert","MAIN-10206","2"],["10/19","Eric Stempert","MAIN-10239","0.25"],["10/19","Eric Stempert","MAIN-10325","0.75"],["10/19","Erin Terre","MAIN-10213","1"],["10/19","Erin Terre","MAIN-10355","0.16669999999999999"],["10/19","Erin Terre","MAIN-10390","8.3299999999999999E-2"],["10/19","Erin Terre","MAIN-10449","0.16669999999999999"],["10/19","Erin Terre","MAIN-10499","0.16669999999999999"],["10/19","Erin Terre","MAIN-10512","8.3299999999999999E-2"],["10/19","Erin Terre","MAIN-9878","8.3299999999999999E-2"],["10/19","Holland Cooper","MAIN-9718","4.1500000000000004"],["10/19","JC Collins","CL-1391","2.5"],["10/19","JC Collins","MAIN-10421","0.75"],["10/19","JC Collins","MAIN-10498","2.4167000000000001"],["10/19","Jared Rosenthal","MM-271","0.33329999999999999"],["10/19","Jared Rosenthal","MM-304","1.9"],["10/19","Jared Rosenthal","MM-340","0.25"],["10/19","Jared Rosenthal","MM-368","0.25"],["10/19","Jared Rosenthal","MS-2122","0.75"],["10/19","Jared Rosenthal","MS-2326","0.6"],["10/19","Jason LeZotte","MM-252","0.33329999999999999"],["10/19","Jason LeZotte","MM-261","0.33329999999999999"],["10/19","Jason LeZotte","MM-273","8.3299999999999999E-2"],["10/19","Jason LeZotte","MM-285","1.0832999999999999"],["10/19","Jason LeZotte","MS-2144","0.91669999999999996"],["10/19","Jason LeZotte","MS-2146","1.0832999999999999"],["10/19","Jason LeZotte","MS-2173","1.0832999999999999"],["10/19","Jason LeZotte","MS-2242","0.58330000000000004"],["10/19","Jason LeZotte","MS-918","0.33329999999999999"],["10/19","Jawad Shakil","MM-252","0.3"],["10/19","Jawad Shakil","MM-327","0.63329999999999997"],["10/19","Jawad Shakil","MM-328","0.4"],["10/19","Jawad Shakil","MM-389","0.38329999999999997"],["10/19","Jawad Shakil","MS-1955","1.4167000000000001"],["10/19","Jawad Shakil","MS-2238","0.3"],["10/19","Jawad Shakil","MS-2319","1.4833000000000001"],["10/19","Jenny Welk","MAIN-10517","0.25"],["10/19","Jenny Welk","MAIN-10520","0.5"],["10/19","Jenny Welk","MAIN-10523","1"],["10/19","Jenny Welk","MAIN-8393","1.25"],["10/19","Jenny Welk","MAIN-9915","0.25"],["10/19","Jeremy Lakatos","MAIN-10408","3"],["10/19","Jeremy Lakatos","MAIN-10497","0.91669999999999996"],["10/19","Jeremy Lakatos","MAIN-8324","8.3299999999999999E-2"],["10/19","Jimmy Harper","MAIN-10173","1.75"],["10/19","Jimmy Harper","MAIN-10472","0.5"],["10/19","Jimmy Harper","MAIN-9136","0.58330000000000004"],["10/19","Jimmy Harper","MAIN-9912","1"],["10/19","Jimmy Harper","PNP-3747","2"],["10/19","Katherine Theos","MAIN-10153","1"],["10/19","Katherine Theos","MAIN-10421","0.2"],["10/19","Katherine Theos","MAIN-10443","1.1667000000000001"],["10/19","Katherine Theos","MAIN-10498","0.5"],["10/19","Kevin Nichols","MAIN-10298","3.7833000000000001"],["10/19","Lavona Williams","MAIN-7220","0.25"],["10/19","Lavona Williams","MAIN-9916","0.5"],["10/19","Michael Byers","MAIN-10168","0.8"],["10/19","Michael Byers","MAIN-10214","1.5"],["10/19","Michael Byers","MAIN-10396","0.86670000000000003"],["10/19","Michael Byers","MAIN-8167","0.35"],["10/19","Michael Byers","MAIN-8264","0.81669999999999998"],["10/19","Michael Byers","MAIN-9136","1.0667"],["10/19","Michael Byers","PNP-3832","1.0832999999999999"],["10/19","Michael Paserba Tessari","MAIN-5988","0.58330000000000004"],["10/19","Michael Paserba Tessari","MAIN-9227","2.5"],["10/19","Michael Paserba Tessari","MAIN-9897","0.5"],["10/19","Michael Paserba Tessari","MAIN-9976","2"],["10/19","Mike Thompson","MAIN-10218","4"],["10/19","Mike Thompson","MAIN-10377","2.5"],["10/19","Nherissa Dagal","MAIN-10389","5.6666999999999996"],["10/19","Nherissa Dagal","MAIN-10514","0.16669999999999999"],["10/19","Nherissa Dagal","MAIN-10516","0.25"],["10/19","Nherissa Dagal","MAIN-10518","0.16669999999999999"],["10/19","Nick Haile","MAIN-9762","7"],["10/19","Nick Haile","PROG-369","0.5"],["10/19","Noah LoCascio","MAIN-10168","0.48330000000000001"],["10/19","Noah LoCascio","MAIN-8167","0.88329999999999997"],["10/19","Noah LoCascio","MAIN-9517","1.6"],["10/19","Noah LoCascio","MAIN-9897","0.85"],["10/19","Philippe Baraka","MAIN-10266","1"],["10/19","Philippe Baraka","MAIN-10475","2.5"],["10/19","Philippe Baraka","MAIN-8227","0.5"],["10/19","Quinn James","MAIN-10237","3.8332999999999999"],["10/19","Quinn James","MAIN-10493","2.4167000000000001"],["10/19","Quinn James","MAIN-7045","0.66669999999999996"],["10/19","Rachel Fein","REP-281","4"],["10/19","Rimon Berhe","MAIN-10021","0.51670000000000005"],["10/19","Sarah Carlough","MAIN-10108","0.6"],["10/19","Sarah Carlough","MAIN-10266","0.38329999999999997"],["10/19","Sarah Criswell","MAIN-10173","0.35"],["10/19","Sarah Criswell","MAIN-10224","3.15"],["10/19","Sarah Criswell","MAIN-9517","0.1167"],["10/19","Sarah Criswell","MAIN-9864","0.33329999999999999"],["10/19","Sarah Criswell","PNP-4618","0.4"],["10/19","Scott Gallimore","MAIN-6853","5.65"],["10/19","Seth Burleson","MAIN-9842","3"],["10/19","Seth Burleson","MAIN-9890","3"],["10/19","Tony Young","MAIN-9175","2"],["10/19","Tony Young","MAIN-9186","4"],["10/19","Zane Sorensen","MS-2122","1"],["10/19","Zane Sorensen","MS-2234","2"],["10/19","Zane Sorensen","MS-2283","2"],["10/19","Zane Sorensen","MS-2314","1"],["10/20","Adam Koehler","FL-742","2"],["10/20","Adam Koehler","MAIN-10026","2"],["10/20","Adam Koehler","MAIN-10406","0.33329999999999999"],["10/20","Adam Koehler","MAIN-10408","0.5"],["10/20","Adam Koehler","MAIN-10528","0.33329999999999999"],["10/20","Aleisha DeYoung","TIN-516","2"],["10/20","Alex Secor","FL-755","0.4"],["10/20","Alex Secor","FL-756","1.1000000000000001"],["10/20","Alex Secor","FL-757","0.8"],["10/20","Alex Secor","FL-761","1.2"],["10/20","Alex Secor","MAIN-10417","0.5"],["10/20","Alex Secor","MAIN-10506","0.2"],["10/20","Alex Secor","MAIN-10507","0.2"],["10/20","Allen McAfee","MAIN-10503","3"],["10/20","Allen McAfee","TIN-534","2"],["10/20","Amanda Esposito","MAIN-10485","0.16669999999999999"],["10/20","Amanda Esposito","MAIN-6853","0.83330000000000004"],["10/20","Amanda Esposito","MAIN-9473","8.3299999999999999E-2"],["10/20","Amanda Esposito","MAIN-9890","0.16669999999999999"],["10/20","Amanda Esposito","PNP-4472","0.33329999999999999"],["10/20","Amanda Esposito","PNP-4855","2"],["10/20","Amish Shah","MS-2197","2"],["10/20","Amish Shah","MS-2322","1.5"],["10/20","Anastasia Holt","MAIN-10172","6.5"],["10/20","Avery May","MAIN-10218","2.5"],["10/20","Brittany Grizzard","FL-758","0.23330000000000001"],["10/20","Brittany Grizzard","FL-759","0.3"],["10/20","Brittany Grizzard","FL-760","0.3"],["10/20","Brittany Grizzard","MAIN-10406","0.73329999999999995"],["10/20","Brittany Grizzard","MAIN-10408","1.1667000000000001"],["10/20","Brittany Grizzard","MAIN-8628","1.0667"],["10/20","Brooke Caro","REP-275","2"],["10/20","Brooke Caro","REP-285","5"],["10/20","Christian Cox","MAIN-6538","3"],["10/20","Christian Cox","MAIN-7617","4"],["10/20","Colin Knecht","CL-1396","3.5"],["10/20","Colin Knecht","MAIN-10525","0.41670000000000001"],["10/20","Connor Yates","MAIN-7318","4.5"],["10/20","Connor Yates","MAIN-8167","8.3299999999999999E-2"],["10/20","Connor Yates","MAIN-8469","2"],["10/20","David Swanson","MS-2271","3.5"],["10/20","David Swanson","MS-2326","0.5"],["10/20","David Swanson","MS-2335","2"],["10/20","Dustin White","MAIN-10184","0.58330000000000004"],["10/20","Dustin White","MAIN-9786","4"],["10/20","Eddie Benedetti","MAIN-10113","0.5"],["10/20","Eddie Benedetti","MAIN-10228","3.25"],["10/20","Eddie Benedetti","MAIN-10407","0.5"],["10/20","Eman Zindani","MAIN-10197","2"],["10/20","Eman Zindani","MAIN-10501","1"],["10/20","Eman Zindani","MAIN-7384","1.5"],["10/20","Eric Stempert","MAIN-10206","2.5"],["10/20","Eric Stempert","MAIN-10239","1"],["10/20","Eric Stempert","MAIN-10325","1.5"],["10/20","Eric Stempert","MAIN-10535","1"],["10/20","Erin Terre","MAIN-10173","8.3299999999999999E-2"],["10/20","Erin Terre","MAIN-10213","0.1167"],["10/20","Erin Terre","MAIN-10390","8.3299999999999999E-2"],["10/20","Erin Terre","MAIN-10512","8.3299999999999999E-2"],["10/20","Erin Terre","MAIN-9166","2.0832999999999999"],["10/20","Erin Terre","MAIN-9795","8.3299999999999999E-2"],["10/20","Frank Hrach IV","MAIN-10544","1"],["10/20","Frank Hrach IV","MAIN-8393","3"],["10/20","Halina Bobrykava","MM-184","1"],["10/20","Holland Cooper","MAIN-10024","1.5832999999999999"],["10/20","Holland Cooper","MAIN-9816","3"],["10/20","JC Collins","MAIN-10467","2.15"],["10/20","JC Collins","MAIN-10525","3.0832999999999999"],["10/20","JC Collins","MAIN-9953","1.4333"],["10/20","Jared Rosenthal","MS-2311","0.16669999999999999"],["10/20","Jared Rosenthal","MS-2312","0.66669999999999996"],["10/20","Jared Rosenthal","MS-2326","0.58330000000000004"],["10/20","Jason LeZotte","MS-2149","0.75"],["10/20","Jason LeZotte","MS-2150","2.5"],["10/20","Jason LeZotte","MS-2238","0.4"],["10/20","Jason LeZotte","MS-2320","0.4"],["10/20","Jawad Shakil","MM-327","0.6"],["10/20","Jawad Shakil","MM-388","0.68330000000000002"],["10/20","Jawad Shakil","MM-389","0.2"],["10/20","Jawad Shakil","MM-391","0.7"],["10/20","Jawad Shakil","MM-392","0.7833"],["10/20","Jawad Shakil","MS-1955","0.51670000000000005"],["10/20","Jawad Shakil","MS-2319","0.75"],["10/20","Jenny Welk","MAIN-10370","0.75"],["10/20","Jenny Welk","MAIN-10496","1.5"],["10/20","Jenny Welk","MAIN-10500","0.25"],["10/20","Jenny Welk","MAIN-10544","0.58330000000000004"],["10/20","Jenny Welk","MAIN-8645","0.5"],["10/20","Jeremy Lakatos","MAIN-10393","1.75"],["10/20","Jeremy Lakatos","MAIN-10406","0.16669999999999999"],["10/20","Jeremy Lakatos","MAIN-10408","3.25"],["10/20","Jeremy Lakatos","MAIN-10502","1"],["10/20","Jimmy Harper","MAIN-10042","0.75"],["10/20","Jimmy Harper","MAIN-10224","0.75"],["10/20","Jimmy Harper","MAIN-9136","0.41670000000000001"],["10/20","Jimmy Harper","PNP-3747","2"],["10/20","Katherine Theos","MAIN-10467","0.16669999999999999"],["10/20","Katherine Theos","MAIN-10469","0.25"],["10/20","Katherine Theos","MAIN-10526","0.5"],["10/20","Katherine Theos","MAIN-10527","0.33329999999999999"],["10/20","Katherine Theos","MAIN-10540","0.33329999999999999"],["10/20","Katherine Theos","MAIN-10557","0.33329999999999999"],["10/20","Katherine Theos","MAIN-9786","0.83330000000000004"],["10/20","Kevin Nichols","MAIN-6600","4"],["10/20","Kevin Nichols","MAIN-9889","1.1000000000000001"],["10/20","Lavona Williams","MAIN-10410","4"],["10/20","Lavona Williams","MM-237","0.25"],["10/20","Michael Byers","MAIN-10361","0.86670000000000003"],["10/20","Michael Byers","MAIN-10396","1.65"],["10/20","Michael Byers","MAIN-8167","0.05"],["10/20","Michael Byers","MAIN-8264","2.8833000000000002"],["10/20","Michael Byers","PNP-3832","0.93330000000000002"],["10/20","Michael Paserba Tessari","MAIN-8914","3"],["10/20","Michael Paserba Tessari","MAIN-9521","1"],["10/20","Michael Paserba Tessari","MAIN-9976","1.5"],["10/20","Mike Thompson","MAIN-10218","2.5"],["10/20","Mike Thompson","MAIN-8464","2"],["10/20","Mike Thompson","MAIN-9979","1.5"],["10/20","Nherissa Dagal","MAIN-10250","0.16669999999999999"],["10/20","Nherissa Dagal","MAIN-10490","0.5"],["10/20","Nherissa Dagal","MAIN-10516","1.25"],["10/20","Nherissa Dagal","MAIN-10518","0.16669999999999999"],["10/20","Nherissa Dagal","MAIN-10534","0.33329999999999999"],["10/20","Nherissa Dagal","MAIN-10537","0.16669999999999999"],["10/20","Nherissa Dagal","MAIN-10565","0.33329999999999999"],["10/20","Nherissa Dagal","PROG-351","0.75"],["10/20","Nherissa Dagal","PROG-369","0.33329999999999999"],["10/20","Nick Haile","MAIN-10156","0.5"],["10/20","Nick Haile","PROG-344","4.5"],["10/20","Nick Haile","PROG-369","2.25"],["10/20","Noah LoCascio","PNP-4849","0.51670000000000005"],["10/20","Noah LoCascio","PNP-4851","0.7167"],["10/20","Noah LoCascio","PNP-4853","2.3332999999999999"],["10/20","Philippe Baraka","MAIN-10456","1.5"],["10/20","Philippe Baraka","MAIN-10496","3.5"],["10/20","Quinn James","MAIN-10218","8.3299999999999999E-2"],["10/20","Quinn James","MAIN-10402","6.25"],["10/20","Quinn James","MAIN-9561","0.5"],["10/20","Quinn James","MAIN-9699","0.33329999999999999"],["10/20","Rachel Fein","REP-281","3"],["10/20","Rachel Fein","REP-286","1"],["10/20","Sarah Criswell","MAIN-10173","1.9333"],["10/20","Sarah Criswell","MAIN-10221","0.85"],["10/20","Sarah Criswell","MAIN-10224","1.6833"],["10/20","Sarah Criswell","MAIN-6252","0.43330000000000002"],["10/20","Sarah Criswell","MAIN-9861","0.63329999999999997"],["10/20","Scott Gallimore","MAIN-10310","6.5167000000000002"],["10/20","Scott Gallimore","MAIN-6561","1.0667"],["10/20","Seth Burleson","MAIN-6538","1"],["10/20","Seth Burleson","MAIN-9841","0.5"],["10/20","Tony Young","MAIN-9175","4"],["10/20","Tony Young","MAIN-9186","8"],["10/20","Zane Sorensen","MS-2234","2"],["10/20","Zane Sorensen","MS-2283","4"],["10/21","Adam Koehler","FL-752","1"],["10/21","Adam Koehler","MAIN-10026","0.5"],["10/21","Adam Koehler","MAIN-10366","0.16669999999999999"],["10/21","Adam Koehler","MAIN-10530","0.25"],["10/21","Adam Koehler","MAIN-10558","0.16669999999999999"],["10/21","Adam Koehler","MAIN-10564","8.3299999999999999E-2"],["10/21","Adam Koehler","MAIN-8324","1.5"],["10/21","Adam Koehler","MAIN-8628","0.25"],["10/21","Adam Koehler","MAIN-9213","0.16669999999999999"],["10/21","Aleisha DeYoung","MAIN-10105","1"],["10/21","Alex Secor","FL-754","2.6"],["10/21","Alex Secor","FL-772","1.1000000000000001"],["10/21","Alex Secor","FL-773","0.3"],["10/21","Alex Secor","MAIN-10506","0.3"],["10/21","Allen McAfee","MAIN-10503","3"],["10/21","Allen McAfee","TIN-558","3"],["10/21","Amanda Esposito","MAIN-7617","0.33329999999999999"],["10/21","Amanda Esposito","MAIN-8255","0.25"],["10/21","Amanda Esposito","MAIN-9218","8.3299999999999999E-2"],["10/21","Amanda Esposito","MAIN-9976","0.33329999999999999"],["10/21","Amanda Esposito","PNP-4349","0.25"],["10/21","Amanda Esposito","PNP-4618","1.25"],["10/21","Amanda Esposito","PNP-4855","4.1666999999999996"],["10/21","Amish Shah","MM-393","1.5"],["10/21","Amish Shah","MM-396","1"],["10/21","Amish Shah","MM-397","1.25"],["10/21","Amish Shah","MS-2322","1.25"],["10/21","Anastasia Holt","MAIN-9556","2.5"],["10/21","Anastasia Holt","MAIN-9665","0.68330000000000002"],["10/21","Anastasia Holt","MAIN-9701","3.5"],["10/21","Avery May","MAIN-10577","0.43330000000000002"],["10/21","Avery May","MAIN-10603","0.25"],["10/21","Britt Heyward","MAIN-10508","0.25"],["10/21","Britt Heyward","MAIN-10573","0.58330000000000004"],["10/21","Britt Heyward","MAIN-10578","1.2833000000000001"],["10/21","Britt Heyward","MAIN-10581","1.25"],["10/21","Britt Heyward","MAIN-10593","0.2"],["10/21","Brittany Grizzard","FL-755","0.15"],["10/21","Brittany Grizzard","FL-756","0.31669999999999998"],["10/21","Brittany Grizzard","MAIN-10393","1.2666999999999999"],["10/21","Brittany Grizzard","MAIN-10408","1.55"],["10/21","Brittany Grizzard","MAIN-10502","0.58330000000000004"],["10/21","Brittany Grizzard","MAIN-10506","0.2167"],["10/21","Christian Cox","MAIN-10576","1"],["10/21","Christian Cox","MAIN-6538","3"],["10/21","Christian Cox","MAIN-7617","3"],["10/21","Colin Knecht","CL-1396","6.75"],["10/21","Colin Knecht","MAIN-6226","0.83330000000000004"],["10/21","Connor Yates","MAIN-10042","0.16669999999999999"],["10/21","Connor Yates","MAIN-7318","3.5"],["10/21","Connor Yates","MAIN-8455","1"],["10/21","Connor Yates","MAIN-8469","2"],["10/21","David Swanson","MS-2150","0.5"],["10/21","David Swanson","MS-2271","4.5"],["10/21","David Swanson","MS-2324","1"],["10/21","Dustin White","MAIN-10197","0.66669999999999996"],["10/21","Dustin White","MAIN-9786","0.75"],["10/21","Eddie Benedetti","MAIN-10113","4.5"],["10/21","Eddie Benedetti","MAIN-9188","0.5"],["10/21","Eman Zindani","CL-1391","0.5"],["10/21","Eman Zindani","MAIN-10197","2"],["10/21","Eric Stempert","MAIN-10206","2"],["10/21","Eric Stempert","MAIN-10239","1"],["10/21","Eric Stempert","MAIN-10325","0.25"],["10/21","Eric Stempert","MAIN-9400","2.6667000000000001"],["10/21","Erin Terre","MAIN-10213","0.16669999999999999"],["10/21","Erin Terre","MAIN-10223","0.16669999999999999"],["10/21","Erin Terre","MAIN-10591","8.3299999999999999E-2"],["10/21","Erin Terre","MAIN-9166","0.75"],["10/21","Erin Terre","MAIN-9356","8.3299999999999999E-2"],["10/21","Erin Terre","MAIN-9889","0.25"],["10/21","Erin Terre","TIN-536","0.25"],["10/21","Frank Hrach IV","MAIN-10517","1"],["10/21","Frank Hrach IV","MAIN-8393","2.5"],["10/21","Frank Hrach IV","MAIN-8645","1.25"],["10/21","Halina Bobrykava","MM-386","1"],["10/21","Halina Bobrykava","MM-390","0.2"],["10/21","Halina Bobrykava","MM-395","2"],["10/21","Halina Bobrykava","MS-2309","0.1"],["10/21","Holland Cooper","MAIN-10552","2.25"],["10/21","Holland Cooper","MAIN-10567","2.25"],["10/21","Holland Cooper","MAIN-9816","0.41670000000000001"],["10/21","JC Collins","CL-1391","0.18329999999999999"],["10/21","JC Collins","MAIN-10467","1.8332999999999999"],["10/21","JC Collins","MAIN-10469","3.4167000000000001"],["10/21","JC Collins","MAIN-10525","0.65"],["10/21","Jared Rosenthal","MM-215","0.25"],["10/21","Jared Rosenthal","MM-266","0.25"],["10/21","Jared Rosenthal","MM-360","0.5"],["10/21","Jared Rosenthal","MM-390","0.83330000000000004"],["10/21","Jared Rosenthal","MS-2308","0.33329999999999999"],["10/21","Jared Rosenthal","MS-2309","0.16669999999999999"],["10/21","Jared Rosenthal","MS-2310","0.25"],["10/21","Jason LeZotte","MAIN-9588","0.25"],["10/21","Jason LeZotte","MM-337","8.3299999999999999E-2"],["10/21","Jason LeZotte","MS-2150","1.3332999999999999"],["10/21","Jason LeZotte","MS-2232","1.2"],["10/21","Jason LeZotte","MS-2280","0.33329999999999999"],["10/21","Jawad Shakil","MM-388","0.68330000000000002"],["10/21","Jawad Shakil","MM-389","0.3"],["10/21","Jawad Shakil","MM-391","1.7833000000000001"],["10/21","Jawad Shakil","MM-392","1.1833"],["10/21","Jawad Shakil","MS-2319","0.15"],["10/21","Jenny Welk","MAIN-10496","1.1667000000000001"],["10/21","Jenny Welk","MAIN-7125","0.16669999999999999"],["10/21","Jenny Welk","MM-307","0.16669999999999999"],["10/21","Jenny Welk","MM-337","0.25"],["10/21","Jenny Welk","MM-391","0.75"],["10/21","Jenny Welk","MM-392","0.25"],["10/21","Jeremy Lakatos","MAIN-10393","1.0832999999999999"],["10/21","Jeremy Lakatos","MAIN-10408","1"],["10/21","Jeremy Lakatos","MAIN-10539","1.5"],["10/21","Jimmy Harper","MAIN-10224","1.0832999999999999"],["10/21","Jimmy Harper","MAIN-10361","0.75"],["10/21","Jimmy Harper","MAIN-8264","1.9167000000000001"],["10/21","Jimmy Harper","PNP-3832","1.1667000000000001"],["10/21","Katherine Theos","MAIN-10575","0.41670000000000001"],["10/21","Katherine Theos","MAIN-10580","0.33329999999999999"],["10/21","Katherine Theos","MAIN-9786","1.3332999999999999"],["10/21","Kevin Nichols","MAIN-10298","4.6500000000000004"],["10/21","Kevin Nichols","MAIN-9889","0.5333"],["10/21","Michael Byers","MAIN-10214","0.4667"],["10/21","Michael Byers","MAIN-10349","0.7"],["10/21","Michael Byers","MAIN-10361","0.33329999999999999"],["10/21","Michael Byers","MAIN-10396","1.8332999999999999"],["10/21","Michael Byers","MAIN-8264","1.4167000000000001"],["10/21","Michael Byers","PNP-3832","0.5"],["10/21","Michael Paserba Tessari","MAIN-10522","0.5"],["10/21","Michael Paserba Tessari","MAIN-10555","0.16669999999999999"],["10/21","Michael Paserba Tessari","MAIN-9976","5"],["10/21","Mike Thompson","MAIN-10377","1"],["10/21","Mike Thompson","MAIN-8464","1"],["10/21","Mike Thompson","MAIN-9885","3.5"],["10/21","Nherissa Dagal","MAIN-10427","3"],["10/21","Nherissa Dagal","MAIN-10490","1.5"],["10/21","Nherissa Dagal","MAIN-10518","0.58330000000000004"],["10/21","Nherissa Dagal","MAIN-10534","1"],["10/21","Nherissa Dagal","MAIN-10535","0.5"],["10/21","Nherissa Dagal","MAIN-10565","0.25"],["10/21","Nick Haile","MAIN-10556","2"],["10/21","Nick Haile","MAIN-9777","1.5"],["10/21","Nick Haile","PROG-344","3"],["10/21","Noah LoCascio","MAIN-9517","1"],["10/21","Noah LoCascio","PNP-4843","1.3833"],["10/21","Noah LoCascio","PNP-4844","0.63329999999999997"],["10/21","Noah LoCascio","PNP-4845","0.68330000000000002"],["10/21","Noah LoCascio","PNP-4852","0.95"],["10/21","Noah LoCascio","PNP-4855","8.3299999999999999E-2"],["10/21","Philippe Baraka","MAIN-10455","2"],["10/21","Philippe Baraka","MAIN-9955","0.5"],["10/21","Quinn James","MAIN-10402","7"],["10/21","Rachel Fein","REP-281","4"],["10/21","Rachel Fein","REP-287","1"],["10/21","Rimon Berhe","MAIN-9072","1.8667"],["10/21","Rimon Berhe","MAIN-9360","3.6166999999999998"],["10/21","Rimon Berhe","PNP-4418","1.6667000000000001"],["10/21","Sarah Criswell","MAIN-10224","1.1000000000000001"],["10/21","Sarah Criswell","MAIN-9030","2.0832999999999999"],["10/21","Sarah Criswell","MAIN-9218","0.2833"],["10/21","Sarah Criswell","MAIN-9861","2.0333000000000001"],["10/21","Scott Gallimore","MAIN-6561","2.0167000000000002"],["10/21","Seth Burleson","MAIN-10201","6"],["10/21","Tony Young","MAIN-9175","6"],["10/21","Zane Sorensen","MS-2234","3"],["10/21","Zane Sorensen","MS-2280","2"],["10/21","Zane Sorensen","MS-2283","1"],["10/22","Adam Koehler","FL-742","0.5"],["10/22","Adam Koehler","FL-752","0.5"],["10/22","Adam Koehler","FL-765","0.5"],["10/22","Adam Koehler","FL-771","2"],["10/22","Adam Koehler","MAIN-10026","1.5"],["10/22","Adam Koehler","MAIN-10497","0.25"],["10/22","Alec Patterson","MS-2327","5"],["10/22","Aleisha DeYoung","MAIN-10182","0.5"],["10/22","Aleisha DeYoung","MAIN-10480","1"],["10/22","Aleisha DeYoung","MAIN-10587","8.3299999999999999E-2"],["10/22","Aleisha DeYoung","MAIN-10608","0.16669999999999999"],["10/22","Aleisha DeYoung","MAIN-10611","0.16669999999999999"],["10/22","Aleisha DeYoung","MAIN-9916","0.5"],["10/22","Alex Secor","FL-762","0.7"],["10/22","Alex Secor","FL-766","0.7"],["10/22","Alex Secor","FL-768","0.8"],["10/22","Alex Secor","FL-769","1.6"],["10/22","Alex Secor","FL-772","1.5"],["10/22","Allen McAfee","TIN-519","3"],["10/22","Amanda Esposito","MAIN-10173","2.1667000000000001"],["10/22","Amanda Esposito","MAIN-10576","0.25"],["10/22","Amanda Esposito","MAIN-10609","8.3299999999999999E-2"],["10/22","Amanda Esposito","MAIN-6186","8.3299999999999999E-2"],["10/22","Amanda Esposito","MAIN-6561","0.33329999999999999"],["10/22","Amanda Esposito","MAIN-6853","0.25"],["10/22","Amanda Esposito","MAIN-7819","0.83330000000000004"],["10/22","Amanda Esposito","MAIN-8469","8.3299999999999999E-2"],["10/22","Amanda Esposito","PNP-3770","2"],["10/22","Amanda Esposito","PNP-4349","0.41670000000000001"],["10/22","Amish Shah","MM-372","1.5"],["10/22","Amish Shah","MM-380","1.5"],["10/22","Amish Shah","MM-398","0.5"],["10/22","Amish Shah","MS-2322","1"],["10/22","Avery May","CL-1396","0.5"],["10/22","Avery May","MAIN-10218","0.33329999999999999"],["10/22","Avery May","MAIN-10607","0.25"],["10/22","Britt Heyward","MAIN-10581","1.3"],["10/22","Brittany Grizzard","FL-768","0.4"],["10/22","Brittany Grizzard","FL-771","0.5"],["10/22","Brittany Grizzard","FL-772","0.7833"],["10/22","Brooke Caro","REP-275","6"],["10/22","Christian Cox","MAIN-10576","1"],["10/22","Christian Cox","MAIN-6538","3"],["10/22","Christian Cox","MAIN-7617","2"],["10/22","Colin Knecht","CL-1400","5"],["10/22","Colin Knecht","MAIN-9962","0.75"],["10/22","Connor Yates","MAIN-10042","1.5"],["10/22","Connor Yates","MAIN-10201","1"],["10/22","Connor Yates","MAIN-10576","0.33329999999999999"],["10/22","Connor Yates","MAIN-8469","3"],["10/22","David Swanson","MS-2150","0.5"],["10/22","David Swanson","MS-2271","5"],["10/22","Dustin White","MAIN-10596","0.83330000000000004"],["10/22","Eman Zindani","MAIN-10197","1"],["10/22","Eman Zindani","MAIN-10501","0.66669999999999996"],["10/22","Eman Zindani","MAIN-9995","1"],["10/22","Eric Stempert","MAIN-10206","0.25"],["10/22","Eric Stempert","MAIN-9186","2"],["10/22","Eric Stempert","MAIN-9400","4.5"],["10/22","Erin Terre","MAIN-10236","1.0832999999999999"],["10/22","Erin Terre","MAIN-10538","8.3299999999999999E-2"],["10/22","Erin Terre","MAIN-10620","8.3299999999999999E-2"],["10/22","Erin Terre","MAIN-10621","8.3299999999999999E-2"],["10/22","Erin Terre","MAIN-10622","8.3299999999999999E-2"],["10/22","Erin Terre","MAIN-9889","0.5"],["10/22","Erin Terre","TIN-536","8.3299999999999999E-2"],["10/22","Frank Hrach IV","MAIN-10612","0.25"],["10/22","Frank Hrach IV","MAIN-10616","3"],["10/22","Frank Hrach IV","MAIN-7153","1.5"],["10/22","Halina Bobrykava","MM-372","2"],["10/22","Halina Bobrykava","MS-2191","2"],["10/22","Holland Cooper","MAIN-10117","0.7"],["10/22","Holland Cooper","MAIN-10552","3.5"],["10/22","JC Collins","CL-1391","5.6"],["10/22","JC Collins","MAIN-10469","6.6699999999999995E-2"],["10/22","Jared Rosenthal","MM-1","0.5333"],["10/22","Jared Rosenthal","MM-266","0.4667"],["10/22","Jared Rosenthal","MM-360","0.5"],["10/22","Jared Rosenthal","MM-390","0.61670000000000003"],["10/22","Jason LeZotte","MAIN-9588","1.75"],["10/22","Jason LeZotte","MS-2238","1.35"],["10/22","Jawad Shakil","MM-327","0.63329999999999997"],["10/22","Jawad Shakil","MM-384","0.56669999999999998"],["10/22","Jawad Shakil","MM-388","1.05"],["10/22","Jawad Shakil","MM-391","0.36670000000000003"],["10/22","Jawad Shakil","MM-392","0.26669999999999999"],["10/22","Jawad Shakil","MM-403","0.63329999999999997"],["10/22","Jawad Shakil","MS-1991","0.68330000000000002"],["10/22","Jawad Shakil","MS-2238","0.48330000000000001"],["10/22","Jenny Welk","MAIN-10612","0.41670000000000001"],["10/22","Jenny Welk","MAIN-8393","1"],["10/22","Jenny Welk","MM-307","0.16669999999999999"],["10/22","Jenny Welk","MS-2322","1.6667000000000001"],["10/22","Jeremy Lakatos","FL-763","0.5"],["10/22","Jeremy Lakatos","FL-764","0.5"],["10/22","Jeremy Lakatos","FL-770","0.5"],["10/22","Jeremy Lakatos","MAIN-10497","0.25"],["10/22","Jimmy Harper","MAIN-10361","0.91669999999999996"],["10/22","Jimmy Harper","MAIN-9360","1.75"],["10/22","Jimmy Harper","PNP-3747","1"],["10/22","Katherine Theos","MAIN-10525","0.75"],["10/22","Katherine Theos","MAIN-10596","0.75"],["10/22","Katherine Theos","MAIN-10604","0.41670000000000001"],["10/22","Kevin Nichols","MAIN-10298","5.75"],["10/22","Lavona Williams","MAIN-9918","0.5"],["10/22","Michael Byers","MAIN-10214","0.5"],["10/22","Michael Byers","MAIN-10221","3"],["10/22","Michael Byers","MAIN-10349","1.7166999999999999"],["10/22","Michael Byers","MAIN-10361","0.2833"],["10/22","Michael Paserba Tessari","MAIN-10522","5"],["10/22","Michael Paserba Tessari","MAIN-9976","0.25"],["10/22","Mike Thompson","MAIN-10218","1"],["10/22","Mike Thompson","MAIN-8649","2.5"],["10/22","Mike Thompson","MAIN-9885","2"],["10/22","Nherissa Dagal","MAIN-10389","0.5"],["10/22","Nherissa Dagal","MAIN-10490","1.5"],["10/22","Nherissa Dagal","MAIN-10516","0.16669999999999999"],["10/22","Nherissa Dagal","MAIN-10534","1"],["10/22","Nherissa Dagal","MAIN-10615","0.25"],["10/22","Nherissa Dagal","MAIN-10619","0.33329999999999999"],["10/22","Nherissa Dagal","PROG-344","0.5"],["10/22","Nherissa Dagal","PROG-359","0.05"],["10/22","Nick Haile","PROG-344","2"],["10/22","Nick Haile","PROG-350","4"],["10/22","Noah LoCascio","PNP-4846","1.3"],["10/22","Noah LoCascio","PNP-4847","1.05"],["10/22","Noah LoCascio","PNP-4848","0.4667"],["10/22","Noah LoCascio","PNP-4850","0.61670000000000003"],["10/22","Quinn James","MAIN-10544","0.58330000000000004"],["10/22","Quinn James","MAIN-10614","8.3299999999999999E-2"],["10/22","Quinn James","MAIN-7031","1.3332999999999999"],["10/22","Quinn James","MAIN-7045","2"],["10/22","Rimon Berhe","PNP-4857","2.8167"],["10/22","Sarah Criswell","MAIN-10173","4.5167000000000002"],["10/22","Scott Gallimore","MAIN-5980","2.35"],["10/22","Scott Gallimore","MAIN-6561","3.6333000000000002"],["10/22","Seth Burleson","MAIN-10201","6"],["10/22","Tony Young","MAIN-9175","6"],["10/22","Zane Sorensen","MS-2143","1"],["10/22","Zane Sorensen","MS-2144","1"],["10/22","Zane Sorensen","MS-2145","1"],["10/22","Zane Sorensen","MS-2146","1"],["10/22","Zane Sorensen","MS-2149","1"],["10/22","Zane Sorensen","MS-2173","1"],["10/22","Zane Sorensen","MS-2280","1"],["10/23","Adam Koehler","MAIN-10026","0.5"],["10/23","Adam Koehler","MAIN-10174","0.16669999999999999"],["10/23","Adam Koehler","MAIN-10404","2"],["10/23","Adam Koehler","MAIN-10409","0.16669999999999999"],["10/23","Adam Koehler","MAIN-10497","0.25"],["10/23","Adam Koehler","MAIN-10504","1.75"],["10/23","Adam Koehler","MAIN-10644","0.25"],["10/23","Alec Patterson","MS-2327","3"],["10/23","Alec Patterson","MS-2328","1"],["10/23","Alec Patterson","MS-2329","1"],["10/23","Aleisha DeYoung","MAIN-10326","0.5"],["10/23","Aleisha DeYoung","MAIN-10480","1"],["10/23","Aleisha DeYoung","MAIN-9467","2"],["10/23","Alex Secor","FL-761","0.4"],["10/23","Alex Secor","FL-767","0.4"],["10/23","Alex Secor","MAIN-10409","1.3"],["10/23","Alex Secor","MAIN-10605","1.5"],["10/23","Amish Shah","MM-372","1"],["10/23","Amish Shah","MM-401","0.5"],["10/23","Avery May","CL-1391","0.91669999999999996"],["10/23","Avery May","MAIN-10645","0.25"],["10/23","Britt Heyward","MAIN-10581","0.4"],["10/23","Britt Heyward","MAIN-10650","0.86670000000000003"],["10/23","Brittany Grizzard","FL-762","0.16669999999999999"],["10/23","Brittany Grizzard","FL-766","0.6"],["10/23","Brittany Grizzard","FL-767","0.33329999999999999"],["10/23","Brittany Grizzard","FL-769","0.68330000000000002"],["10/23","Colin Knecht","CL-1398","0.58330000000000004"],["10/23","Colin Knecht","CL-1400","1"],["10/23","Colin Knecht","MAIN-10184","3"],["10/23","Connor Yates","MAIN-10201","1.5"],["10/23","Connor Yates","MAIN-9873","4.5"],["10/23","David Swanson","MS-2271","6"],["10/23","Eric Stempert","MAIN-10206","0.33329999999999999"],["10/23","Eric Stempert","MAIN-9186","0.75"],["10/23","Eric Stempert","MAIN-9400","4"],["10/23","Erin Terre","MAIN-10174","0.7833"],["10/23","Erin Terre","MAIN-10236","0.25"],["10/23","Erin Terre","MAIN-10295","8.3299999999999999E-2"],["10/23","Erin Terre","MAIN-10561","8.3299999999999999E-2"],["10/23","Erin Terre","MAIN-10636","8.3299999999999999E-2"],["10/23","Erin Terre","MAIN-9219","8.3299999999999999E-2"],["10/23","Erin Terre","MAIN-9222","0.16669999999999999"],["10/23","Erin Terre","MAIN-9956","0.58330000000000004"],["10/23","Frank Hrach IV","MAIN-10612","2.5"],["10/23","Frank Hrach IV","MAIN-10616","2.5"],["10/23","JC Collins","CL-1391","2.65"],["10/23","JC Collins","CL-1456","1.5832999999999999"],["10/23","JC Collins","MAIN-10197","1.6"],["10/23","JC Collins","MAIN-10525","0.65"],["10/23","Jawad Shakil","MM-198","0.68330000000000002"],["10/23","Jawad Shakil","MM-327","0.35"],["10/23","Jawad Shakil","MM-384","0.7"],["10/23","Jawad Shakil","MM-388","0.36670000000000003"],["10/23","Jawad Shakil","MM-391","0.36670000000000003"],["10/23","Jawad Shakil","MM-392","0.2833"],["10/23","Jawad Shakil","MM-403","0.7167"],["10/23","Jawad Shakil","MS-1955","0.85"],["10/23","Jawad Shakil","MS-1991","0.3"],["10/23","Jawad Shakil","MS-2238","0.48330000000000001"],["10/23","Jenny Welk","MAIN-10612","0.5"],["10/23","Jenny Welk","MAIN-10615","0.83330000000000004"],["10/23","Jenny Welk","MAIN-10661","0.25"],["10/23","Jenny Welk","MAIN-8615","8.3299999999999999E-2"],["10/23","Jeremy Lakatos","MAIN-10393","0.16669999999999999"],["10/23","Jeremy Lakatos","MAIN-10408","0.16669999999999999"],["10/23","Jeremy Lakatos","MAIN-10644","0.16669999999999999"],["10/23","Jimmy Harper","MAIN-10224","0.41670000000000001"],["10/23","Jimmy Harper","MAIN-7819","0.75"],["10/23","Jimmy Harper","MAIN-8264","1.75"],["10/23","Jimmy Harper","MAIN-9360","0.75"],["10/23","Katherine Theos","CL-1400","0.33329999999999999"],["10/23","Katherine Theos","MAIN-10640","0.25"],["10/23","Kevin Nichols","PNP-3875","6.0332999999999997"],["10/23","Michael Byers","MAIN-10168","1.25"],["10/23","Michael Byers","MAIN-10214","1.5667"],["10/23","Michael Byers","MAIN-10296","1.8833"],["10/23","Michael Byers","MAIN-10349","0.7167"],["10/23","Michael Byers","MAIN-8264","0.41670000000000001"],["10/23","Michael Byers","MAIN-9136","0.33329999999999999"],["10/23","Michael Paserba Tessari","MAIN-10391","1.5"],["10/23","Michael Paserba Tessari","MAIN-10522","0.25"],["10/23","Michael Paserba Tessari","MAIN-9521","1.5"],["10/23","Michael Paserba Tessari","MAIN-9976","2"],["10/23","Nherissa Dagal","MAIN-10389","1"],["10/23","Nherissa Dagal","MAIN-10427","4"],["10/23","Nherissa Dagal","MAIN-10590","8.3299999999999999E-2"],["10/23","Nherissa Dagal","PROG-344","0.25"],["10/23","Nick Haile","PROG-350","7"],["10/23","Noah LoCascio","MAIN-10221","1.3332999999999999"],["10/23","Noah LoCascio","MAIN-10296","1.3332999999999999"],["10/23","Quinn James","MAIN-10501","8.3299999999999999E-2"],["10/23","Quinn James","MAIN-10641","0.25"],["10/23","Quinn James","MAIN-7031","7"],["10/23","Rimon Berhe","MAIN-10219","1.2"],["10/23","Rimon Berhe","MAIN-9586","4.25"],["10/23","Scott Gallimore","MAIN-10310","1.4167000000000001"],["10/23","Scott Gallimore","MAIN-6349","5.9166999999999996"],["10/23","Seth Burleson","MAIN-9222","5"],["10/23","Tony Young","MAIN-9175","5"],["10/23","Tony Young","MAIN-9186","1"],["10/23","Zane Sorensen","MS-2149","2"],["10/23","Zane Sorensen","MS-2234","3"],["10/23","Zane Sorensen","MS-2283","1"]]},"weekly":{"headers":["Name","Role","Exp/wk","Mon 10/19","Tue 10/20","Wed 10/21","Thu 10/22","Fri 10/23","Wk Total","Tickets Worked","Bounced","Bounce Rate % (n/m)","Bounce Flag","Low Volume Flag","Low Hours Flag","Dev Closes","Notes"],"notes":[],"rows":[["Eman Zindani","Developer","30","PTO","4.5","2.5","2.67","PTO","9.67","5","2","40% (2/5)","HIGH","ORANGE","ORANGE","1","2 full PTO day(s)"],["Michael Byers","Jr Dev","30","6.48","6.38","5.25","5.5","6.17","29.78","11","4","36% (4/11)","HIGH","OK","OK","1","30"],["Eric Stempert","Developer","30","6","6","5.92","6.75","5.08","29.75","7","2","29% (2/7)","HIGH","ORANGE","OK","0","30"],["Aleisha DeYoung","Senior Dev","15-20","0.75","2","1","2.42","3.5","9.67","11","3","23% (3/13)","WATCH","n/a","ORANGE","10","17.5"],["Connor Yates","Developer","30","6","6.58","6.67","5.83","6","31.08","10","2","18% (2/11)","WATCH","OK","OK","1","0.08h on excluded-prefix (PSC/PS/MSP) tickets not counted"],["Jenny Welk","QA","30","3.25","3.58","2.75","3.25","1.67","14.5","20","n/a","n/a","n/a","OK","RED","2","1.08h on excluded-prefix (PSC/PS/MSP) tickets not counted"],["Eddie Benedetti","Developer","30","3.25","4.25","5","0","0","12.5","4","0","0% (0/4)","OK","RED","RED","1","30"],["Dustin White","Jr Dev","30","5.33","4.58","1.42","0.83","0","12.17","7","1","14% (1/7)","OK","ORANGE","RED","0","30"],["Jared Rosenthal","QA","30","4.08","1.42","2.58","2.12","PTO","10.199999999999999","16","n/a","n/a","n/a","OK","RED","0","1 full PTO day(s)"],["Katherine Theos","QA","30","2.87","2.75","2.08","1.92","0.57999999999999996","10.199999999999999","18","n/a","n/a","n/a","OK","RED","4","30"],["Avery May","QA","30","3","2.5","0.68","1.08","1.17","8.43","10","n/a","n/a","n/a","OK","RED","2","30"],["Halina Bobrykava","Senior Dev","15-20","0","1","3.3","4","0","8.3000000000000007","7","0","0% (0/7)","OK","n/a","RED","7","17.5"],["Britt Heyward","QA","30","1.98","0","3.57","1.3","1.27","8.1199999999999992","8","n/a","n/a","n/a","ORANGE","RED","8","30"],["Lavona Williams","Other","30","0.75","4.25","PTO","0.5","0","5.5","5","n/a","n/a","n/a","n/a","RED","0","1 full PTO day(s); 0.25h on excluded-prefix (PSC/PS/MSP) tickets not counted"],["Sarah Carlough","QA","30","0.98","0","0","0","0","0.98","2","n/a","n/a","n/a","RED","RED","0","30"],["John Cauthen","Developer","30","0","0","0","0","0","0","0","0","0% (0/0)","OK","RED","RED","3","no countable time logged this week"],["Allen McAfee","Developer","30","6","5","6","3","0","20","4","0","0% (0/4)","OK","RED","ORANGE","5","30"],["Noah LoCascio","QA","30","3.82","3.57","4.7300000000000004","3.43","2.67","18.22","18","n/a","n/a","n/a","OK","ORANGE","0","30"],["Holland Cooper","Jr Dev","30","4.1500000000000004","4.58","4.92","4.2","0","17.850000000000001","6","0","0% (0/6)","OK","ORANGE","ORANGE","1","30"],["Amish Shah","Developer","30","3","3.5","5","4.5","1.50*","17.5","12","1","8% (1/12)","OK","OK","ORANGE","1","1 partial PTO day(s)"],["Jason LeZotte","QA","30","5.83","4.05","3.2","3.1","PTO","16.18","17","n/a","n/a","n/a","OK","ORANGE","0","1 full PTO day(s)"],["Jeremy Lakatos","Developer","30","4","6.17","3.58","1.75","0.5","16","11","0","0% (0/11)","OK","OK","ORANGE","1","30"],["Rimon Berhe","Developer","20-30","0.52","0","7.15","2.82","5.45","15.93","7","0","0% (0/7)","OK","ORANGE","ORANGE","2","25"],["Brooke Caro","Data Engineer","25","7","PTO","0","6","0","13","2","n/a","n/a","n/a","n/a","ORANGE","2","1 full PTO day(s); 7.00h logged on 10/20 not added (PTO + logged >= 7.5h = full PTO day)"],["Philippe Baraka","Jr Dev","30","4","5","2.5","PTO","PTO","11.5","7","0","0% (0/7)","OK","OK","ORANGE","2","2 full PTO day(s)"],["Brittany Grizzard","QA","30","PTO","3.80*","4.08","1.68","1.78","11.35","18","n/a","n/a","n/a","OK","ORANGE","0","1 full PTO day(s); 1 partial PTO day(s)"],["Alec Patterson","Developer","30","PTO","PTO","0","5","5","10","3","0","0% (0/3)","OK","ORANGE","ORANGE","0","2 full PTO day(s)"],["Tony Young","Jr Dev","30","6","12","6","6","6","36","2","0","0% (0/2)","OK","RED","OK","0","30"],["Nick Haile","Jr Dev","30","7.5","7.25","6.5","6","7","34.25","7","1","14% (1/7)","OK","ORANGE","OK","1","30"],["Quinn James","Developer","30","6.92","7.17","7","4","7.33","32.42","12","0","0% (0/12)","OK","OK","OK","1","30"],["Zane Sorensen","Developer","30","6","6","6","7","6","31","11","0","0% (0/11)","OK","OK","OK","0","30"],["JC Collins","Jr Dev","30","5.67","6.67","6.08","5.67","6.48","30.57","9","1","11% (1/9)","OK","OK","OK","3","30"],["David Swanson","Developer","30","6","6","6","5.5","6","29.5","5","0","0% (0/5)","OK","RED","OK","1","30"],["Scott Gallimore","Jr Dev","30","5.65","7.58","2.02","5.98","7.33","28.57","5","0","0% (0/5)","OK","RED","OK","0","30"],["Colin Knecht","Developer","20-30","6.25","3.92","7.58","5.75","4.58","28.08","10","0","0% (0/10)","OK","OK","OK","0","25"],["Michael Paserba Tessari","Developer","30","5.58","5.5","5.67","5.25","5.25","27.25","9","0","0% (0/9)","OK","OK","OK","1","30"],["Nherissa Dagal","QA","30","6.25","4","6.83","4.3","5.33","26.72","18","n/a","n/a","n/a","OK","OK","4","30"],["Christian Cox","Developer","30","6.33","7","7","6","PTO","26.33","4","0","0% (0/4)","OK","RED","OK","1","1 full PTO day(s)"],["Kevin Nichols","Developer","30","3.78","5.0999999999999996","5.18","5.75","6.03","25.85","4","0","0% (0/4)","OK","RED","OK","0","30"],["Adam Koehler","Developer","30","4.33","5.17","4.08","5.25","5.08","23.92","21","1","5% (1/21)","OK","OK","OK","0","30"],["Mike Thompson","Developer","30","6.5","6","5.5","5.5","0","23.5","6","0","0% (0/6)","OK","ORANGE","OK","0","30"],["Jawad Shakil","Jr Dev","30","4.92","4.2300000000000004","4.0999999999999996","4.68","5.0999999999999996","23.03","14","0","0% (0/14)","OK","OK","OK","0","30"],["Jimmy Harper","QA","30","5.83","3.92","4.92","3.67","3.67","22","12","n/a","n/a","n/a","OK","OK","0","30"],["Alex Secor","Jr Dev","30","4","4.4000000000000004","4.3","5.3","3.6","21.6","23","0","0% (0/23)","OK","OK","OK","11","30"],["Amanda Esposito","Developer","30","4.33","3.58","6.67","6.5","PTO","21.08","27","0","0% (0/27)","OK","OK","OK","2","1 full PTO day(s)"],["Sarah Criswell","Jr Dev","30","4.3499999999999996","5.53","5.5","4.5199999999999996","PTO","19.899999999999999","10","1","10% (1/10)","OK","OK","OK","2","1 full PTO day(s)"],["Frank Hrach IV","Developer","30","PTO","4","4.75","4.75","5","18.5","7","0","0% (0/7)","OK","ORANGE","OK","1","1 full PTO day(s)"],["Seth Burleson","Developer","30","6","1.5","6","PTO","5","18.5","6","0","0% (0/6)","OK","ORANGE","OK","0","1 full PTO day(s); 6.00h logged on 10/22 not added (PTO + logged >= 7.5h = full PTO day)"],["Anastasia Holt","Jr Dev","30","6.9","PTO","6.68","PTO","PTO","13.58","5","0","0% (0/5)","OK","OK","OK","0","3 full PTO day(s); 6.50h logged on 10/20 not added (PTO + logged >= 7.5h = full PTO day)"],["Rachel Fein","Data Engineer","25","4","4","5","PTO","PTO","13","3","n/a","n/a","n/a","n/a","OK","3","2 full PTO day(s)"],["Erin Terre","Staff Engineer","10-15","1.75","2.5299999999999998","1.75","2","2.12","10.15","27","n/a","n/a","n/a","n/a","OK","17","12.5"],["Lee Ann Robinson","QA","30","PTO","PTO","PTO","PTO","PTO","0","0","n/a","n/a","n/a","OK","OK","0","5 full PTO day(s); out all week"]]}};
+// TRENDS: accumulating array of per-week AGGREGATE summaries (no individual names),
+// oldest→newest. The last entry is this week. Lines light up once length >= 2.
+const TRENDS = [{"avgHours":20.54,"byRole":{"Data/Other":{"closes":0,"count":3,"expected":80,"logged":63.1,"tickets":18},"Developer":{"closes":20,"count":23,"expected":680,"logged":542.4,"tickets":171},"Jr Dev":{"closes":20,"count":12,"expected":360,"logged":312.4,"tickets":121},"QA":{"closes":48,"count":12,"expected":360,"logged":142.3,"tickets":149},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":28.3,"tickets":42}},"closesMTD":111,"expected":1527.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":3,"lowHoursRed":9,"lowVolRed":10},"friDrop":0.2776,"label":"Aug 24-28","people":53,"teamHours":1088.5,"tickets":501,"util":0.7126,"week":"2026-08-24","weeklyCloses":111},{"avgHours":21.72,"byRole":{"Data/Other":{"closes":14,"count":3,"expected":80,"logged":64.2,"tickets":25},"Developer":{"closes":47,"count":22,"expected":650,"logged":548.4,"tickets":182},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":328,"tickets":113},"QA":{"closes":26,"count":12,"expected":360,"logged":130.2,"tickets":152},"Senior/Staff":{"closes":28,"count":3,"expected":47.5,"logged":58.5,"tickets":44}},"closesMTD":590,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":0.0571,"label":"Aug 31-Sep 4","people":52,"teamHours":1129.35,"tickets":516,"util":0.7542,"week":"2026-08-31","weeklyCloses":143},{"avgHours":16.3,"byRole":{"Data/Other":{"closes":13,"count":3,"expected":80,"logged":39.3,"tickets":15},"Developer":{"closes":27,"count":22,"expected":650,"logged":409.3,"tickets":157},"Jr Dev":{"closes":27,"count":12,"expected":360,"logged":247,"tickets":115},"QA":{"closes":31,"count":12,"expected":360,"logged":122.5,"tickets":143},"Senior/Staff":{"closes":38,"count":3,"expected":47.5,"logged":29.7,"tickets":39}},"closesMTD":136,"expected":1124.2,"expectedBasis":"prorated","flags":{"bounceHigh":1,"lowHoursRed":9,"lowVolRed":5},"friDrop":-0.1808,"label":"Sep 7-11","people":52,"teamHours":847.8,"tickets":469,"util":0.7541,"week":"2026-09-07","weeklyCloses":136},{"avgHours":18.37,"byRole":{"Data/Other":{"closes":20,"count":3,"expected":80,"logged":36.6,"tickets":20},"Developer":{"closes":55,"count":22,"expected":650,"logged":513.6,"tickets":157},"Jr Dev":{"closes":26,"count":12,"expected":360,"logged":242.5,"tickets":94},"QA":{"closes":22,"count":12,"expected":360,"logged":130.2,"tickets":120},"Senior/Staff":{"closes":23,"count":3,"expected":47.5,"logged":32.1,"tickets":35}},"closesMTD":146,"expected":1366.2,"expectedBasis":"prorated","flags":{"bounceHigh":4,"lowHoursRed":15,"lowVolRed":11},"friDrop":0.2055,"label":"Sep 14-18","people":52,"teamHours":955.03,"tickets":426,"util":0.699,"week":"2026-09-14","weeklyCloses":146},{"avgHours":19.16,"byRole":{"Data/Other":{"closes":17,"count":3,"expected":80,"logged":49.4,"tickets":19},"Developer":{"closes":41,"count":22,"expected":650,"logged":492,"tickets":165},"Jr Dev":{"closes":28,"count":12,"expected":360,"logged":304.8,"tickets":108},"QA":{"closes":38,"count":12,"expected":360,"logged":114.3,"tickets":122},"Senior/Staff":{"closes":35,"count":3,"expected":47.5,"logged":36,"tickets":35}},"closesMTD":159,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":4,"lowHoursRed":14,"lowVolRed":13},"friDrop":0.2032,"label":"Sep 21-25","people":52,"teamHours":996.51,"tickets":449,"util":0.6654,"week":"2026-09-21","weeklyCloses":159},{"avgHours":17.56,"byRole":{"Data/Other":{"closes":132,"count":3,"expected":80,"logged":67.3,"tickets":15},"Developer":{"closes":52,"count":22,"expected":600,"logged":452.5,"tickets":195},"Jr Dev":{"closes":33,"count":12,"expected":360,"logged":258,"tickets":98},"QA":{"closes":27,"count":12,"expected":360,"logged":103.1,"tickets":135},"Senior/Staff":{"closes":52,"count":3,"expected":0,"logged":32.3,"tickets":43}},"closesMTD":798,"expected":1400,"expectedBasis":"exp/wk","flags":{"bounceHigh":0,"lowHoursRed":20,"lowVolRed":10},"friDrop":0.056,"label":"Sep 28-Oct 2","people":52,"teamHours":913.19,"tickets":486,"util":0.6523,"week":"2026-09-28","weeklyCloses":296},{"avgHours":19.3,"byRole":{"Data/Other":{"closes":12,"count":3,"expected":80,"logged":60.8,"tickets":17},"Developer":{"closes":42,"count":22,"expected":650,"logged":455.6,"tickets":169},"Jr Dev":{"closes":14,"count":12,"expected":360,"logged":282.2,"tickets":111},"QA":{"closes":38,"count":12,"expected":360,"logged":156,"tickets":143},"Senior/Staff":{"closes":34,"count":3,"expected":47.5,"logged":48.8,"tickets":54}},"closesMTD":140,"expected":1463,"expectedBasis":"prorated","flags":{"bounceHigh":3,"lowHoursRed":14,"lowVolRed":8},"friDrop":0.187,"label":"Oct 5-9","people":52,"teamHours":1003.43,"tickets":494,"util":0.6859,"week":"2026-10-05","weeklyCloses":140},{"avgHours":19.38,"byRole":{"Data/Other":{"closes":16,"count":3,"expected":80,"logged":61,"tickets":17},"Developer":{"closes":54,"count":22,"expected":650,"logged":466.1,"tickets":193},"Jr Dev":{"closes":25,"count":12,"expected":360,"logged":281.2,"tickets":107},"QA":{"closes":45,"count":12,"expected":360,"logged":171.2,"tickets":152},"Senior/Staff":{"closes":25,"count":3,"expected":47.5,"logged":28.3,"tickets":45}},"closesMTD":165,"expected":1351.7,"expectedBasis":"prorated","flags":{"bounceHigh":3,"lowHoursRed":11,"lowVolRed":9},"friDrop":0.0622,"label":"Oct 12-16","people":52,"teamHours":1007.67,"tickets":514,"util":0.7455,"week":"2026-10-12","weeklyCloses":165},{"avgHours":18.34,"byRole":{"Data/Other":{"closes":5,"count":3,"expected":80,"logged":31.5,"tickets":10},"Developer":{"closes":22,"count":22,"expected":650,"logged":468.4,"tickets":185},"Jr Dev":{"closes":21,"count":12,"expected":360,"logged":278.8,"tickets":106},"QA":{"closes":20,"count":12,"expected":360,"logged":146.9,"tickets":157},"Senior/Staff":{"closes":34,"count":3,"expected":47.5,"logged":28.1,"tickets":45}},"closesMTD":102,"expected":1497.5,"expectedBasis":"exp/wk","flags":{"bounceHigh":3,"lowHoursRed":11,"lowVolRed":9},"friDrop":0.3203,"label":"Oct 19-23","people":52,"teamHours":953.68,"tickets":503,"util":0.6368,"week":"2026-10-19","weeklyCloses":102}];
+
+// ---- helpers ----
+const FLAGS = {RED:'red',HIGH:'high',ORANGE:'orange',WATCH:'watch',OK:'ok','N/A':'na','n/a':'na',PTO:'pto'};
+const INK={ink:'#0F1B2D',ink2:'#2A3A52',ink3:'#5C6A80',ink4:'#97A0B2',rule:'rgba(15,27,45,0.14)',
+  accent:'#2E6DA4',ok:'#3D6B3D',amber:'#B5860D',hot:'#C24B1E'};
+// role groups ("dept") + fixed categorical color + point shape (secondary encoding, CVD-safe)
+const ROLE_GROUPS=[
+  {key:'Developer',   color:'#2E6DA4', pt:'circle'},
+  {key:'Jr Dev',      color:'#B5860D', pt:'triangle'},
+  {key:'Senior/Staff',color:'#3D6B3D', pt:'rectRot'},
+  {key:'QA',          color:'#C24B1E', pt:'rect'},
+  {key:'Data/Other',  color:'#6D5B9E', pt:'star'},
+];
+const RG_BY_KEY=Object.fromEntries(ROLE_GROUPS.map(g=>[g.key,g]));
+let trendCharts=[]; // populated by renderTrends; resized when the Trends tab is shown
+function isNum(v){ return v!=='' && v!=null && !isNaN(parseFloat(v)) && isFinite(v.toString().replace(/,/g,'')) && /^-?\d/.test(v.toString()); }
+function fmtNum(v){
+  const n = parseFloat(v);
+  if (!isFinite(n)) return v;
+  const r = Math.round(n*100)/100;
+  return (Math.abs(r) >= 1000) ? r.toLocaleString('en-US') : String(r);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// classify a column as numeric if >=60% of non-empty values are numeric
+function numericCols(headers, rows){
+  return headers.map((h,ci)=>{
+    let num=0,tot=0;
+    for(const r of rows){ const v=r[ci]; if(v!=='' && v!=null){ tot++; if(isNum(v)) num++; } }
+    return tot>0 && num/tot>=0.6;
+  });
+}
+
+function cellHTML(val, header, isNumCol){
+  const raw = (val==null)?'':String(val).trim();
+  if(raw==='') return '';
+  // flag chips
+  const fk = FLAGS[raw] || FLAGS[raw.toUpperCase()];
+  if(fk && raw.length<=6) return '<span class="flag '+fk+'">'+esc(raw)+'</span>';
+  if(/^PTO$/i.test(raw)) return '<span class="flag pto">PTO</span>';
+  // bounce rate -> percentage
+  if(/bounce rate/i.test(header) && isNum(raw)){
+    return (Math.round(parseFloat(raw)*1000)/10).toFixed(1)+'%';
+  }
+  if(isNumCol && isNum(raw)) return esc(fmtNum(raw));
+  return esc(raw);
+}
+
+function sortVal(val, isNumCol){
+  const raw=(val==null)?'':String(val).trim();
+  if(isNumCol){ const n=parseFloat(raw); return isFinite(n)? n : -Infinity; }
+  return raw.toLowerCase();
+}
+
+// ---- table renderer ----
+function makeTable(container, def, opts){
+  opts = opts || {};
+  const headers = def.headers, rows = def.rows.slice();
+  const numCols = numericCols(headers, rows);
+  let sortIdx = opts.defaultSort!=null ? opts.defaultSort : -1;
+  let sortDir = opts.defaultDir || -1; // -1 desc, 1 asc
+  let filter = '';
+
+  const wrap = document.createElement('div');
+  const tools = document.createElement('div'); tools.className='toolbar';
+  const inp = document.createElement('input'); inp.type='search'; inp.placeholder=opts.filterPlaceholder||'Filter…';
+  const cnt = document.createElement('span'); cnt.className='count';
+  tools.appendChild(inp); tools.appendChild(cnt);
+  wrap.appendChild(tools);
+
+  const scroll = document.createElement('div'); scroll.className='tbl-scroll';
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+  table.appendChild(thead); table.appendChild(tbody);
+  scroll.appendChild(table); wrap.appendChild(scroll);
+  container.appendChild(wrap);
+
+  function renderHead(){
+    const tr=document.createElement('tr');
+    headers.forEach((h,ci)=>{
+      const th=document.createElement('th');
+      th.innerHTML=esc(h)+(sortIdx===ci?'<span class="arr">'+(sortDir===1?'▲':'▼')+'</span>':'<span class="arr">↕</span>');
+      if(numCols[ci]) th.classList.add('num');
+      if(sortIdx===ci) th.classList.add('sorted');
+      th.onclick=()=>{ if(sortIdx===ci){ sortDir=-sortDir; } else { sortIdx=ci; sortDir = numCols[ci]?-1:1; } renderHead(); renderBody(); };
+      tr.appendChild(th);
+    });
+    thead.innerHTML=''; thead.appendChild(tr);
+  }
+  function renderBody(){
+    let data=rows;
+    if(filter){ const f=filter.toLowerCase(); data=data.filter(r=>r.some(c=>String(c).toLowerCase().includes(f))); }
+    if(sortIdx>=0){
+      const nc=numCols[sortIdx];
+      data=data.slice().sort((a,b)=>{
+        const av=sortVal(a[sortIdx],nc), bv=sortVal(b[sortIdx],nc);
+        if(av<bv) return -sortDir; if(av>bv) return sortDir; return 0;
+      });
+    }
+    const keyCol = headers.findIndex(h=>/ticket keys/i.test(h));
+    tbody.innerHTML = data.map(r=>'<tr>'+r.map((c,ci)=>{
+      let cls=''; if(numCols[ci]) cls='num';
+      if(ci===0 && opts.nameFirst) cls=(cls?cls+' ':'')+'name';
+      if(ci===keyCol) cls=(cls?cls+' ':'')+'keys';
+      return '<td'+(cls?' class="'+cls+'"':'')+'>'+cellHTML(c,headers[ci],numCols[ci])+'</td>';
+    }).join('')+'</tr>').join('');
+    cnt.textContent = data.length+' / '+rows.length+' rows';
+  }
+  inp.oninput=()=>{ filter=inp.value; renderBody(); };
+  renderHead(); renderBody();
+}
+
+// ---- KPIs ----
+(function(){
+  const w=DATA.weekly, hi=w.headers;
+  const ci=(name)=>hi.findIndex(h=>h.toLowerCase().includes(name));
+  const wkTot=ci('wk total'), tix=ci('tickets worked');
+  let hours=0, tickets=0, people=w.rows.length;
+  for(const r of w.rows){ const h=parseFloat(r[wkTot]); if(isFinite(h)) hours+=h; const t=parseFloat(r[tix]); if(isFinite(t)) tickets+=t; }
+  let closes=0; for(const r of DATA.devCloses.rows){ const c=parseFloat(r[2]); if(isFinite(c)) closes+=c; }
+  const kpis=[
+    {num:people, lbl:'Team members'},
+    {num:Math.round(hours).toLocaleString('en-US'), lbl:'Hours logged (wk)'},
+    {num:tickets.toLocaleString('en-US'), lbl:'Tickets worked (wk)'},
+    {num:closes.toLocaleString('en-US'), lbl:'Closes · MTD'},
+    {num:DATA.raw.rows.length.toLocaleString('en-US'), lbl:'Worklog entries'},
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>'<div class="stat-card"><div class="num">'+k.num+'</div><div class="lbl">'+k.lbl+'</div></div>').join('');
+})();
+
+// ---- tabs ----
+const TABS=[
+  {id:'overview', label:'Overview', title:'The Week at a Glance', def:null,
+   desc:'Bird’s-eye view with automatic alerts, then a role-by-role breakdown. Hover any chart for detail.'},
+  {id:'trends', label:'Trends', title:'Multi-week Trends', def:null,
+   desc:'Week-over-week direction as new weeks are added. Each new week extends these lines automatically.'},
+  {id:'weekly', label:'Weekly Summary', title:'Weekly Summary', def:DATA.weekly,
+   desc:'Per-person hours Mon–Fri, tickets worked, bounce activity, and flags for the report week.',
+   opts:{nameFirst:true, defaultSort:8, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
+  {id:'mtd', label:'Month-to-Date', title:'Month-to-Date', def:DATA.mtd,
+   desc:'Month-to-date roll-up across the reporting weeks of the month (from the MTD sheet when present, otherwise rolled up from the weekly reports).',
+   opts:{nameFirst:true, defaultSort:3, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
+  {id:'dev', label:'Closes — MTD', title:'Closes by Person — Month-to-Date', def:DATA.devCloses,
+   desc:'Tickets closed per person (all roles) this month, with the closed ticket keys. MTD-scoped per spec.',
+   opts:{nameFirst:true, defaultSort:2, defaultDir:-1, filterPlaceholder:'Filter by person, role, ticket key…'}},
+  {id:'qa', label:'QA Closes', title:'QA Sub-ticket Closes', def:DATA.qaCloses,
+   desc:DATA.qaCloses.note||'', opts:{nameFirst:true, defaultSort:1, defaultDir:-1, filterPlaceholder:'Filter…'}},
+  {id:'raw', label:'Raw Worklog', title:'Raw Worklog (daily)', def:DATA.raw,
+   desc:'Every worklog entry for the week — user, ticket, and hours per day. Sort or filter to trace any person or ticket.',
+   opts:{defaultSort:3, defaultDir:-1, filterPlaceholder:'Filter by day, user, or ticket key…'}},
+  {id:'notes', label:'Legend & Notes', title:'Legend & Run Notes', def:null},
+];
+
+const tabsEl=document.getElementById('tabs'), panelsEl=document.getElementById('panels');
+TABS.forEach((t,i)=>{
+  const b=document.createElement('button'); b.textContent=t.label; b.dataset.id=t.id;
+  b.onclick=()=>activate(t.id); tabsEl.appendChild(b);
+  const p=document.createElement('div'); p.className='panel'; p.id='panel-'+t.id;
+  const head=document.createElement('div'); head.className='panel-head';
+  head.innerHTML='<div><h2>'+esc(t.title)+'</h2>'+(t.desc?'<div class="desc">'+esc(t.desc)+'</div>':'')+'</div>';
+  p.appendChild(head);
+  panelsEl.appendChild(p);
+  if(t.id==='overview'){ renderOverview(p); }
+  else if(t.id==='trends'){ renderTrends(p); }
+  else if(t.id==='notes'){ renderNotes(p); }
+  else if(t.def && t.def.rows.length){ makeTable(p, t.def, t.opts); renderTblNotes(p, t.def.notes); }
+  else { const e=document.createElement('p'); e.className='desc'; e.textContent='No rows.'; p.appendChild(e); }
+});
+
+function renderTblNotes(p, notes){
+  if(!notes || !notes.length) return;
+  const d=document.createElement('div'); d.className='tbl-notes';
+  d.innerHTML = notes.map(n=>'<div>'+esc(n)+'</div>').join('');
+  p.appendChild(d);
+}
+
+function renderNotes(p){
+  const box=document.createElement('div'); box.className='notes';
+  const lines=DATA.legend||[];
+  lines.forEach((ln,i)=>{
+    const el=document.createElement('p');
+    if(i===0){ const h=document.createElement('h3'); h.textContent=ln; box.appendChild(h); return; }
+    if(/^[•·]/.test(ln)){ el.className='bullet'; el.textContent=ln.replace(/^[•·]\s*/,''); }
+    else if(ln.length<70 && !/[.:]$/.test(ln) && /^[A-Z0-9]/.test(ln) && !/\d\./.test(ln)){ el.className='lead'; el.innerHTML='<b>'+esc(ln)+'</b>'; }
+    else { el.textContent=ln; }
+    box.appendChild(el);
+  });
+  p.appendChild(box);
+}
+
+// ================= OVERVIEW / DASHBOARD =================
+function roleGroup(role){
+  const r=(role||'').toLowerCase();
+  if(r==='developer') return 'Developer';
+  if(r==='jr dev') return 'Jr Dev';
+  if(r.includes('senior')||r.includes('staff')) return 'Senior/Staff';
+  if(r==='qa') return 'QA';
+  return 'Data/Other';
+}
+function num(v){ const n=parseFloat(v); return isFinite(n)?n:null; }
+function expWk(v){ const s=String(v||''); if(s.includes('-')){ const p=s.split('-').map(parseFloat); return (p[0]+p[1])/2; } return num(s)||0; }
+
+function computeAgg(){
+  const w=DATA.weekly, H=w.headers;
+  const ci=n=>H.findIndex(h=>h.toLowerCase().includes(n));
+  const cX={exp:ci('exp/wk'),wk:ci('wk total'),tix:ci('tickets worked'),
+    bflag:ci('bounce flag'),lvol:ci('low volume'),lhrs:ci('low hours'),role:1,name:0};
+  const days=[], dayLabels=[];
+  H.forEach((h,i)=>{ if(/^(mon|tue|wed|thu|fri)/i.test(h)){ days.push(i); dayLabels.push(h); } });
+  const A={people:0, logged:0, expected:0, tickets:0, byDay:days.map(()=>0), dayLabels,
+    byRole:{}, persons:[], flags:{lhrs:{},lvol:{},bounce:{}}, zero:[], bounceHigh:[], lowHoursRed:[], lowVolRed:[]};
+  ROLE_GROUPS.forEach(g=>A.byRole[g.key]={key:g.key,count:0,logged:0,expected:0,tickets:0,closes:0});
+  for(const r of w.rows){
+    const g=roleGroup(r[cX.role]);
+    const wk=num(r[cX.wk])||0, ex=expWk(r[cX.exp]), tx=num(r[cX.tix])||0;
+    A.people++; A.logged+=wk; A.expected+=ex; A.tickets+=tx;
+    days.forEach((d,i)=>{ const v=num(r[d]); if(v!=null) A.byDay[i]+=v; });
+    const R=A.byRole[g]; R.count++; R.logged+=wk; R.expected+=ex; R.tickets+=tx;
+    A.persons.push({name:r[cX.name], group:g, hours:wk, tickets:tx});
+    const bf=(r[cX.bflag]||'').toUpperCase(), lv=(r[cX.lvol]||'').toUpperCase(), lh=(r[cX.lhrs]||'').toUpperCase();
+    const bump=(o,k)=>{o[k]=(o[k]||0)+1;};
+    bump(A.flags.bounce,bf||'—'); bump(A.flags.lvol,lv||'—'); bump(A.flags.lhrs,lh||'—');
+    if(wk===0) A.zero.push(r[cX.name]);
+    if(bf==='HIGH') A.bounceHigh.push(r[cX.name]);
+    if(lh==='RED') A.lowHoursRed.push(r[cX.name]);
+    if(lv==='RED') A.lowVolRed.push(r[cX.name]);
+  }
+  // closes by role from devCloses
+  const dc=DATA.devCloses;
+  for(const r of dc.rows){ const g=roleGroup(r[1]); const c=num(r[2])||0; if(A.byRole[g]) A.byRole[g].closes+=c; }
+  return A;
+}
+
+function renderOverview(p){
+  const A=computeAgg();
+  const META = DATA.meta || {};
+  // prefer the sheet's prorated (holiday/PTO-adjusted) capacity target
+  const expectedTeam = (META.expectedProrated>0) ? META.expectedProrated : A.expected;
+  const util = expectedTeam ? A.logged/expectedTeam : 0;
+  // within-week trend: average non-zero weekdays (so a holiday's 0 doesn't skew it)
+  const mt = A.byDay.slice(0,4).filter(v=>v>0);
+  const monThu = mt.length ? mt.reduce((a,b)=>a+b,0)/mt.length : 0;
+  const fri = A.byDay[A.byDay.length-1] || 0;
+  const friDrop = monThu ? (monThu-fri)/monThu : 0;
+
+  // ---- alerts ----
+  const alerts=[];
+  alerts.push({sev: util>=0.9?'good':util>=0.8?'warn':'crit', ico: util>=0.9?'●':'▲', lbl:'Capacity this week',
+    big: Math.round(util*100)+'%', txt: Math.round(A.logged).toLocaleString()+' h logged of ~'+Math.round(expectedTeam).toLocaleString()+' h available across '+A.people+' people'+(META.expectedProrated>0?' (holiday/PTO-adjusted)':'')+'.'});
+  const _prevW = (TRENDS && TRENDS.length>=2) ? TRENDS[TRENDS.length-2] : null;
+  if(_prevW){
+    const dU=Math.round((util-(_prevW.util||0))*100), dH=Math.round(A.logged-(_prevW.teamHours||0)), dT=A.tickets-(_prevW.tickets||0);
+    alerts.push({sev:dU>=0?'good':'warn', ico:dU>=0?'▲':'▼', lbl:'Week over week',
+      big:(dU>=0?'+':'')+dU+' pts', txt:'Capacity vs '+_prevW.label+'. Hours '+(dH>=0?'+':'')+dH.toLocaleString()+', tickets '+(dT>=0?'+':'')+dT+'.'});
+  }
+  if(A.bounceHigh.length) alerts.push({sev:'crit',ico:'▲',lbl:'Elevated bounce (HIGH)', big:A.bounceHigh.length+(A.bounceHigh.length===1?' dev':' devs'),
+    txt: A.bounceHigh.join(', ')+' — rework rate flagged HIGH this week.'});
+  if(A.lowHoursRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low logged hours', big:A.lowHoursRed.length+' flagged',
+    txt: 'Below the role hours threshold (RED). Some reflect partial PTO — verify against the PTO column.'});
+  if(A.lowVolRed.length) alerts.push({sev:'warn',ico:'▲',lbl:'Low ticket volume', big:A.lowVolRed.length+' flagged',
+    txt: 'Fewer tickets worked than expected for the role (RED) — mostly QA capacity.'});
+  alerts.push({sev: friDrop>0.25?'warn':'info', ico: friDrop>0.25?'▲':'▬', lbl:'Within-week trend',
+    big:(friDrop>0? '−'+Math.round(friDrop*100)+'%':'+'+Math.round(-friDrop*100)+'%'),
+    txt:'Friday team hours vs the Mon–Thu daily average ('+fri.toFixed(0)+' h vs '+monThu.toFixed(0)+' h/day).'});
+  if(A.zero.length) alerts.push({sev:'info',ico:'○',lbl:'Out this week', big:A.zero.length+(A.zero.length===1?' person':' people'),
+    txt:'No hours logged: '+A.zero.join(', ')+'.'});
+
+  const alertsHTML='<div class="ov-section-title">Alerts &amp; watch items</div><div class="alerts">'+
+    alerts.map(a=>'<div class="alert '+a.sev+'"><div class="lbl"><span class="ico">'+a.ico+'</span>'+esc(a.lbl)+'</div><div class="big">'+esc(a.big)+'</div><div class="txt">'+esc(a.txt)+'</div></div>').join('')+'</div>';
+
+  const gridHTML=
+    '<div class="ov-section-title">The week at a glance</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Team hours by day</h3><div class="sub">Total hours logged across the team, Mon–Fri.</div><div class="chart-box"><canvas id="c-day"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Capacity by role</h3><div class="sub">Hours logged vs expected, per role group.</div><div class="chart-box"><canvas id="c-role"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Health &amp; distribution</div><div class="chart-grid">'+
+    '<div class="chart-card"><h3>Flag health</h3><div class="sub">How many people sit at each flag level, by flag type.</div><div class="chart-box"><canvas id="c-flags"></canvas></div></div>'+
+    '<div class="chart-card"><h3>Tickets vs hours</h3><div class="sub">One dot per person, shaped &amp; coloured by role. Hover for names.</div><div class="chart-box"><canvas id="c-scatter"></canvas></div></div>'+
+    '</div>'+
+    '<div class="ov-section-title">Output — month-to-date</div><div class="chart-grid">'+
+    '<div class="chart-card wide"><h3>Top closers (MTD)</h3><div class="sub">Tickets closed per person this month, coloured by role. Top 15 shown.</div><div class="chart-box tall"><canvas id="c-closers"></canvas></div></div>'+
+    '</div>';
+
+  const legendKey='<div class="legend-key">Role groups: '+ROLE_GROUPS.map(g=>'<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:'+g.color+';display:inline-block"></span>'+g.key+'</span>').join(' ')+'</div>';
+
+  p.insertAdjacentHTML('beforeend', alertsHTML + gridHTML + legendKey);
+  if(typeof Chart==='undefined'){ return; }
+  Chart.defaults.font.family="Inter, system-ui, sans-serif";
+  Chart.defaults.font.size=11; Chart.defaults.color=INK.ink3;
+  const grid={color:INK.rule, drawBorder:false}, noGrid={display:false};
+  const axT={ticks:{color:INK.ink3}, grid};
+
+  // 1) hours by day (single series bar)
+  new Chart(document.getElementById('c-day'),{type:'bar',
+    data:{labels:A.dayLabels,datasets:[{label:'Hours',data:A.byDay,backgroundColor:INK.accent,borderRadius:4,barPercentage:.7,categoryPercentage:.7}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 2) capacity by role (grouped: expected vs logged)
+  const roleKeys=ROLE_GROUPS.map(g=>g.key).filter(k=>A.byRole[k].count>0);
+  const roleExp=k=>(META.expectedProratedByRole && META.expectedProratedByRole[k]>0)?META.expectedProratedByRole[k]:A.byRole[k].expected;
+  new Chart(document.getElementById('c-role'),{type:'bar',
+    data:{labels:roleKeys,datasets:[
+      {label:'Expected',data:roleKeys.map(k=>Math.round(roleExp(k))),backgroundColor:'rgba(92,106,128,0.28)',borderRadius:4,barPercentage:.8,categoryPercentage:.66},
+      {label:'Logged',data:roleKeys.map(k=>Math.round(A.byRole[k].logged)),backgroundColor:INK.accent,borderRadius:4,barPercentage:.8,categoryPercentage:.66}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toLocaleString()+' h'}}},
+      scales:{x:{grid:noGrid,ticks:{color:INK.ink3}},y:{beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 3) flag health (stacked: OK / Watch / Red) across three flag types
+  const types=[['Low Hours','lhrs'],['Low Volume','lvol'],['Bounce','bounce']];
+  const okC=t=> (A.flags[t]['OK']||0);
+  const watchC=t=> (A.flags[t]['ORANGE']||0)+(A.flags[t]['WATCH']||0);
+  const redC=t=> (A.flags[t]['RED']||0)+(A.flags[t]['HIGH']||0);
+  new Chart(document.getElementById('c-flags'),{type:'bar',
+    data:{labels:types.map(t=>t[0]),datasets:[
+      {label:'OK',data:types.map(t=>okC(t[1])),backgroundColor:INK.ok,borderRadius:3},
+      {label:'Watch',data:types.map(t=>watchC(t[1])),backgroundColor:INK.amber,borderRadius:3},
+      {label:'Red / High',data:types.map(t=>redC(t[1])),backgroundColor:INK.hot,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.x+' people'}}},
+      scales:{x:{stacked:true,beginAtZero:true,grid,ticks:{color:INK.ink3,precision:0}},y:{stacked:true,grid:noGrid,ticks:{color:INK.ink2}}}}});
+
+  // 4) tickets vs hours scatter, per role group (color + shape)
+  const scDatasets=ROLE_GROUPS.filter(g=>A.persons.some(p=>p.group===g.key)).map(g=>({
+    label:g.key, pointStyle:g.pt, backgroundColor:g.color+'cc', borderColor:g.color, borderWidth:1, pointRadius:5, pointHoverRadius:7,
+    data:A.persons.filter(p=>p.group===g.key).map(p=>({x:p.hours,y:p.tickets,name:p.name}))}));
+  new Chart(document.getElementById('c-scatter'),{type:'scatter',
+    data:{datasets:scDatasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}},
+        tooltip:{callbacks:{label:c=>c.raw.name+' — '+c.parsed.x.toFixed(1)+' h, '+c.parsed.y+' tickets'}}},
+      scales:{x:{title:{display:true,text:'Hours logged (wk)',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}},
+        y:{title:{display:true,text:'Tickets worked',color:INK.ink3},beginAtZero:true,grid,ticks:{color:INK.ink3}}}}});
+
+  // 5) top closers MTD (horizontal bar, top 15, colored by role)
+  const closers=DATA.devCloses.rows.map(r=>({name:r[0],role:roleGroup(r[1]),count:num(r[2])||0}))
+    .sort((a,b)=>b.count-a.count).slice(0,15);
+  new Chart(document.getElementById('c-closers'),{type:'bar',
+    data:{labels:closers.map(c=>c.name),datasets:[{label:'Closed',data:closers.map(c=>c.count),
+      backgroundColor:closers.map(c=>RG_BY_KEY[c.role].color),borderRadius:4,barThickness:16}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' closed · '+closers[c.dataIndex].role}}},
+      scales:{x:{beginAtZero:true,grid,ticks:{color:INK.ink3}},y:{grid:noGrid,ticks:{color:INK.ink2,font:{size:11}}}}}});
+}
+
+// ================= TRENDS (multi-week) =================
+function renderTrends(p){
+  const T=Array.isArray(TRENDS)?TRENDS:[];
+  const cur=T[T.length-1]||null;
+  if(!cur){ p.insertAdjacentHTML('beforeend','<p class="desc">No weekly summary data yet.</p>'); return; }
+
+  if(T.length<2){
+    const f=cur.flags||{};
+    const chips=[
+      ['Team hours', Math.round(cur.teamHours||0).toLocaleString()],
+      ['Capacity', Math.round((cur.util||0)*100)+'%'],
+      ['Tickets worked', (cur.tickets||0).toLocaleString()],
+      ['Weekly closes', (cur.weeklyCloses!=null?cur.weeklyCloses.toLocaleString():'—')],
+      ['Avg hrs / person', (cur.avgHours!=null?cur.avgHours.toFixed(1):'—')],
+      ['Low-hours flags', (f.lowHoursRed||0)],
+    ];
+    p.insertAdjacentHTML('beforeend',
+      '<div class="alert info" style="border-left-color:var(--accent);max-width:780px"><div class="lbl"><span class="ico">▬</span>Baseline week captured</div>'
+      +'<div class="txt">This is <b>week 1</b> of the trend. The lines light up once a second week is added — every weekly file that gets loaded extends them automatically, and the Overview alerts gain a “vs last week” reading. Below are this week’s baseline values that future weeks are measured against.</div></div>'
+      +'<div class="ov-section-title">Week 1 baseline — '+esc(cur.label||cur.week)+'</div>'
+      +'<div class="stat-grid">'+chips.map(c=>'<div class="stat-card"><div class="num">'+esc(String(c[1]))+'</div><div class="lbl">'+esc(c[0])+'</div></div>').join('')+'</div>'
+      +'<div class="ov-section-title">What appears here at ≥ 2 weeks</div>'
+      +'<div class="chart-grid">'
+      +'<div class="chart-card"><h3>Hours &amp; capacity / week</h3><div class="sub">Team hours logged and % of expected, tracked each week.</div></div>'
+      +'<div class="chart-card"><h3>Throughput / week</h3><div class="sub">Tickets worked and weekly closes.</div></div>'
+      +'<div class="chart-card"><h3>Flags / week</h3><div class="sub">Low-hours, low-volume and elevated-bounce counts over time.</div></div>'
+      +'<div class="chart-card"><h3>Avg hours per person / week</h3><div class="sub">Team capacity signal, normalised for headcount.</div></div>'
+      +'</div>');
+    return;
+  }
+
+  // >= 2 weeks: real line charts
+  const labels=T.map(t=>t.label||t.week);
+  p.insertAdjacentHTML('beforeend',
+    '<div class="ov-section-title">Effort</div><div class="chart-grid">'
+    +'<div class="chart-card"><h3>Team hours / week</h3><div class="sub">Total hours logged across the team.</div><div class="chart-box"><canvas id="t-hours"></canvas></div></div>'
+    +'<div class="chart-card"><h3>Capacity utilisation / week</h3><div class="sub">Logged as a share of expected.</div><div class="chart-box"><canvas id="t-util"></canvas></div></div>'
+    +'</div>'
+    +'<div class="ov-section-title">Throughput</div><div class="chart-grid">'
+    +'<div class="chart-card"><h3>Tickets &amp; closes / week</h3><div class="sub">Tickets worked and weekly dev closes.</div><div class="chart-box"><canvas id="t-thru"></canvas></div></div>'
+    +'<div class="chart-card"><h3>Avg hours per person / week</h3><div class="sub">Hours normalised for headcount.</div><div class="chart-box"><canvas id="t-avg"></canvas></div></div>'
+    +'</div>'
+    +'<div class="ov-section-title">Health</div><div class="chart-grid">'
+    +'<div class="chart-card wide"><h3>Flags / week</h3><div class="sub">People flagged for low hours, low ticket volume, and elevated bounce, each week.</div><div class="chart-box"><canvas id="t-flags"></canvas></div></div>'
+    +'</div>');
+
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.font.family="Inter, system-ui, sans-serif"; Chart.defaults.font.size=11; Chart.defaults.color=INK.ink3;
+  const grid={color:INK.rule,drawBorder:false};
+  const base=(yTitle,pct)=>({responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:10,boxHeight:10,usePointStyle:true}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+(pct?Math.round(c.parsed.y*100)+'%':c.parsed.y.toLocaleString())}}},
+    scales:{x:{grid:{display:false},ticks:{color:INK.ink3}},
+      y:{beginAtZero:true,grid,ticks:{color:INK.ink3,callback:v=>pct?Math.round(v*100)+'%':v}}}});
+  const line=(id,datasets,opts)=>{ const el=document.getElementById(id); if(!el) return;
+    trendCharts.push(new Chart(el,{type:'line',data:{labels,datasets},options:opts})); };
+  const ds=(label,data,color)=>({label,data,borderColor:color,backgroundColor:color,tension:.25,borderWidth:2,pointRadius:3,pointHoverRadius:5});
+
+  line('t-hours',[ds('Hours',T.map(t=>Math.round(t.teamHours||0)),INK.accent)],base('Hours',false));
+  line('t-util',[ds('Capacity',T.map(t=>t.util||0),INK.accent)],base('%',true));
+  line('t-thru',[ds('Tickets worked',T.map(t=>t.tickets||0),INK.accent),ds('Weekly closes',T.map(t=>t.weeklyCloses!=null?t.weeklyCloses:null),INK.ok)],base('Count',false));
+  line('t-avg',[ds('Avg h/person',T.map(t=>t.avgHours!=null?Math.round(t.avgHours*10)/10:null),INK.accent)],base('Hours',false));
+  line('t-flags',[
+    ds('Low hours',T.map(t=>(t.flags||{}).lowHoursRed||0),INK.hot),
+    ds('Low volume',T.map(t=>(t.flags||{}).lowVolRed||0),INK.amber),
+    ds('Bounce HIGH',T.map(t=>(t.flags||{}).bounceHigh||0),INK.accent),
+  ],base('People',false));
+}
+
+function activate(id){
+  TABS.forEach(t=>{
+    document.getElementById('panel-'+t.id).classList.toggle('active', t.id===id);
+    [...tabsEl.children].forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  });
+  if(id==='trends'){ trendCharts.forEach(c=>{ try{c.resize();}catch(e){} }); }
+}
+activate('overview');
+</script>
+</body>
+</html>
