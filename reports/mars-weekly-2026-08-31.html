@@ -274,7 +274,7 @@ const TABS=[
    desc:'Per-person hours Mon–Fri, tickets worked, bounce activity, and flags for the report week.',
    opts:{nameFirst:true, defaultSort:8, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
   {id:'mtd', label:'Month-to-Date', title:'Month-to-Date', def:DATA.mtd,
-   desc:'Month-to-date roll-up (shown when the workbook includes an MTD tab for the month).',
+   desc:'Month-to-date roll-up across the reporting weeks of the month (from the MTD sheet when present, otherwise rolled up from the weekly reports).',
    opts:{nameFirst:true, defaultSort:3, defaultDir:-1, filterPlaceholder:'Filter by name, role, flag…'}},
   {id:'dev', label:'Closes — MTD', title:'Closes by Person — Month-to-Date', def:DATA.devCloses,
    desc:'Tickets closed per person (all roles) this month, with the closed ticket keys. MTD-scoped per spec.',
