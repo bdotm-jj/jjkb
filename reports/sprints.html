@@ -143,33 +143,40 @@ const ds = LOBS.map((L,i)=>{
 // one dashed goal line per distinct goal value (e.g. 80% and Stabilization 60%)
 const distinctGoals=[...new Set(LOBS.map(L=>Math.round(goalOf(L)*100)))].sort((a,b)=>a-b);
 distinctGoals.forEach(g=>ds.unshift({label:'Goal '+g+'%',data:labels.map(()=>g),_tips:labels.map(()=>null),borderColor:'#8A2D5B',borderWidth:2,borderDash:[6,4],pointRadius:0,fill:false}));
-// ---- load animation: lines race left -> right, once, then normal updates ----
-const RACE_MS = 1500, RACE_STEP = RACE_MS / Math.max(labels.length,1);
-const prevY = ctx => { if(ctx.index===0) return ctx.chart.scales.y.getPixelForValue(0);
-  const m=ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index-1]; const y=m&&m.getProps(['y'],true).y;
-  return (y==null||isNaN(y)) ? ctx.chart.scales.y.getPixelForValue(0) : y; };
-let raced=false;
-const trendRace={
-  x:{type:'number',easing:'easeOutQuad',duration:RACE_STEP,from:NaN,
-     delay(ctx){ if(ctx.type!=='data'||ctx.xStarted) return 0; ctx.xStarted=true; return ctx.index*RACE_STEP; }},
-  y:{type:'number',easing:'easeOutQuad',duration:RACE_STEP,from:prevY,
-     delay(ctx){ if(ctx.type!=='data'||ctx.yStarted) return 0; ctx.yStarted=true; return ctx.index*RACE_STEP; }},
-  onComplete(){ if(!raced){ raced=true; trendChart.options.animation={duration:250}; } }
-};
+// ---- intro animation: lines sweep smoothly left -> right, once ----
+// A clip rectangle grows rightward each frame, revealing the LOB lines in one
+// continuous motion (no per-point stepping/stutter). Goal lines stay fully
+// drawn so the lines sweep *toward* them.
+const goalOffset = distinctGoals.length;   // LOB i is dataset goalOffset+i (goal lines are first)
+let reveal = 0;                            // 0..1 fraction of the plot width revealed
+const raceClip = { id:'raceClip',
+  beforeDatasetDraw(chart,args){ if(reveal>=1 || args.index<goalOffset) return;
+    const a=chart.chartArea, ctx=chart.ctx; ctx.save(); ctx.beginPath();
+    ctx.rect(a.left,a.top,(a.right-a.left)*reveal,a.bottom-a.top); ctx.clip(); },
+  afterDatasetDraw(chart,args){ if(reveal>=1 || args.index<goalOffset) return; chart.ctx.restore(); } };
 const trendChart = new Chart(document.getElementById('trendChart'),{
   type:'line',data:{labels,datasets:ds},
+  plugins:[raceClip],
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    animation:trendRace,
+    animation:false,
     scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{family:'Cousine'}},grid:{color:'rgba(15,27,45,0.08)'}},
             x:{title:{display:true,text:'sprints before latest',font:{family:'Cousine',size:10},color:'#97A0B2'},ticks:{font:{family:'Cousine'}},grid:{display:false}}},
     plugins:{legend:{display:false},
       tooltip:{filter:ctx=>ctx.parsed.y!=null,callbacks:{label:ctx=>{const t=ctx.dataset._tips&&ctx.dataset._tips[ctx.dataIndex];
         return ctx.dataset.label+(t?' '+t:'')+': '+(ctx.parsed.y==null?'n/a':ctx.parsed.y+'%');}}}}}
 });
+// drive the reveal with requestAnimationFrame — one continuous, smooth sweep
+(function(){ const DUR=1600; let t0=null;
+  function step(ts){ if(t0==null) t0=ts; const p=Math.min(1,(ts-t0)/DUR);
+    reveal = 1-(1-p)*(1-p);                 // easeOutQuad: smooth, never stalls, gentle arrival
+    trendChart.draw();
+    if(p<1){ requestAnimationFrame(step); } else { reveal=1; trendChart.options.animation={duration:250}; }
+  }
+  requestAnimationFrame(step);
+})();
 
 // ---- interactive LOB isolation for the trend chart ----
 // Goal line datasets were unshifted to the front, so LOB i is dataset (goalOffset + i).
-const goalOffset = distinctGoals.length;
 const togEl = document.getElementById('trendToggles');
 const lobVisible = k => trendChart.isDatasetVisible(goalOffset+k);
 const setLob = (k,v) => trendChart.setDatasetVisibility(goalOffset+k, v);
