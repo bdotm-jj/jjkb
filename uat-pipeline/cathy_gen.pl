@@ -8,7 +8,8 @@ open my $sf,"<:raw","$base/cathy_series.json" or die $!; my $S=JSON::PP->new->de
 open my $tf,"<:raw","$base/cathy_template.html" or die $!; my $TPL=<$tf>;
 my $B=$S->{baseline};
 my %MEND=(April=>['Apr 30','Apr'],May=>['May 31','Apr–May'],June=>['Jun 30','Apr–Jun'],
-  July=>['Jul 31','Apr–Jul'],August=>['Aug 31','Apr–Aug'],September=>['Sep 30','Apr–Sep']);
+  July=>['Jul 31','Apr–Jul'],August=>['Aug 31','Apr–Aug'],September=>['Sep 30','Apr–Sep'],
+  October=>['Oct 31','Apr–Oct'],November=>['Nov 10','Apr–Nov']);
 sub d1 { sprintf('%.1f',$_[0]) }
 sub pct { my ($cur,$b)=@_; return 0 if !$b; ($cur-$b)/$b*100 }
 sub deltaCell { # for durations: lower is better (down=ok)

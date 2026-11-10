@@ -1,10 +1,13 @@
 use strict; use warnings; use JSON::PP;
 open my $fh,"<","cathy_clean.tsv" or die $!; my $h=<$fh>; my @R;
 while(<$fh>){ chomp; my($sd,$proj,$dur,$round,$sec)=split/\t/; push @R,{sd=>$sd,proj=>$proj,dur=>($dur ne ''?$dur+0:undef),round=>$round}; }
+my $TODAY='2026-11-10';   # don't count tests that start in the future (current month is in progress)
 sub period {
   my ($start,$end)=@_;
   my %bp;
   for my $r (@R){ next unless $r->{sd} && $r->{sd} ge $start && $r->{sd} le $end && defined $r->{dur};
+    next if $r->{sd} gt $TODAY;                      # exclude future-dated (planned, not yet run)
+    next unless defined $r->{proj} && $r->{proj} ne '' && $r->{proj} !~ /^#/;  # drop blank / #INVALID cells
     push @{$bp{$r->{proj}}}, $r; }
   my @projects; my (@r1,@r2,@r3);
   for my $p (sort keys %bp){
@@ -26,7 +29,7 @@ sub period {
     longest=>($long?{name=>$long->{name},total=>$long->{total}}:undef) };
 }
 my $base = period('2025-11-01','2026-03-31');
-my @MONTHS=(['April','2026-04-30'],['May','2026-05-31'],['June','2026-06-30'],['July','2026-07-31'],['August','2026-08-31'],['September','2026-09-30']);
+my @MONTHS=(['April','2026-04-30'],['May','2026-05-31'],['June','2026-06-30'],['July','2026-07-31'],['August','2026-08-31'],['September','2026-09-30'],['October','2026-10-31'],['November','2026-11-30']);
 my %series; for my $m (@MONTHS){
   my $mend=$m->[1];
   my $s = period('2026-04-08',$mend);

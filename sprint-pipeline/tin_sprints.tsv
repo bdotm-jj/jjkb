@@ -3,3 +3,4 @@
 #  completed / (total - pending-3rd - waiting), the in-our-control basis. completed/closed = Done/Resolved/Awaiting-Publish count.
 #  n	startDate	endDate	committed	completed	pct	note
 11			41	38	0.9268	Sprint 11. In-our-control completion 92.7% (38 of 41; 0 blocked, so same as raw % Complete). 38 Done, 1 Acceptance Testing, 2 In Progress.
+12	2026-10-26	2026-11-09	31	22	0.8462	Sprint 12 (Oct 26-Nov 9). In-our-control 84.6% (22 of 26 after 5 blocked Pending-3rd-Party/Waiting); raw was 71.0% (22/31). 72 open-capacity / mid-sprint-added tickets excluded from the committed set per the report.

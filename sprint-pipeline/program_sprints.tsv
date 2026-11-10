@@ -5,3 +5,5 @@
 #  completed/closed = Done + Resolved + Awaiting-Publish-to-Live count.
 #  n	startDate	endDate	committed	completed	pct	note
 44			22	18	0.8571	Sprint 44. In-our-control completion 85.7% (18 of 21 after 1 Pending-3rd-Party); raw % Complete was 81.8% (18/22).
+45	2026-10-12	2026-10-23	19	15	0.7895	Sprint 45 (Oct 12-23). Completion 78.9% (15 of 19 at sprint start; 0 blocked). Per Amy's rule, 11 open-capacity / mid-sprint-added tickets are excluded from the completion denominator (see the report's Added Mid-Sprint tab). Complete = Done/Resolved/Acceptance Testing/Awaiting-Publish-to-Live.
+46	2026-10-26	2026-11-06	32	29	0.9063	Sprint 46 (Oct 26-Nov 6). 90.6% (29 of 32; 0 blocked). Per Amy's rule, 8 open-capacity / mid-sprint-added tickets excluded from completion (Added Mid-Sprint tab). Complete = Done/Resolved/Acceptance Testing/Awaiting-Publish-to-Live.
