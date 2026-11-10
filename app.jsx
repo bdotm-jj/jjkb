@@ -747,6 +747,14 @@ const REPORTS = [
   // not the delivery month, and recomputed from the live Smartsheet "Cathy Parmley Task
   // Report" under one convention: current period = testing started on/after Apr 8, 2026,
   // vs the Nov 2025 – Mar 2026 baseline (8 projects, 8.75d). See uat-pipeline/.
+  { id: "november-2026", group: "uat", kind: "monthly", title: "November 2026", date: "2026-11-30",
+    period: "Current period · Apr 8 – Nov 10, 2026", file: "reports/november-2026.html",
+    summary: "Twelve projects at 10.8 days average — up 23% versus the Nov–Mar baseline. Auto Renewals - PL remains the longest cycle at 41 days (its 25-day R3 retest drives most of it); first-round durations stay elevated while retests run faster than baseline (R1→R2 −58%).",
+    stats: [{ value: "12", label: "Projects tested" }, { value: "24", label: "Testing rounds" }, { value: "10.8d", label: "Avg / project" }, { value: "+23%", label: "vs baseline" }] },
+  { id: "october-2026", group: "uat", kind: "monthly", title: "October 2026", date: "2026-10-31",
+    period: "Current period · Apr 8 – Oct 31, 2026", file: "reports/october-2026.html",
+    summary: "Eleven projects at 11.3 days average — up 29% versus the Nov–Mar baseline. Auto Renewals - PL leads at 41 days; first rounds stay elevated while retest efficiency holds (R1→R2 −59%).",
+    stats: [{ value: "11", label: "Projects tested" }, { value: "23", label: "Testing rounds" }, { value: "11.3d", label: "Avg / project" }, { value: "+29%", label: "vs baseline" }] },
   { id: "september-2026", group: "uat", kind: "monthly", title: "September 2026", date: "2026-09-30",
     period: "Current period · Apr 8 – Sep 30, 2026", file: "reports/september-2026.html",
     summary: "Eleven projects at 9.6 days average — up 10% versus the Nov–Mar baseline. Auto Renewals - PL is the longest cycle at 26 days; first rounds stay elevated while retests hold steady.",
