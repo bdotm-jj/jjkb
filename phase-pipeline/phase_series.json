@@ -3,9 +3,9 @@
       "Acceptance Testing (UAT/Pre-Prod)" : {
          "Q1" : {
             "max" : 183,
-            "median" : 66,
+            "median" : 58,
             "min" : 19,
-            "n" : 7,
+            "n" : 8,
             "projects" : [
                {
                   "days" : 183,
@@ -26,6 +26,10 @@
                {
                   "days" : 51,
                   "name" : "GLISE Lifecycle API"
+               },
+               {
+                  "days" : 36,
+                  "name" : "Flood Portal: Agent View Functionality"
                },
                {
                   "days" : 27,
@@ -49,11 +53,11 @@
                },
                {
                   "days" : 50,
-                  "name" : "Launch of Course of Construction (COC)"
+                  "name" : "CPAC - External Facing Rater"
                },
                {
                   "days" : 50,
-                  "name" : "CPAC - External Facing Rater"
+                  "name" : "Launch of Course of Construction (COC)"
                },
                {
                   "days" : 49,
@@ -79,9 +83,9 @@
          },
          "Q3" : {
             "max" : 141,
-            "median" : 10,
+            "median" : 12,
             "min" : 1,
-            "n" : 6,
+            "n" : 7,
             "projects" : [
                {
                   "days" : 141,
@@ -90,6 +94,10 @@
                {
                   "days" : 52,
                   "name" : "Markel Capacity Program"
+               },
+               {
+                  "days" : 19,
+                  "name" : "JJPF INTEREST INCOME OPTIMIZATION"
                },
                {
                   "days" : 12,
@@ -108,6 +116,18 @@
                   "name" : "Mailing Suppression"
                }
             ]
+         },
+         "Q4" : {
+            "max" : 38,
+            "median" : 38,
+            "min" : 38,
+            "n" : 1,
+            "projects" : [
+               {
+                  "days" : 38,
+                  "name" : "Transportation Rater Update"
+               }
+            ]
          }
       },
       "Alpha Testing (Dev Testing)" : {
@@ -119,11 +139,11 @@
             "projects" : [
                {
                   "days" : 54,
-                  "name" : "Vave In Torrent"
+                  "name" : "CPAC - External Facing Rater"
                },
                {
                   "days" : 54,
-                  "name" : "CPAC - External Facing Rater"
+                  "name" : "Vave In Torrent"
                },
                {
                   "days" : 21,
@@ -212,6 +232,22 @@
                {
                   "days" : 1,
                   "name" : "Quote Funnel Dashboard"
+               }
+            ]
+         },
+         "Q4" : {
+            "max" : 33,
+            "median" : 28,
+            "min" : 22,
+            "n" : 2,
+            "projects" : [
+               {
+                  "days" : 33,
+                  "name" : "Beazley Contract  Programming"
+               },
+               {
+                  "days" : 22,
+                  "name" : "Munich RE - Commercial"
                }
             ]
          }
@@ -308,6 +344,13 @@
                   "name" : "Agency Fees Management"
                }
             ]
+         },
+         "Q4" : {
+            "max" : null,
+            "median" : null,
+            "min" : null,
+            "n" : 0,
+            "projects" : []
          }
       },
       "Intake & Planning" : {
@@ -335,11 +378,11 @@
                },
                {
                   "days" : 28,
-                  "name" : "Bookroll"
+                  "name" : "Condo Rater – New UI"
                },
                {
                   "days" : 28,
-                  "name" : "Condo Rater – New UI"
+                  "name" : "Bookroll"
                },
                {
                   "days" : 26,
@@ -418,6 +461,13 @@
                   "name" : "Westchester Artisan Rater"
                }
             ]
+         },
+         "Q4" : {
+            "max" : null,
+            "median" : null,
+            "min" : null,
+            "n" : 0,
+            "projects" : []
          }
       },
       "Release" : {
@@ -425,7 +475,7 @@
             "max" : 34,
             "median" : 1,
             "min" : 1,
-            "n" : 9,
+            "n" : 10,
             "projects" : [
                {
                   "days" : 34,
@@ -445,6 +495,10 @@
                },
                {
                   "days" : 1,
+                  "name" : "Atrium"
+               },
+               {
+                  "days" : 1,
                   "name" : "GLISE Lifecycle API"
                },
                {
@@ -453,11 +507,11 @@
                },
                {
                   "days" : 1,
-                  "name" : "Atrium"
+                  "name" : "Flood Moratoriums"
                },
                {
                   "days" : 1,
-                  "name" : "Flood Moratoriums"
+                  "name" : "Flood Portal: Agent View Functionality"
                },
                {
                   "days" : 1,
@@ -537,11 +591,31 @@
                },
                {
                   "days" : 1,
-                  "name" : "Scottsdale API"
+                  "name" : "Chubb Local Rating"
                },
                {
                   "days" : 1,
-                  "name" : "Chubb Local Rating"
+                  "name" : "Scottsdale API"
+               }
+            ]
+         },
+         "Q4" : {
+            "max" : 8,
+            "median" : 1,
+            "min" : 1,
+            "n" : 3,
+            "projects" : [
+               {
+                  "days" : 8,
+                  "name" : "Automation: Self-Serve / rules"
+               },
+               {
+                  "days" : 1,
+                  "name" : "Transportation Rater Update"
+               },
+               {
+                  "days" : 1,
+                  "name" : "JJPF INTEREST INCOME OPTIMIZATION"
                }
             ]
          }
@@ -621,6 +695,18 @@
             "min" : null,
             "n" : 0,
             "projects" : []
+         },
+         "Q4" : {
+            "max" : 11,
+            "median" : 11,
+            "min" : 11,
+            "n" : 1,
+            "projects" : [
+               {
+                  "days" : 11,
+                  "name" : "Beazley Contract  Programming"
+               }
+            ]
          }
       },
       "Retrospective and Closeout" : {
@@ -691,14 +777,30 @@
                   "name" : "Chubb Local Rating"
                }
             ]
+         },
+         "Q4" : {
+            "max" : 6,
+            "median" : 4,
+            "min" : 2,
+            "n" : 2,
+            "projects" : [
+               {
+                  "days" : 6,
+                  "name" : "QBE New Company Setup"
+               },
+               {
+                  "days" : 2,
+                  "name" : "Automation: Self-Serve / rules"
+               }
+            ]
          }
       },
       "Stabilization (Hypercare)" : {
          "Q1" : {
             "max" : 47,
-            "median" : 30,
-            "min" : 14,
-            "n" : 2,
+            "median" : 14,
+            "min" : 12,
+            "n" : 3,
             "projects" : [
                {
                   "days" : 47,
@@ -707,6 +809,10 @@
                {
                   "days" : 14,
                   "name" : "GLISE SW Rating in Lloyds Style"
+               },
+               {
+                  "days" : 12,
+                  "name" : "Flood Portal: Agent View Functionality"
                }
             ]
          },
@@ -734,15 +840,15 @@
                },
                {
                   "days" : 17,
+                  "name" : "Casper Cyber Program"
+               },
+               {
+                  "days" : 17,
                   "name" : "Vave In Torrent"
                },
                {
                   "days" : 17,
                   "name" : "MARS Online Issuance"
-               },
-               {
-                  "days" : 17,
-                  "name" : "Casper Cyber Program"
                },
                {
                   "days" : 15,
@@ -778,11 +884,35 @@
                },
                {
                   "days" : 14,
-                  "name" : "Scottsdale API"
+                  "name" : "Chubb Local Rating"
                },
                {
                   "days" : 14,
-                  "name" : "Chubb Local Rating"
+                  "name" : "Scottsdale API"
+               }
+            ]
+         },
+         "Q4" : {
+            "max" : 27,
+            "median" : 20,
+            "min" : 14,
+            "n" : 4,
+            "projects" : [
+               {
+                  "days" : 27,
+                  "name" : "QBE New Company Setup"
+               },
+               {
+                  "days" : 21,
+                  "name" : "Transportation Rater Update"
+               },
+               {
+                  "days" : 18,
+                  "name" : "OATS Insured Portal – EPD Registry & Policy Continuity"
+               },
+               {
+                  "days" : 14,
+                  "name" : "Automation: Self-Serve / rules"
                }
             ]
          }

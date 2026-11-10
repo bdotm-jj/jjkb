@@ -7,7 +7,7 @@ use File::Basename; my $base=dirname($0);
 local $/;
 open my $f,"<:encoding(UTF-8)","$base/phase_data.json" or die $!; my $D=JSON::PP->new->decode(<$f>);
 my @PHASES=("Intake & Planning","Requirements & Design","Development","Alpha Testing (Dev Testing)","Acceptance Testing (UAT/Pre-Prod)","Release","Stabilization (Hypercare)","Retrospective and Closeout");
-my @Q=("Q1","Q2","Q3");
+my @Q=("Q1","Q2","Q3","Q4");
 sub median { my @v=sort {$a<=>$b} @_; my $n=@v; return undef unless $n; return $n%2? $v[($n-1)/2]+0 : ($v[$n/2-1]+$v[$n/2])/2; }
 my %g; for my $r (@$D){ push @{$g{$r->{phase}}{$r->{quarter}}}, $r; }
 my %table;
@@ -70,6 +70,5 @@ $dj=~s/</\\u003c/g;
 $tpl=~s/__DATA__/$dj/;
 open my $o,">:encoding(UTF-8)","$base/../site/reports/phase-duration-baseline.html" or die $!; print $o $tpl; close $o;
 print "wrote ../site/reports/phase-duration-baseline.html\n";
-printf "quarters: Q1 %dproj/%dcomp/med %dd | Q2 %d/%d/%d | Q3 %d/%d/%d\n",
-  (map {$quarters{$_}{projects},$quarters{$_}{completions},$quarters{$_}{median}} @Q);
+print "quarters: ", join(" | ", map { "$_ $quarters{$_}{projects}proj/$quarters{$_}{completions}comp/med $quarters{$_}{median}d" } @Q), "\n";
 print "outliers=".scalar(@outliers)." dq=".scalar(@dq)."\n";

@@ -2,13 +2,13 @@ use strict; use warnings; use utf8; use JSON::PP;
 binmode(STDOUT,":encoding(UTF-8)");
 local $/; open my $f,"<:encoding(UTF-8)","phase_data.json" or die $!; my $D=JSON::PP->new->decode(<$f>);
 my @PHASES=("Intake & Planning","Requirements & Design","Development","Alpha Testing (Dev Testing)","Acceptance Testing (UAT/Pre-Prod)","Release","Stabilization (Hypercare)","Retrospective and Closeout");
-my @Q=("Q1","Q2","Q3");
+my @Q=("Q1","Q2","Q3","Q4");
 my %g; # phase -> quarter -> [ {proj,days,hdr,start,end} ]
 for my $r (@$D){ push @{$g{$r->{phase}}{$r->{quarter}}}, $r; }
 sub median { my @v=sort {$a<=>$b} @_; my $n=@v; return undef unless $n; return $n%2? $v[($n-1)/2] : ($v[$n/2-1]+$v[$n/2])/2; }
 sub mean { my $s=0;$s+=$_ for @_; return @_? $s/@_:0; }
 my %OUT; my @outliers; my @headerInflate;
-printf "%-34s %-16s %-16s %-16s\n","PHASE","Q1 (n)","Q2 (n)","Q3 (n)";
+printf "%-34s %-16s %-16s %-16s %-16s\n","PHASE","Q1 (n)","Q2 (n)","Q3 (n)","Q4 (n)";
 for my $p (@PHASES){
   my %row;
   for my $q (@Q){
@@ -23,10 +23,11 @@ for my $p (@PHASES){
       push @headerInflate, "$x->{project} / $p: header ".$x->{headerDays}."d vs active ".$x->{activeDays}."d" if $x->{headerDays}>=$x->{activeDays}*2 && $x->{headerDays}>=30; }
   }
   $OUT{$p}=\%row;
-  printf "%-34s %-16s %-16s %-16s\n",$p,
+  printf "%-34s %-16s %-16s %-16s %-16s\n",$p,
     (defined $row{Q1}{median}?"$row{Q1}{median}d (n$row{Q1}{n}, $row{Q1}{min}-$row{Q1}{max})":"— (n0)"),
     (defined $row{Q2}{median}?"$row{Q2}{median}d (n$row{Q2}{n}, $row{Q2}{min}-$row{Q2}{max})":"— (n0)"),
-    (defined $row{Q3}{median}?"$row{Q3}{median}d (n$row{Q3}{n}, $row{Q3}{min}-$row{Q3}{max})":"— (n0)");
+    (defined $row{Q3}{median}?"$row{Q3}{median}d (n$row{Q3}{n}, $row{Q3}{min}-$row{Q3}{max})":"— (n0)"),
+    (defined $row{Q4}{median}?"$row{Q4}{median}d (n$row{Q4}{n}, $row{Q4}{min}-$row{Q4}{max})":"— (n0)");
 }
 # quarter rollups: distinct projects + total phase-completions + overall median across all phases
 print "\n";

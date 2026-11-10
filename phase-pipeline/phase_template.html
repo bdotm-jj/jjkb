@@ -68,7 +68,7 @@
   <div style="overflow-x:auto;border:1px solid var(--rule-soft);border-radius:var(--radius)">
     <table id="ptable"><thead><tr>
       <th>Phase</th>
-      <th class="num">Q1 2026</th><th class="num">Q2 2026</th><th class="num">Q3 2026</th>
+      <th class="num">Q1 2026</th><th class="num">Q2 2026</th><th class="num">Q3 2026</th><th class="num">Q4 2026</th>
     </tr></thead><tbody id="pbody"></tbody></table>
   </div>
   <div class="fine" id="tnote" style="margin-top:10px"></div>
@@ -101,26 +101,28 @@
 const DATA = __DATA__;
 const PC = {"Intake & Planning":"#2E6DA4","Requirements & Design":"#4A8BC2","Development":"#0F1B2D","Alpha Testing (Dev Testing)":"#5C6A80","Acceptance Testing (UAT/Pre-Prod)":"#C24B1E","Release":"#3D6B3D","Stabilization (Hypercare)":"#B5860D","Retrospective and Closeout":"#97A0B2"};
 const SHORT = {"Intake & Planning":"Intake","Requirements & Design":"Req & Design","Development":"Development","Alpha Testing (Dev Testing)":"Alpha Test","Acceptance Testing (UAT/Pre-Prod)":"UAT","Release":"Release","Stabilization (Hypercare)":"Stabilization","Retrospective and Closeout":"Retro"};
-document.getElementById('byline').innerHTML='Median <b>active</b> phase duration — Q1–Q3 2026 · recomputed from Smartsheet project plans · generated '+DATA.generated;
+document.getElementById('byline').innerHTML='Median <b>active</b> phase duration — Q1–Q4 2026 · recomputed from Smartsheet project plans · generated '+DATA.generated;
 document.getElementById('method').innerHTML='<b>Method:</b> each completed phase’s duration = the <b>active span of its child tasks</b> (first child start → last child end), not the phase-header calendar span. Phases are grouped into the quarter they <b>completed</b> in. The headline per phase/quarter is the <b>median</b> (robust to long-idle outliers), shown with <b>n</b> and the min–max range; cells with <b>n &lt; 3</b> are marked provisional.';
 document.getElementById('genstamp').textContent='Recomputed '+DATA.generated;
 // quarter cards
-document.getElementById('qcards').innerHTML=['Q1','Q2','Q3'].map(q=>{const c=DATA.quarters[q];
-  return `<div class="qcard"><div class="qh">${q} 2026 · ${q==='Q1'?'Jan–Mar':q==='Q2'?'Apr–Jun':'Jul–Sep'}</div><div class="qmed">${c.median}d</div><div class="qsub">overall median · ${c.projects} projects · ${c.completions} phase-completions</div></div>`;
+document.getElementById('qcards').innerHTML=['Q1','Q2','Q3','Q4'].map(q=>{const c=DATA.quarters[q];
+  const span=q==='Q1'?'Jan–Mar':q==='Q2'?'Apr–Jun':q==='Q3'?'Jul–Sep':'Oct–Dec · to date';
+  return `<div class="qcard"><div class="qh">${q} 2026 · ${span}</div><div class="qmed">${c.median}d</div><div class="qsub">overall median · ${c.projects} projects · ${c.completions} phase-completions</div></div>`;
 }).join('');
 // table
 document.getElementById('pbody').innerHTML=DATA.phases.map(p=>{
   const cell=q=>{const c=DATA.table[p][q]; if(!c||c.n===0) return '<td class="cell none">—</td>';
     const prov=c.n<3?' prov':''; return `<td class="cell${prov}"><span class="med">${c.median}d</span><span class="nr">n${c.n} · ${c.min}–${c.max}d${c.n<3?' · prov.':''}</span></td>`;};
-  return `<tr><td class="ph"><span class="dot" style="background:${PC[p]}"></span>${SHORT[p]}</td>${cell('Q1')}${cell('Q2')}${cell('Q3')}</tr>`;
+  return `<tr><td class="ph"><span class="dot" style="background:${PC[p]}"></span>${SHORT[p]}</td>${cell('Q1')}${cell('Q2')}${cell('Q3')}${cell('Q4')}</tr>`;
 }).join('');
-document.getElementById('tnote').innerHTML='“Provisional” marks phases with fewer than 3 completions in a quarter — a median on n&lt;3 is indicative only. Requirements &amp; Design has no Q3 completions yet.';
+document.getElementById('tnote').innerHTML='“Provisional” marks phases with fewer than 3 completions in a quarter — a median on n&lt;3 is indicative only. <b>Q4 2026 is partial</b> (completions through the generated date), so most Q4 cells are provisional.';
 // chart
 new Chart(document.getElementById('chart'),{type:'bar',
   data:{labels:DATA.phases.map(p=>SHORT[p]),datasets:[
     {label:'Q1',data:DATA.phases.map(p=>DATA.table[p].Q1.n?DATA.table[p].Q1.median:null),backgroundColor:'#A9C4DD'},
     {label:'Q2',data:DATA.phases.map(p=>DATA.table[p].Q2.n?DATA.table[p].Q2.median:null),backgroundColor:'#4A8BC2'},
-    {label:'Q3',data:DATA.phases.map(p=>DATA.table[p].Q3.n?DATA.table[p].Q3.median:null),backgroundColor:'#2E6DA4'}]},
+    {label:'Q3',data:DATA.phases.map(p=>DATA.table[p].Q3.n?DATA.table[p].Q3.median:null),backgroundColor:'#2E6DA4'},
+    {label:'Q4',data:DATA.phases.map(p=>DATA.table[p].Q4.n?DATA.table[p].Q4.median:null),backgroundColor:'#16304d'}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{color:'#5C6A80',font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'d median'}}},
     scales:{x:{ticks:{color:'#5C6A80',font:{size:10}},grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Median active days',color:'#5C6A80'},ticks:{color:'#5C6A80'},grid:{color:'rgba(15,27,45,.08)'}}}}});
 // classification breakdown table

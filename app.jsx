@@ -779,10 +779,10 @@ const REPORTS = [
     period: "Current period · Apr 8 – 30, 2026", file: "reports/april-2026.html",
     summary: "The first full month of the current period — three projects at 4.7 days average, roughly half the baseline. Scottsdale API's 10-day R1 is the lone long cycle.",
     stats: [{ value: "3", label: "Projects tested" }, { value: "4", label: "Testing rounds" }, { value: "4.7d", label: "Avg / project" }, { value: "−47%", label: "vs baseline" }] },
-  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-10-08",
-    period: "Q1–Q3 2026 · median active span · refreshed Oct 8, 2026", file: "reports/phase-duration-baseline.html",
-    summary: "Median phase duration across the 8 delivery phases, recomputed from Smartsheet project plans. Each phase is measured by the active span of its child tasks (not the idle phase-header span) and summarized by the median, with n, range, and long-running outliers called out.",
-    stats: [{ value: "Q1–Q3", label: "2026" }, { value: "15d", label: "Q3 median" }, { value: "17", label: "Q3 projects" }] },
+  { id: "phase-duration-baseline", group: "phase", kind: "baseline", title: "Phase Duration Baseline", date: "2026-11-10",
+    period: "Q1–Q4 2026 · median active span · refreshed Nov 10, 2026", file: "reports/phase-duration-baseline.html",
+    summary: "Median phase duration across the 8 delivery phases, recomputed from Smartsheet project plans. Each phase is measured by the active span of its child tasks (not the idle phase-header span) and summarized by the median, with n, range, and long-running outliers called out. Now carries Q4 2026 (completions to date).",
+    stats: [{ value: "Q1–Q4", label: "2026" }, { value: "14d", label: "Q4 median · to date" }, { value: "7", label: "Q4 projects" }] },
   // Sprint Completion: one "<LOB> Sprint Reports" workbook per line of business; each sprint's
   // completion % (the workbook's stored hours-based figure) charted against the 80% goal, plus
   // tickets closed. The landing (sprints.html) compares LOBs; see sprint-pipeline/.
