@@ -10,3 +10,4 @@
 37	2026-09-21	2026-10-02	92	76	0.826
 38	2026-10-05	2026-10-16	72	62	0.861
 39	2026-10-19	2026-10-30	66	64	0.97	Sprint 39 (Oct 19-30). 97% (64 of 66; 31 Done, 19 Awaiting-Publish-to-Live, 14 Acceptance Testing). Email-sourced (Abdoul Balla).
+40	2026-11-02	2026-11-13	83	107	1.289	Sprint 40 (Nov 2-13). 128.9% (107 completed vs 83 committed) \u2014 three Stabilization-pod devs joined mid-sprint, so completed exceeds committed (68 Done, 17 Awaiting-Publish-to-Live, 22 Acceptance Testing). Email-sourced (Abdoul Balla).
